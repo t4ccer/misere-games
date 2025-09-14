@@ -1,0 +1,4 @@
+/.direnv/
+/.lake/
+/.envrc
+/.pre-commit-config.yaml

@@ -1,0 +1,15 @@
+import CombinatorialGames.GameForm
+import CombinatorialGames.GameForm.Adjoint
+import CombinatorialGames.GameForm.Birthday
+import CombinatorialGames.GameForm.Short
+import CombinatorialGames.GameForm.Special
+import CombinatorialGames.Mathlib.NatOrdinal
+import CombinatorialGames.Mathlib.Neg
+import CombinatorialGames.Mathlib.OrdinalAlias
+import CombinatorialGames.Mathlib.Small
+import CombinatorialGames.Misere.Adjoint
+import CombinatorialGames.Misere.NonInvertible
+import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.OfSets
+import CombinatorialGames.Outcome
+import CombinatorialGames.Player
