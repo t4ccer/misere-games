@@ -11,6 +11,7 @@ import CombinatorialGames.Misere.Adjoint
 import CombinatorialGames.Misere.DeadEnding
 import CombinatorialGames.Misere.NonInvertible
 import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Misere.PFree
 import CombinatorialGames.OfSets
 import CombinatorialGames.Outcome
 import CombinatorialGames.Player
