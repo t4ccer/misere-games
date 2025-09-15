@@ -198,14 +198,9 @@ theorem outcome_eq_P_not_WinsGoingFirst {g : GameForm} {p : Player}
   · exact h3 h2
   · exact h4 h2
 
-theorem add_end_is_end {g h : GameForm} {p : Player} (h1 : g.IsEnd p) (h2 : h.IsEnd p) :
-    (g + h).IsEnd p := by
-  unfold GameForm.IsEnd at h1 h2
-  simp [h1, h2, GameForm.IsEnd]
-
 theorem add_end_WinsGoingFirst {g h : GameForm} {p : Player} (h1 : g.IsEnd p)
     (h2 : h.IsEnd p) : WinsGoingFirst (g + h) p :=
-  End_WinsGoingFirst (add_end_is_end h1 h2)
+  End_WinsGoingFirst (GameForm.IsEnd.add_iff.mpr ⟨h1, h2⟩)
 
 theorem wins_opposite_outcome_eq_P {g : GameForm} (h1 : ∀ p, MiserePlayerOutcome g p = -p) :
     MisereOutcome g = Outcome.P := by
