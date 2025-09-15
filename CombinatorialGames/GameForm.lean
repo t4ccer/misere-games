@@ -566,4 +566,8 @@ theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬g.IsEnd p := by
 theorem zero_end {p : Player} : (0 : GameForm).IsEnd p := by
   rw [zero_def, IsEnd, moves_ofSets]
 
+theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : g.IsEnd p) :
+    ¬g.IsEnd (-p) :=
+  fun h3 => h1 (both_ends_eq_zero h2 h3)
+
 end GameForm

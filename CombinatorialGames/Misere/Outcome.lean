@@ -211,3 +211,36 @@ theorem wins_opposite_outcome_eq_P {g : GameForm} (h1 : ∀ p, MiserePlayerOutco
     MisereOutcome g = Outcome.P := by
   unfold MisereOutcome Outcome.ofPlayers
   simp only [h1 .left, h1 .right]
+
+@[simp]
+theorem MisereOutcome_eq_player_iff (g : GameForm) (p : Player) :
+    (MisereOutcome g = Outcome.ofPlayer p) ↔ (WinsGoingFirst g p ∧ ¬WinsGoingFirst g (-p)) := by
+  constructor <;> intro h1
+  · unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h1
+    by_cases h2 : WinsGoingFirst g Player.left
+      <;> by_cases h3 : WinsGoingFirst g Player.right
+      <;> cases p
+      <;> simp only [h2, h3, Outcome.ofPlayer, Player.neg_left, Player.neg_right, reduceIte,
+                     reduceCtorEq] at h1
+    · exact And.intro h2 h3
+    · exact And.intro h3 h2
+  · unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome
+    cases p
+    <;> simp only [Player.neg_left, Player.neg_right] at h1
+    <;> simp only [h1, reduceIte, Player.neg_right, Outcome.ofPlayer]
+
+@[simp]
+theorem MisereOutcome_eq_L_iff {g : GameForm} :
+    (MisereOutcome g = .L) ↔ (WinsGoingFirst g Player.left ∧ ¬WinsGoingFirst g Player.right) := by
+  have h1 : Outcome.L = Outcome.ofPlayer .left := rfl
+  have h2 : Player.right = -Player.left := rfl
+  rw [h1, h2]
+  exact MisereOutcome_eq_player_iff g Player.left
+
+@[simp]
+theorem MisereOutcome_eq_R_iff {g : GameForm} :
+    (MisereOutcome g = .R) ↔ (WinsGoingFirst g Player.right ∧ ¬WinsGoingFirst g Player.left) := by
+  have h1 : Outcome.R = Outcome.ofPlayer .right := rfl
+  have h2 : Player.left = -Player.right := rfl
+  rw [h1, h2]
+  exact MisereOutcome_eq_player_iff g Player.right

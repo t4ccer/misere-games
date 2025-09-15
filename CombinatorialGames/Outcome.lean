@@ -103,4 +103,14 @@ def ofPlayers : Player → Player → Outcome
   | .right, .left => Outcome.P
   | .left, .right => Outcome.N
 
+def ofPlayer : Player → Outcome
+  | .left => Outcome.L
+  | .right => Outcome.R
+
+@[simp]
+theorem ofPlayer_left : ofPlayer .left = .L := rfl
+
+@[simp]
+theorem ofPlayer_right : ofPlayer .right = .R := rfl
+
 end Outcome
