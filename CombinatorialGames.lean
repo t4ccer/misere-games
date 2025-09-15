@@ -9,6 +9,7 @@ import CombinatorialGames.Mathlib.OrdinalAlias
 import CombinatorialGames.Mathlib.Small
 import CombinatorialGames.Misere.Adjoint
 import CombinatorialGames.Misere.DeadEnding
+import CombinatorialGames.Misere.Experimental
 import CombinatorialGames.Misere.NonInvertible
 import CombinatorialGames.Misere.Outcome
 import CombinatorialGames.Misere.PFree
