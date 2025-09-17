@@ -89,10 +89,10 @@ theorem neg_WinsGoingFirst_iff_WinsGoingFirst_player_neg (g : GameForm) (p : Pla
     have h3 := (neg_WinsGoingFirst_iff_WinsGoingFirst_player_neg (-gp) p).not.mp
     rw [neg_neg] at h2 h3
     exact h3 h2
-termination_by GameForm.birthday g
+termination_by Form.birthday g
 decreasing_by
   · simp only [GameForm.moves_neg, Set.mem_neg] at h1
-    rw [GameForm.lt_birthday_iff]
+    rw [Form.lt_birthday_iff]
     cases p
     · apply Or.inr
       use -gp
@@ -102,14 +102,14 @@ decreasing_by
       use -gp
       apply And.intro h1
       rw [GameForm.birthday_neg]
-  · rw [GameForm.birthday_neg, GameForm.lt_birthday_iff]
+  · rw [GameForm.birthday_neg, Form.lt_birthday_iff]
     cases p
     · apply Or.inr
       use gp
-      exact And.intro h1 (Preorder.le_refl gp.birthday)
+      exact And.intro h1 (Preorder.le_refl (Form.birthday gp))
     · apply Or.inl
       use gp
-      exact And.intro h1 (Preorder.le_refl gp.birthday)
+      exact And.intro h1 (Preorder.le_refl (Form.birthday gp))
 
 class ClosedUnderNeg (A : GameForm → Prop) where
   neg_of (g : GameForm) (h1 : A g) : A (-g)
