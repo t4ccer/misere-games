@@ -1,3 +1,4 @@
+import CombinatorialGames.AugmentedForm
 import CombinatorialGames.GameForm
 import CombinatorialGames.GameForm.Adjoint
 import CombinatorialGames.GameForm.Birthday
