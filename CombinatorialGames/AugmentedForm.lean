@@ -1,4 +1,6 @@
+import CombinatorialGames.Form
 import CombinatorialGames.GameForm
+import CombinatorialGames.Misere.Outcome
 
 universe u
 
@@ -26,10 +28,10 @@ instance : QPF AugmentedFunctor where
   P := ⟨(Player → Type u) × (Player → Bool), fun ⟨x, _⟩ ↦ Σ p, PLift (x p)⟩
   abs x := ⟨⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ inferInstance⟩, x.1.2⟩
   repr x := ⟨⟨fun p ↦ Shrink (x.1.1 p), x.2⟩, Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
-  abs_repr x := by 
+  abs_repr x := by
     cases x with | mk s b =>
     ext; simp [← (equivShrink _).exists_congr_right]; simp
-  abs_map f := by 
+  abs_map f := by
     intro ⟨⟨x, b⟩, g⟩
     ext; simp [PFunctor.map, map_def]
     · simp; rfl
@@ -38,3 +40,34 @@ end AugmentedFunctor
 
 def AugmentedForm : Type (u + 1) :=
   QPF.Fix AugmentedFunctor
+
+namespace AugmentedForm
+
+def moves (p : Player) (x : AugmentedForm.{u}) : Set AugmentedForm.{u} :=
+  x.dest.1.1 p
+
+def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
+  x.dest.2 p = True
+
+instance : Form AugmentedForm where
+  moves := AugmentedForm.moves
+  isOption'_wf := by
+    refine ⟨fun x ↦ ?_⟩
+    apply QPF.Fix.ind
+    unfold Form.IsOption' AugmentedForm.moves
+    rintro _ ⟨⟨st, hst⟩, rfl⟩
+    constructor
+    rintro y hy
+    rw [QPF.Fix.dest_mk, Set.mem_iUnion] at hy
+    obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
+    exact h
+
+def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
+  g.hasTombstone p ∨ g.moves p = ∅ ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')
+termination_by g
+decreasing_by form_wf
+
+instance : MisereForm AugmentedForm where
+  WinsGoingFirst := AugmentedForm.WinsGoingFirst
+
+end AugmentedForm

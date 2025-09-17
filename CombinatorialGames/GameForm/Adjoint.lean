@@ -17,7 +17,7 @@ noncomputable def Adjoint (g : GameForm) : GameForm :=
   else !{ Set.range fun gr : g.moves .right => Adjoint gr
         | Set.range fun gl : g.moves .left => Adjoint gl}
 termination_by g
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 notation g"°" => Adjoint g
 
@@ -114,7 +114,7 @@ instance short_adjoint (g : GameForm) [h1 : GameForm.Short g] : GameForm.Short (
     have _ : Short gr := Short.of_mem_moves h5
     exact short_adjoint gr
 termination_by g
-decreasing_by all_goals game_form_wf
+decreasing_by all_goals form_wf
 
 end Adjoint
 end GameForm

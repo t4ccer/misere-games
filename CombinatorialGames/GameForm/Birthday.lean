@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import CombinatorialGames.GameForm
+import CombinatorialGames.Form
 import CombinatorialGames.Mathlib.NatOrdinal
 
 /-!
@@ -23,12 +24,14 @@ universe u
 
 namespace GameForm
 
+open Form
+
 /-- The birthday of an `IGame` is inductively defined as the least strict upper bound of the
 birthdays of its options. It may be thought as the "step" in which a certain game is constructed. -/
 noncomputable def birthday (x : GameForm.{u}) : NatOrdinal.{u} :=
   ⨆ y : {y // IsOption y x}, Order.succ (birthday y)
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 theorem lt_birthday_iff' {x : GameForm} {o : NatOrdinal} : o < x.birthday ↔
     ∃ y, IsOption y x ∧ o ≤ y.birthday := by
@@ -41,7 +44,7 @@ theorem birthday_le_iff' {x : GameForm} {o : NatOrdinal} : x.birthday ≤ o ↔
 
 theorem lt_birthday_iff {x : GameForm} {o : NatOrdinal} : o < x.birthday ↔
     (∃ y ∈ xᴸ, o ≤ y.birthday) ∨ (∃ y ∈ xᴿ, o ≤ y.birthday) := by
-  simp [lt_birthday_iff', isOption_iff_mem_union, or_and_right, exists_or]
+  simp [lt_birthday_iff', isOption_iff_mem_union, or_and_right, exists_or, Form.moves]
 
 theorem birthday_le_iff {x : GameForm} {o : NatOrdinal} : x.birthday ≤ o ↔
     (∀ y ∈ xᴸ, y.birthday < o) ∧ (∀ y ∈ xᴿ, y.birthday < o) := by
@@ -67,7 +70,7 @@ theorem birthday_lt_of_subposition {x y : GameForm} (hy : Subposition y x) :
   | single h => exact birthday_lt_of_isOption h
   | tail IH h => exact (birthday_lt_of_subposition IH).trans (birthday_lt_of_isOption h)
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 theorem birthday_ofSets (s t : Set GameForm.{u}) [Small.{u} s] [Small.{u} t] :
     birthday !{s | t} = max (sSup (succ ∘ birthday '' s)) (sSup (succ ∘ birthday '' t)) := by
@@ -81,7 +84,7 @@ theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
 @[simp]
 theorem birthday_eq_zero {x : GameForm} : birthday x = 0 ↔ x = 0 := by
   rw [birthday, iSup_eq_zero_iff, GameForm.ext_iff]
-  simp [isOption_iff_mem_union, forall_and, eq_empty_iff_forall_notMem]
+  simp [isOption_iff_mem_union, forall_and, eq_empty_iff_forall_notMem, Form.moves]
 
 @[simp]
 theorem birthday_neg (x : GameForm) : (-x).birthday = x.birthday := by
@@ -93,6 +96,6 @@ theorem birthday_neg (x : GameForm) : (-x).birthday = x.birthday := by
     intro h
     rw [birthday_neg]
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 end GameForm
