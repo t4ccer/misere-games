@@ -24,9 +24,11 @@ universe u
 
 namespace Form
 
+open Form
+
 variable {G : Type u} [g_form : Form G]
 
-/-- The birthday of an `IGame` is inductively defined as the least strict upper bound of the
+/-- The birthday of a form is inductively defined as the least strict upper bound of the
 birthdays of its options. It may be thought as the "step" in which a certain game is constructed. -/
 noncomputable def birthday (x : G) : NatOrdinal.{u} :=
   ⨆ y : {y // IsOption y x}, Order.succ (birthday y)
@@ -44,7 +46,7 @@ theorem birthday_le_iff' {x : G} {o : NatOrdinal} : birthday x ≤ o ↔
 
 theorem lt_birthday_iff {x : G} {o : NatOrdinal} : o < birthday x ↔
     (∃ y ∈ moves .left x, o ≤ birthday y) ∨ (∃ y ∈ moves .right x, o ≤ birthday y) := by
-  simp [lt_birthday_iff', isOption_iff_mem_union, or_and_right, exists_or]
+  simp [lt_birthday_iff', IsOption.iff_mem_union, or_and_right, exists_or]
 
 theorem birthday_le_iff {x : G} {o : NatOrdinal} : birthday x ≤ o ↔
     (∀ y ∈ moves .left x, birthday y < o) ∧ (∀ y ∈ moves .right x, birthday y < o) := by
@@ -73,10 +75,10 @@ termination_by x
 decreasing_by form_wf
 
 @[simp]
-theorem birthday_neg {G : Type u} [FormNeg G] (x : G) : birthday (-x) = birthday x := by
+theorem birthday_neg (x : G) : birthday (-x) = birthday x := by
   refine eq_of_forall_lt_iff fun y ↦ ?_
   rw [lt_birthday_iff, lt_birthday_iff]
-  rw [FormNeg.exists_moves_neg, FormNeg.exists_moves_neg, or_comm]
+  rw [exists_moves_neg, exists_moves_neg, or_comm]
   congr! 3
   all_goals
     dsimp; rw [and_congr_right]
@@ -105,6 +107,6 @@ theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
 @[simp]
 theorem birthday_eq_zero {x : GameForm} : birthday x = 0 ↔ x = 0 := by
   rw [birthday, iSup_eq_zero_iff, GameForm.ext_iff]
-  simp [isOption_iff_mem_union, forall_and, eq_empty_iff_forall_notMem, Form.moves]
+  simp [IsOption.iff_mem_union, forall_and, eq_empty_iff_forall_notMem, Form.moves]
 
 end GameForm

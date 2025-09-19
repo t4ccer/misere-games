@@ -8,7 +8,7 @@ universe u
 variable {G : Type u} [g_form : MisereForm G]
 
 def IsPFree (g : G) : Prop :=
-  (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ Form.moves p g, IsPFree gp)
+  (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
 

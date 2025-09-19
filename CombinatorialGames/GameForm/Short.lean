@@ -48,7 +48,7 @@ theorem finite_moves (p : Player) (x : GameForm) [h : Short x] : (x.moves p).Fin
   (short_def.1 h p).1
 
 theorem finite_setOf_isOption (x : GameForm) [Short x] : {y | IsOption y x}.Finite := by
-  simp_rw [isOption_iff_mem_union]
+  simp_rw [IsOption.iff_mem_union]
   exact (finite_moves _ x).union (finite_moves _ x)
 
 instance (p : Player) (x : GameForm) [Short x] : Finite (x.moves p) :=
@@ -61,7 +61,7 @@ protected theorem of_mem_moves [h : Short x] {p} (hy : y ∈ x.moves p) : Short 
   (short_def.1 h p).2 y hy
 
 protected theorem isOption [Short x] (h : IsOption y x) : Short y := by
-  simp_rw [isOption_iff_mem_union] at h
+  simp_rw [IsOption.iff_mem_union] at h
   cases h with
   | inl h => exact .of_mem_moves h
   | inr h => exact .of_mem_moves h

@@ -108,12 +108,12 @@ theorem ext {x y : AugmentedForm.{u}}
   rw [← ofSets_moves_tombs x, ← ofSets_moves_tombs y]
   simp_rw [funext h_moves, h_tomb]
 
-instance : Form AugmentedForm where
+instance : Moves AugmentedForm where
   moves := AugmentedForm.moves
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
     apply QPF.Fix.ind
-    unfold Form.IsOption' AugmentedForm.moves
+    unfold Moves.IsOption' AugmentedForm.moves
     rintro _ ⟨⟨st, hst⟩, rfl⟩
     constructor
     rintro y hy
@@ -557,7 +557,7 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := neg_neg'
 
-instance : FormNeg AugmentedForm where
+instance : Form AugmentedForm where
   moves_neg := by
     intro p x
     simp only [neg_eq]
