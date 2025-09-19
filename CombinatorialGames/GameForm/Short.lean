@@ -25,6 +25,13 @@ namespace GameForm
 
 open Form
 
+variable {G : Type u} [g_form : Form G]
+
+def ShortAux' (x : G) : Prop :=
+  ∀ p, (Form.moves p x).Finite ∧ ∀ y ∈ Form.moves p x, ShortAux' y
+termination_by x
+decreasing_by form_wf
+
 def ShortAux (x : GameForm) : Prop :=
   ∀ p, (x.moves p).Finite ∧ ∀ y ∈ x.moves p, ShortAux y
 termination_by x
@@ -35,6 +42,10 @@ finite, and all of the games in them are short as well. -/
 @[mk_iff short_iff_aux]
 class Short (x : GameForm) : Prop where of_shortAux ::
   out : ShortAux x
+
+@[mk_iff short_iff_aux']
+class Short' (x : G) : Prop where of_shortAux ::
+  out : ShortAux' x
 
 theorem short_def {x : GameForm} : Short x ↔ ∀ p, (x.moves p).Finite ∧ ∀ y ∈ x.moves p, Short y := by
   simp_rw [short_iff_aux]; rw [ShortAux]
