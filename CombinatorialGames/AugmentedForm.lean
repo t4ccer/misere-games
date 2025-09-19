@@ -393,10 +393,29 @@ private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
   · exact hasTombstone_add_zero x _
 
 private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
+  ext
+  · simp only [moves_add, Set.mem_union, Set.mem_image, or_comm]
+    congr! 3 <;>
+    · refine and_congr_right_iff.2 fun h ↦ ?_
+      rw [add_comm']
+  · simp only [hasTombstone_add, and_comm, or_comm]
+termination_by (x, y)
+decreasing_by form_wf
+
+private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
+    hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
   sorry
 
 private theorem add_assoc' (x y z : AugmentedForm) : x + y + z = x + (y + z) := by
-  sorry
+  ext1
+  · simp only [moves_add, Set.image_union, Set.image_image, Set.union_assoc]
+    refine congrArg₂ _ ?_ (congrArg₂ _ ?_ ?_) <;>
+    · ext
+      congr! 2
+      rw [add_assoc']
+  · exact hasTombstone_add_assoc x y z _
+termination_by (x, y, z)
+decreasing_by form_wf
 
 noncomputable instance : AddCommMonoid AugmentedForm where
   add_zero := add_zero'
