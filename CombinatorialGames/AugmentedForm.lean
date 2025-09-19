@@ -512,4 +512,49 @@ theorem ofGameFormHom_injective : Function.Injective ofGameFormHom := by
   rw [← toGameForm_ofGameForm g, ← toGameForm_ofGameForm h]
   congr 1
 
+private def neg' (x : AugmentedForm) : AugmentedForm :=
+  ofSetsWithTombs
+    (fun p => (Set.range fun xp : x.moves (-p) => neg' xp))
+    (fun p => hasTombstone (-p) x)
+termination_by x
+decreasing_by form_wf
+
+instance : Neg AugmentedForm where
+  neg := neg'
+
+theorem neg_eq (x : AugmentedForm)
+    : (-x) = ofSetsWithTombs
+               (fun p => (Set.range fun xp : x.moves (-p) => neg' xp))
+               (fun p => hasTombstone (-p) x) := by
+  simp only [Neg.neg, Player.cases]
+  rw [neg']
+  congr
+
+private theorem neg_eq' (x : AugmentedForm) : (-x) = neg' x := by rfl
+
+private theorem neg_neg' (x : AugmentedForm) : -(-x) = x := by
+  simp only [neg_eq, hasTombstone_ofSetsWithTombs, neg_neg]
+  rw [<-ofSets_moves_tombs x]
+  congr
+  funext p
+  ext xp
+  simp only [Set.mem_range, Subtype.exists, ofSets_moves_tombs, moves_ofSetsWithTombs,
+             exists_prop, exists_exists_and_eq_and]
+  constructor <;> intro h1
+  · obtain ⟨yp, h1, h2⟩ := h1
+    have h3 : neg' (neg' yp) = -(-yp) := rfl
+    rw [<-h2, h3, neg_neg' yp]
+    rw [neg_neg] at h1
+    exact h1
+  · use xp
+    rw [neg_neg p]
+    apply And.intro h1
+    have h3 : neg' (neg' xp) = -(-xp) := rfl
+    rw [h3, neg_neg' xp]
+termination_by x
+decreasing_by form_wf
+
+instance : InvolutiveNeg AugmentedForm where
+  neg_neg := neg_neg'
+
 end AugmentedForm
