@@ -5,7 +5,7 @@ import CombinatorialGames.Misere.Outcome
 universe u
 
 def AugmentedFunctor (α : Type (u + 1)) : Type (u + 1) :=
-  {s : Player → Set α // ∀ p, Small.{u} (s p)} × (Player → Bool)
+  {s : Player → Set α // ∀ p, Small.{u} (s p)} × (Player → Prop)
 
 namespace AugmentedFunctor
 
@@ -25,7 +25,7 @@ theorem map_def {α β} (f : α → β) (s : AugmentedFunctor α) :
   rfl
 
 instance : QPF AugmentedFunctor where
-  P := ⟨(Player → Type u) × (Player → Bool), fun ⟨x, _⟩ ↦ Σ p, PLift (x p)⟩
+  P := ⟨(Player → Type u) × (Player → Prop), fun ⟨x, _⟩ ↦ Σ p, PLift (x p)⟩
   abs x := ⟨⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ inferInstance⟩, x.1.2⟩
   repr x := ⟨⟨fun p ↦ Shrink (x.1.1 p), x.2⟩, Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
   abs_repr x := by
@@ -50,24 +50,18 @@ scoped notation:max x:max "ᴸ" => moves Player.left x
 
 scoped notation:max x:max "ᴿ" => moves Player.right x
 
-def leftTombstone (x : AugmentedForm.{u}) : Bool := x.dest.2 .left
-
-def rightTombstone (x : AugmentedForm.{u}) : Bool := x.dest.2 .right
-
-def tombstone (p : Player) (x : AugmentedForm.{u}) : Bool := x.dest.2 p
-
 def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
-  x.dest.2 p = True
+  x.dest.2 p
 
 instance (p : Player) (x : AugmentedForm.{u}) : Small.{u} (x.moves p) := x.dest.1.2 p
 
-def ofSetsWithTombs (st : Player → Set AugmentedForm) (leftTomb rightTomb : Bool)
+def ofSetsWithTombs (st : Player → Set AugmentedForm) (leftTomb rightTomb : Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] : AugmentedForm :=
   QPF.Fix.mk ⟨⟨st, fun | .left => inferInstance | .right => inferInstance⟩,
     fun | .left => leftTomb | .right => rightTomb⟩
 
 instance : OfSets AugmentedForm fun _ ↦ True where
-  ofSets st _ := ofSetsWithTombs st false false
+  ofSets st _ := ofSetsWithTombs st False False
 
 @[simp]
 theorem moves_ofSets (p) (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
@@ -75,47 +69,30 @@ theorem moves_ofSets (p) (st : Player → Set AugmentedForm) [Small.{u} (st .lef
   dsimp [ofSets, ofSetsWithTombs]; rw [moves, QPF.Fix.dest_mk]
 
 @[simp]
-theorem moves_ofSetsWithTombs (p) (st : Player → Set AugmentedForm) (lb rb : Bool)
+theorem moves_ofSetsWithTombs (p) (st : Player → Set AugmentedForm) (lb rb : Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] :
     (ofSetsWithTombs st lb rb).moves p = st p := by
   dsimp [ofSetsWithTombs]; rw [moves, QPF.Fix.dest_mk]
 
 @[simp]
-theorem leftTombstone_ofSets (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    !{st}.leftTombstone = false := by
-  dsimp [ofSets, ofSetsWithTombs]; rw [leftTombstone, QPF.Fix.dest_mk]
+theorem hasTombstone_ofSets
+    (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)]
+    (p : Player): ¬!{st}.hasTombstone p := by
+  dsimp [ofSets, ofSetsWithTombs]
+  rw [hasTombstone, QPF.Fix.dest_mk]
+  cases p <;> simp only [not_false_eq_true]
 
 @[simp]
-theorem rightTombstone_ofSets (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    !{st}.rightTombstone = false := by
-  dsimp [ofSets, ofSetsWithTombs]; rw [rightTombstone, QPF.Fix.dest_mk]
-
-@[simp]
-theorem leftTombstone_ofSetsWithTombs (st : Player → Set AugmentedForm) (lb rb : Bool)
+theorem hasTombstone_ofSetsWithTombs (p : Player) (st : Player → Set AugmentedForm) (lb rb : Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    (ofSetsWithTombs st lb rb).leftTombstone = lb := by
-  dsimp [ofSetsWithTombs]; rw [leftTombstone, QPF.Fix.dest_mk]
-
-@[simp]
-theorem rightTombstone_ofSetsWithTombs (st : Player → Set AugmentedForm) (lb rb : Bool)
-    [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    (ofSetsWithTombs st lb rb).rightTombstone = rb := by
-  dsimp [ofSetsWithTombs]; rw [rightTombstone, QPF.Fix.dest_mk]
-
-@[simp]
-theorem tombstone_ofSetsWithTombs (p : Player) (st : Player → Set AugmentedForm) (lb rb : Bool)
-    [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    (ofSetsWithTombs st lb rb).tombstone p = if p = Player.left then lb else rb := by
-  cases p with
-  | left =>
-    rw [tombstone]; dsimp [ofSetsWithTombs]; rw [QPF.Fix.dest_mk]
-  | right =>
-    rw [tombstone]; dsimp [ofSetsWithTombs]; rw [QPF.Fix.dest_mk]
+    (ofSetsWithTombs st lb rb).hasTombstone p = if p = Player.left then lb else rb := by
+  simp [hasTombstone, ofSetsWithTombs, QPF.Fix.dest_mk]
+  cases p <;> simp only [reduceCtorEq, ↓reduceIte]
 
 @[simp]
 theorem ofSets_moves_tombs (x : AugmentedForm) :
-    ofSetsWithTombs x.moves x.leftTombstone x.rightTombstone = x := by
-  simp only [ofSetsWithTombs, moves, Subtype.coe_eta, leftTombstone, rightTombstone]
+    ofSetsWithTombs x.moves (x.hasTombstone .left) (x.hasTombstone .right) = x := by
+  simp only [ofSetsWithTombs, moves, Subtype.coe_eta, hasTombstone]
   unfold AugmentedForm at x
   have h1 : (fun x_1 ↦
         match x_1 with
@@ -129,11 +106,10 @@ theorem ofSets_moves_tombs (x : AugmentedForm) :
 @[ext]
 theorem ext {x y : AugmentedForm.{u}}
     (h_moves : ∀ p, x.moves p = y.moves p)
-    (h_left_tomb : x.leftTombstone = y.leftTombstone)
-    (h_right_tomb : x.rightTombstone = y.rightTombstone) :
-    x = y := by
+    (h_tomb : ∀ p, x.hasTombstone p ↔ y.hasTombstone p)
+    : x = y := by
   rw [← ofSets_moves_tombs x, ← ofSets_moves_tombs y]
-  simp_rw [funext h_moves, h_left_tomb, h_right_tomb]
+  simp_rw [funext h_moves, h_tomb]
 
 instance : Form AugmentedForm where
   moves := AugmentedForm.moves
@@ -173,15 +149,15 @@ instance : MisereForm AugmentedForm where
   WinsGoingFirst := AugmentedForm.WinsGoingFirst
 
 open scoped Classical in
-noncomputable def EndLike (g : AugmentedForm) (p : Player) : Bool :=
-  g.tombstone p || decide (g.moves p = ∅)
+noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
+  g.hasTombstone p ∨ (g.moves p = ∅) -- TODO: .IsEnd to be form-polymorphic
 
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => (Set.range fun z : x.moves p => add' z y) ∪ (Set.range fun z : y.moves p => add' x z))
-    ((x.tombstone .left && EndLike y .left) || (y.tombstone .left && EndLike x .left))
-    ((x.tombstone .right && EndLike y .right) || (y.tombstone .right && EndLike x .right))
+    ((x.hasTombstone .left ∧ EndLike y .left) ∨ (y.hasTombstone .left ∧ EndLike x .left))
+    ((x.hasTombstone .right ∧ EndLike y .right) ∨ (y.hasTombstone .right ∧ EndLike x .right))
   termination_by (x, y)
   decreasing_by form_wf
 
@@ -191,8 +167,8 @@ noncomputable instance : Add AugmentedForm where
 def ofGameForm (g : GameForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => Set.range (fun gp : g.moves p => ofGameForm gp))
-    false
-    false
+    False
+    False
     termination_by g
     decreasing_by form_wf
 
@@ -200,24 +176,21 @@ instance : Coe GameForm AugmentedForm where
   coe := ofGameForm
 
 def TombstoneFree (g : AugmentedForm) : Prop :=
-  ¬g.tombstone .left ∧ ¬g.tombstone .right ∧ ∀ p, ∀ h ∈ g.moves p, TombstoneFree h
+  (∀ p, ¬g.hasTombstone p) ∧ ∀ p, ∀ h ∈ g.moves p, TombstoneFree h
   termination_by g
   decreasing_by form_wf
 
 def TombstoneFree.moves {g : AugmentedForm} (h1 : TombstoneFree g) :
   ∀ p, ∀ h ∈ g.moves p, TombstoneFree h := by
   unfold TombstoneFree at h1
-  exact h1.right.right
+  exact h1.right
 
 theorem ofSetsWithTombs_ff_TombstoneFree
     {st : Player → Set AugmentedForm} [Small.{u} (st .left)] [Small.{u} (st .right)]
-    (h1 : ∀ p, ∀ gp ∈ st p, TombstoneFree gp) : TombstoneFree (ofSetsWithTombs st false false) := by
+    (h1 : ∀ p, ∀ gp ∈ st p, TombstoneFree gp) : TombstoneFree (ofSetsWithTombs st False False) := by
   unfold TombstoneFree
-  refine ⟨?_, ?_, ?_⟩
-  · rw [tombstone_ofSetsWithTombs]
-    exact ne_true_of_eq_false rfl
-  · rw [tombstone_ofSetsWithTombs]
-    exact ne_true_of_eq_false rfl
+  constructor
+  · simp only [hasTombstone_ofSetsWithTombs, ite_self, forall_const, not_false_eq_true]
   · intro p gp h2
     refine h1 p gp ?_
     rw [moves_ofSetsWithTombs] at h2
@@ -239,19 +212,17 @@ theorem ofGameForm_tombstoneFree (g : GameForm) : TombstoneFree (ofGameForm g) :
     rw [<-h4]
     exact ih p h3 (Subtype.coe_prop h3)
 
-theorem tombstone_ofGameForm (g : GameForm) (p : Player) : tombstone p (ofGameForm g) = false := by
+theorem not_hasTombstone_ofGameForm (g : GameForm) (p : Player)
+    : ¬hasTombstone p (ofGameForm g) := by
   have h1 := ofGameForm_tombstoneFree g
   unfold TombstoneFree at h1
-  refine eq_false_of_ne_true ?_
-  cases p
-  · exact h1.left
-  · exact h1.right.left
+  exact h1.left p
 
 theorem ofSetsWithTombs_eq_ff
     {as : Player → Set AugmentedForm} [Small.{u} (as .left)] [Small.{u} (as .right)]
     {bs : Player → Set AugmentedForm} [Small.{u} (bs .left)] [Small.{u} (bs .right)]
-    (h1 : ofSetsWithTombs as false false = ofSetsWithTombs bs false false) : as = bs := by
-  have ⟨h2, _, _⟩ := AugmentedForm.ext_iff.mp h1
+    (h1 : ofSetsWithTombs as False False = ofSetsWithTombs bs False False) : as = bs := by
+  have ⟨h2, _⟩ := AugmentedForm.ext_iff.mp h1
   simp only [moves_ofSetsWithTombs] at h2
   exact funext_iff.mpr h2
 
@@ -355,20 +326,15 @@ theorem ofGameForm_toGameForm (g : AugmentedForm) (h1 : TombstoneFree g) :
       constructor
       · exact toGameForm_moves_mem' h2 h1
       · exact ofGameForm_toGameForm x (TombstoneFree.moves h1 p x h2)
-  · simp only [leftTombstone_ofSetsWithTombs, Bool.false_eq]
-    unfold TombstoneFree at h1
-    refine eq_false_of_ne_true ?_
-    exact h1.left
-  · simp only [rightTombstone_ofSetsWithTombs, Bool.false_eq]
-    unfold TombstoneFree at h1
-    refine eq_false_of_ne_true ?_
-    exact h1.right.left
+  · unfold TombstoneFree at h1
+    simp only [hasTombstone_ofSetsWithTombs, ite_self, false_iff]
+    exact h1.left p
 termination_by g
 decreasing_by form_wf
 
-instance : Zero AugmentedForm := ⟨ofSetsWithTombs (fun _ ↦ ∅) false false⟩
+instance : Zero AugmentedForm := ⟨ofSetsWithTombs (fun _ ↦ ∅) False False⟩
 
-theorem zero_def : (0 : AugmentedForm) = ofSetsWithTombs (fun _ ↦ ∅) false false := rfl
+theorem zero_def : (0 : AugmentedForm) = ofSetsWithTombs (fun _ ↦ ∅) False False := rfl
 
 @[simp]
 theorem moves_zero (p : Player) : (0 : AugmentedForm).moves p = ∅ := by
@@ -376,20 +342,19 @@ theorem moves_zero (p : Player) : (0 : AugmentedForm).moves p = ∅ := by
   simp [moves_ofSetsWithTombs]
 @[simp]
 
-theorem tombstone_zero (p : Player) : (0 : AugmentedForm).tombstone p = false := by
-  rw [zero_def, tombstone_ofSetsWithTombs]
+theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone p := by
+  rw [zero_def, hasTombstone_ofSetsWithTombs]
   cases p <;> simp
 
 @[simp]
-theorem EndLike_zero (p : Player) : EndLike (0 : AugmentedForm) p = true := by
-  rw [EndLike, tombstone_zero, Bool.false_or]
-  simp [moves_zero]
+theorem EndLike_zero (p : Player) : EndLike (0 : AugmentedForm) p := by
+  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true]
 
 theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
       (Player.cases ((· + y) '' xᴸ ∪ (x + ·) '' yᴸ) ((· + y) '' xᴿ ∪ (x + ·) '' yᴿ))
-      ((x.tombstone .left && EndLike y .left) || (y.tombstone .left && EndLike x .left))
-      ((x.tombstone .right && EndLike y .right) || (y.tombstone .right && EndLike x .right)) := by
+      ((x.hasTombstone .left ∧ EndLike y .left) ∨ (y.hasTombstone .left ∧ EndLike x .left))
+      ((x.hasTombstone .right ∧ EndLike y .right) ∨ (y.hasTombstone .right ∧ EndLike x .right)) := by
   change add' _ _ = _
   rw [add']
   congr 1
@@ -399,34 +364,33 @@ theorem add_eq (x y : AugmentedForm) : x + y =
 theorem add_eq' (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
       (fun p => (· + y) '' x.moves p ∪ (x + ·) '' y.moves p)
-      ((x.tombstone .left && EndLike y .left) || (y.tombstone .left && EndLike x .left))
-      ((x.tombstone .right && EndLike y .right) || (y.tombstone .right && EndLike x .right)) := by
+      ((x.hasTombstone .left ∧ EndLike y .left) ∨ (y.hasTombstone .left ∧ EndLike x .left))
+      ((x.hasTombstone .right ∧ EndLike y .right) ∨ (y.hasTombstone .right ∧ EndLike x .right)) := by
   rw [add_eq]
   congr 1
   ext p
   cases p <;> rfl
 
-theorem tombstone_add {x y : AugmentedForm} {p : Player} :
-    (x + y).tombstone p = ((x.tombstone p && EndLike y p) || (y.tombstone p && EndLike x p)) := by
+theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
+    (x + y).hasTombstone p ↔ ((x.hasTombstone p ∧ EndLike y p) ∨ (y.hasTombstone p ∧ EndLike x p)) := by
   rw [add_eq]
-  cases p <;> simp only [tombstone_ofSetsWithTombs, reduceCtorEq, ↓reduceIte]
+  cases p <;> simp only [hasTombstone_ofSetsWithTombs, reduceCtorEq, ↓reduceIte]
 
 @[simp]
 theorem moves_add (p : Player) (x y : AugmentedForm) :
     (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
   rw [add_eq', moves_ofSetsWithTombs]
 
-lemma tombstone_add_zero (g : AugmentedForm) (p : Player) : (g + 0).tombstone p = g.tombstone p := by
-  simp only [tombstone_add, EndLike_zero, Bool.and_true, tombstone_zero, Bool.false_and,
-             Bool.or_false]
+lemma hasTombstone_add_zero (g : AugmentedForm) (p : Player)
+    : (g + 0).hasTombstone p ↔ g.hasTombstone p := by
+  simp only [hasTombstone_add, EndLike_zero, and_true, not_hasTombstone_zero, false_and, or_false]
 
 private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
   refine moveRecOn x ?_
   intro x ih
   ext
   · aesop
-  · exact tombstone_add_zero x Player.left
-  · exact tombstone_add_zero x Player.right
+  · exact hasTombstone_add_zero x _
 
 private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
   sorry
@@ -443,19 +407,19 @@ noncomputable instance : AddCommMonoid AugmentedForm where
 
 theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
   rw [GameForm.zero_def, zero_def, ofGameForm]
-  refine ext ?_ rfl rfl
-  intro p
-  simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, GameForm.moves_ofSets,
-             Set.isEmpty_coe_sort]
+  refine ext ?_ ?_
+  · intro p
+    simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, GameForm.moves_ofSets,
+               Set.isEmpty_coe_sort]
+  · simp only [hasTombstone_ofSetsWithTombs, ite_self, implies_true]
 
 theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
     : ∃g, ofGameForm g = a := by
   unfold ofGameForm
   use !{fun p => Set.range (fun ap : moves p a => toGameForm ap (h1.moves p ap (Subtype.coe_prop ap)))}
   refine AugmentedForm.ext_iff.mpr ?_
-  simp only [moves_ofSetsWithTombs, leftTombstone_ofSetsWithTombs, Bool.false_eq,
-             rightTombstone_ofSetsWithTombs]
-  refine ⟨?_, ?_, ?_⟩
+  simp only [moves_ofSetsWithTombs]
+  constructor
   · intro p
     refine Eq.symm (Set.ext ?_)
     intro al
@@ -468,11 +432,7 @@ theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
       obtain ⟨g1, ⟨g2, h6, h7⟩, h5⟩ := h2
       simp only [<-h5, <-h7, ofGameForm_toGameForm, h6]
   · unfold TombstoneFree at h1
-    refine eq_false_of_ne_true ?_
-    exact h1.left
-  · unfold TombstoneFree at h1
-    refine eq_false_of_ne_true ?_
-    exact h1.right.left
+    simp only [hasTombstone_ofSetsWithTombs, ite_self, h1, implies_true]
 
 theorem mem_moves_ofGameForm {g : GameForm} {ap : AugmentedForm} {p : Player}
     (h1 : ap ∈ moves p (ofGameForm g)): ∃gp ∈ GameForm.moves p g, ofGameForm gp = ap := by
@@ -486,10 +446,10 @@ theorem mem_moves_ofGameForm {g : GameForm} {ap : AugmentedForm} {p : Player}
 
 theorem ofGameForm_add (g h : GameForm) : ofGameForm (g + h) = ofGameForm g + ofGameForm h := by
   rw [add_eq']
-  simp only [tombstone_ofGameForm, Bool.false_and, Bool.or_self]
+  simp only [not_hasTombstone_ofGameForm, false_and, or_self]
   rw [GameForm.add_eq']
   rw [ofGameForm]
-  refine ext ?_ rfl rfl
+  refine ext ?_ (by simp only [hasTombstone_ofSetsWithTombs, ite_self, implies_true])
   intro p
   simp only [moves_ofSetsWithTombs, Set.range_eq_iff, Set.mem_union, Set.mem_image, Subtype.forall,
              GameForm.moves_ofSets, Subtype.exists, exists_prop]
