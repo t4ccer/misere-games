@@ -255,10 +255,6 @@ theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
     (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
   simp
 
-theorem exists_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
-    (∃ y ∈ (-x).moves p, P y) ↔ (∃ y ∈ x.moves (-p), P (-y)) := by
-  simp
-
 /-! ### Addition and subtraction -/
 
 private def add' (x y : GameForm) : GameForm :=

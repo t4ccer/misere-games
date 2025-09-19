@@ -72,6 +72,19 @@ theorem birthday_lt_of_subposition {x y : G} (hy : Subposition y x) :
 termination_by x
 decreasing_by form_wf
 
+@[simp]
+theorem birthday_neg {G : Type u} [FormNeg G] (x : G) : birthday (-x) = birthday x := by
+  refine eq_of_forall_lt_iff fun y ↦ ?_
+  rw [lt_birthday_iff, lt_birthday_iff]
+  rw [FormNeg.exists_moves_neg, FormNeg.exists_moves_neg, or_comm]
+  congr! 3
+  all_goals
+    dsimp; rw [and_congr_right]
+    intro h
+    rw [birthday_neg]
+termination_by x
+decreasing_by form_wf
+
 end Form
 
 namespace GameForm
@@ -93,19 +106,5 @@ theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
 theorem birthday_eq_zero {x : GameForm} : birthday x = 0 ↔ x = 0 := by
   rw [birthday, iSup_eq_zero_iff, GameForm.ext_iff]
   simp [isOption_iff_mem_union, forall_and, eq_empty_iff_forall_notMem, Form.moves]
-
-@[simp]
-theorem birthday_neg (x : GameForm) : birthday (-x) = birthday x := by
-  refine eq_of_forall_lt_iff fun y ↦ ?_
-  rw [lt_birthday_iff, lt_birthday_iff]
-  simp only [Form.moves]
-  rw [exists_moves_neg, exists_moves_neg, or_comm]
-  congr! 3
-  all_goals
-    dsimp; rw [and_congr_right]
-    intro h
-    rw [birthday_neg]
-termination_by x
-decreasing_by form_wf
 
 end GameForm

@@ -33,7 +33,7 @@ def IsPFree.neg {g : GameForm} (h1 : IsPFree g) : IsPFree (-g) := by
     exact h4
 termination_by birthday g
 decreasing_by
-  rw [GameForm.birthday_neg, <-GameForm.birthday_neg g]
+  rw [Form.birthday_neg, <-Form.birthday_neg g]
   exact Form.birthday_lt_of_mem_moves h3
 
 theorem IsPFree_moves {g h : GameForm} {p : Player} (h1 : IsPFree g) (h2 : h ∈ g.moves p) :

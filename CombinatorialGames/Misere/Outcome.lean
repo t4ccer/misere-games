@@ -91,9 +91,9 @@ theorem neg_WinsGoingFirst_iff_WinsGoingFirst_player_neg (g : GameForm) (p : Pla
     exact h3 h2
 termination_by Form.birthday g
 decreasing_by
-  · rw [<-GameForm.birthday_neg g]
+  · rw [<-Form.birthday_neg g]
     exact Form.birthday_lt_of_mem_moves h1
-  · rw [GameForm.birthday_neg gp]
+  · rw [Form.birthday_neg gp]
     exact Form.birthday_lt_of_mem_moves h1
 
 class ClosedUnderNeg (A : GameForm → Prop) where

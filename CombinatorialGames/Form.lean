@@ -1,3 +1,4 @@
+import CombinatorialGames.Mathlib.Neg
 import CombinatorialGames.Mathlib.Small
 import CombinatorialGames.Player
 import CombinatorialGames.Outcome
@@ -76,6 +77,16 @@ macro "form_wf" : tactic =>
     Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
 
 end Form
+
+namespace FormNeg
+
+variable {G : Type u} [g_form : FormNeg G]
+
+theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
+    (∃ y ∈ Form.moves p (-x), P y) ↔ (∃ y ∈ Form.moves (-p) x, P (-y)) := by
+  simp only [FormNeg.moves_neg, Set.mem_neg, Set.exists_mem_neg]
+
+end FormNeg
 
 class MisereForm (G : Type v) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
