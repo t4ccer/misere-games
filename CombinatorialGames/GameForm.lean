@@ -241,6 +241,9 @@ theorem moves_neg (p : Player) (x : GameForm) :
     (-x).moves p = -x.moves (-p) := by
   rw [neg_eq', moves_ofSets]
 
+instance : FormNeg GameForm where
+  moves_neg := moves_neg
+
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
   simp [isOption_iff_mem_union, Set.union_comm, Form.moves]
 

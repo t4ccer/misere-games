@@ -1,6 +1,7 @@
 import CombinatorialGames.Mathlib.Small
 import CombinatorialGames.Player
 import CombinatorialGames.Outcome
+import Mathlib.Algebra.Group.Pointwise.Set.Basic
 
 universe u v
 
@@ -11,6 +12,11 @@ def Form.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Pro
 class Form (G : Type v) where
   moves (p : Player) (x : G) : Set G
   isOption'_wf : WellFounded (Form.IsOption' moves)
+
+-- We need to keep this separate even if all forms have a notion of Neg because game_wf
+-- is useful when implementing negation
+class FormNeg (G : Type v) extends Form G, InvolutiveNeg G where
+  moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
 
 namespace Form
 

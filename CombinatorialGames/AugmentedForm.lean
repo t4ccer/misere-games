@@ -557,4 +557,11 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := neg_neg'
 
+instance : FormNeg AugmentedForm where
+  moves_neg := by
+    intro p x
+    simp only [neg_eq]
+    simp only [Form.moves, ←neg_eq', ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
+               moves_ofSetsWithTombs]
+
 end AugmentedForm
