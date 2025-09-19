@@ -70,13 +70,12 @@ protected theorem isOption [Short x] (h : Form.IsOption y x) : Short y := by
 
 alias _root_.Form.IsOption.short := Short.isOption
 
-protected theorem subposition [Short x] (h : Subposition y x) : Short y := by
-  sorry
---  cases h with
---  | single h => exact Short.isOption h
---  | tail IH h => have := Short.isOption h; exact Short.subposition IH
---termination_by x
---decreasing_by form_wf
+protected theorem subposition {x y : G} [Short x] (h : Subposition y x) : Short y := by
+  cases h with
+  | single h => exact Short.isOption h
+  | tail IH h => have := Short.isOption h; exact Short.subposition IH
+termination_by x
+decreasing_by form_wf
 
 alias _root_.Form.IsOption.subposition := Short.subposition
 
@@ -112,37 +111,21 @@ namespace GameForm
 open Form (Short)
 variable {x y : GameForm}
 
--- TODO: old proof was simply `rw [short_def]; simp`, but I didn't see how to
--- get it to recognise GameForm.moves as Form.moves and vice versa without
--- using change... Surely it is very simple?
 @[simp]
 protected instance Short.zero : Short (0 : GameForm) := by
-  rw [Form.short_def]
-  intro p
-  constructor
-  · change (GameForm.moves p 0).Finite; rw [moves_zero]; exact Set.finite_empty
-  · intro y hy; change y ∈ GameForm.moves p 0 at hy; rw [moves_zero] at hy; exact False.elim hy
+  rw [zero_def, Form.short_def]; simp [Form.moves]
 
 @[simp]
 protected instance Short.one : Short (1 : GameForm) := by
-  rw [Form.short_def]
-  intro p
-  change (GameForm.moves p 1).Finite ∧ ∀ y ∈ GameForm.moves p 1, Short y
-  cases p with
-  | left => simp [leftMoves_one, Set.finite_singleton, Short.zero]
-  | right => simp [rightMoves_one, Set.finite_empty]
+  rw [one_def, Form.short_def]; simp [Form.moves, Short.zero]
 
--- TODO: rewrite like old version (didn't seem to port trivially)
 -- TODO: we are blocked for doing this for AugmentedForm until neg is
 -- implemented. Should neg be added to Form?
 protected instance Short.neg (x : GameForm) [Short x] : Short (-x) := by
-  rw [Form.short_def]
-  intro p
-  constructor
+  rw [Form.short_def]; intro p; constructor
   · change (GameForm.moves p (-x)).Finite; rw [GameForm.moves_neg]
     simpa [← Set.image_neg_eq_neg] using (Short.finite_moves _ x).image _
-  · intro y hy
-    change y ∈ GameForm.moves p (-x) at hy; rw [GameForm.moves_neg] at hy
+  · intro y hy; change y ∈ GameForm.moves p (-x) at hy; rw [GameForm.moves_neg] at hy
     have h_neg_y : -y ∈ GameForm.moves (-p) x := by simp [Set.mem_neg] at hy; exact hy
     have : Short (-y) := Short.of_mem_moves h_neg_y
     simpa using Short.neg (-y)
@@ -153,25 +136,15 @@ decreasing_by form_wf
 theorem Short.neg_iff {x : GameForm} : Short (-x) ↔ Short x :=
   ⟨fun _ ↦ by simpa using Short.neg (-x), fun _ ↦ Short.neg x⟩
 
--- TODO: rewrite like old version (didn't seem to port trivially)
 -- TODO: should add be added to Form?
 protected instance Short.add (x y : GameForm) [Short x] [Short y] : Short (x + y) := by
-  rw [Form.short_def]
-  intro p
-  constructor
+  refine Short.mk fun p ↦ ⟨?_, ?_⟩
   · change (GameForm.moves p (x + y)).Finite; rw [GameForm.moves_add]
-    exact ((Short.finite_moves p x).image _).union ((Short.finite_moves p y).image _)
-  · intro z hz
-    change z ∈ GameForm.moves p (x + y) at hz; rw [GameForm.moves_add] at hz
+    simpa using ⟨(Short.finite_moves _ x).image _, (Short.finite_moves _ y).image _⟩
+  · intro z hz; change z ∈ GameForm.moves p (x + y) at hz; rw [GameForm.moves_add] at hz
     cases hz with
-    | inl h => 
-      obtain ⟨a, ha, rfl⟩ := h
-      have : Short a := Short.of_mem_moves ha
-      exact Short.add a y
-    | inr h => 
-      obtain ⟨b, hb, rfl⟩ := h
-      have : Short b := Short.of_mem_moves hb
-      exact Short.add x b
+    | inl h => obtain ⟨a, ha, rfl⟩ := h; have := Short.of_mem_moves ha; exact Short.add ..
+    | inr h => obtain ⟨b, hb, rfl⟩ := h; have := Short.of_mem_moves hb; exact Short.add ..
 termination_by (x, y)
 decreasing_by form_wf
 

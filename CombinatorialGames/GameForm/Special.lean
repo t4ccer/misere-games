@@ -21,6 +21,8 @@ universe u
 
 namespace GameForm
 
+open Form (Short short_def)
+
 /-! ### Star -/
 
 /-- The game `⋆ = {0 | 0}`, which is fuzzy with zero. -/
@@ -38,7 +40,8 @@ recommended_spelling "star" for "⋆" in [«term⋆»]
 
 @[simp] theorem neg_star : -⋆ = ⋆ := by simp [star]
 
-@[simp] instance : Short ⋆ := by rw [short_def]; simp
+@[simp] instance : Short ⋆ := by
+  rw [star, Form.short_def]; simp [Form.moves]
 
 /-! ### Half -/
 
@@ -52,7 +55,8 @@ recommended_spelling "half" for "½" in [«term½»]
 @[simp] theorem leftMoves_half : ½ᴸ = {0} := leftMoves_ofSets ..
 @[simp] theorem rightMoves_half : ½ᴿ = {1} := rightMoves_ofSets ..
 
-instance : Short ½ := by rw [short_def]; simp
+instance : Short ½ := by
+  rw [half, Form.short_def]; simp [Form.moves]
 
 /-! ### Up and down -/
 
@@ -66,7 +70,8 @@ recommended_spelling "up" for "↑" in [«term↑»]
 @[simp] theorem leftMoves_up : ↑ᴸ = {0} := leftMoves_ofSets ..
 @[simp] theorem rightMoves_up : ↑ᴿ = {⋆} := rightMoves_ofSets ..
 
-instance : Short ↑ := by rw [short_def]; simp
+instance : Short ↑ := by
+  rw [up, Form.short_def]; simp [Form.moves]
 
 /-- The game `↓ = {⋆ | 0}`. -/
 def down : GameForm :=
@@ -81,7 +86,8 @@ recommended_spelling "down" for "↓" in [«term↓»]
 @[simp] theorem neg_down : -↓ = ↑ := by simp [up, down]
 @[simp] theorem neg_up : -↑ = ↓ := by simp [up, down]
 
-instance : Short ↓ := by rw [short_def]; simp
+instance : Short ↓ := by
+  rw [down, Form.short_def]; simp [Form.moves]
 
 /-! ### Tiny and miny -/
 
@@ -102,9 +108,8 @@ theorem rightMoves_tiny (x : GameForm) : (⧾x)ᴿ = {!{{0} | {-x}}} :=
   rightMoves_ofSets ..
 
 instance (x : GameForm) [Short x] : Short (⧾x) := by
-  have : !{{0} | {-x}}.Short := by rw [short_def]; simpa
-  rw [short_def]
-  simpa
+  have : Short (!{{0} | {-x}}) := by rw [Form.short_def]; simp [Form.moves]; infer_instance
+  rw [tiny, Form.short_def]; simp [Form.moves, this]
 
 /-- A miny game `⧿x` is defined as `{{x | 0} | 0}`. -/
 def miny (x : GameForm) : GameForm :=
