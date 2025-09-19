@@ -6,7 +6,7 @@ Authors: Tomasz Maciosowski
 
 import CombinatorialGames.Outcome
 import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.GameForm.Short
+import CombinatorialGames.Form.Short
 
 namespace GameForm.Misere.Outcome
 
