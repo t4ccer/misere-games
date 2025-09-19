@@ -4,13 +4,14 @@ import CombinatorialGames.Misere.Outcome
 namespace GameForm
 
 open GameForm.Misere.Outcome
+open Form
 
 def IsDeadEnd (g : GameForm) (p : Player) : Prop :=
-  g.IsEnd p ∧ (∀ gp ∈ g.moves (-p), gp.IsDeadEnd p)
+  IsEnd p g ∧ (∀ gp ∈ g.moves (-p), gp.IsDeadEnd p)
 termination_by g
 decreasing_by form_wf
 
-def IsDeadEnd.IsEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnd p) : g.IsEnd p := by
+def IsDeadEnd.IsEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnd p) : IsEnd p g := by
   unfold IsDeadEnd at h1
   exact h1.left
 
@@ -48,12 +49,12 @@ theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : g.IsDeadEnd .right) :
     MisereForm.MisereOutcome g = .R := lemma3.aux h1 h2
 
 def IsDeadEnding (g : GameForm) : Prop :=
-  (∀ p, g.IsEnd p → g.IsDeadEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsDeadEnding)
+  (∀ p, IsEnd p g → g.IsDeadEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsDeadEnding)
 termination_by g
 decreasing_by form_wf
 
 @[simp]
-theorem IsDeadEnding.IsDeadEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnding) (h2 : g.IsEnd p) :
+theorem IsDeadEnding.IsDeadEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnding) (h2 : IsEnd p g) :
     g.IsDeadEnd p := by
   unfold IsDeadEnding at h1
   exact h1.left p h2

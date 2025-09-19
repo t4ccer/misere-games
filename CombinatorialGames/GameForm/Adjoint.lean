@@ -9,11 +9,13 @@ import Mathlib.Data.Countable.Small
 
 namespace GameForm
 
+open Form
+
 open Classical in
 noncomputable def Adjoint (g : GameForm) : GameForm :=
   if g = (0 : GameForm) then ⋆
-  else if g.IsEnd .left then !{Set.range fun gr : g.moves .right => Adjoint gr|{0}}
-  else if g.IsEnd .right then !{{0}|Set.range fun gl : g.moves .left => Adjoint gl}
+  else if IsEnd .left g then !{Set.range fun gr : g.moves .right => Adjoint gr|{0}}
+  else if IsEnd .right g then !{{0}|Set.range fun gl : g.moves .left => Adjoint gl}
   else !{ Set.range fun gr : g.moves .right => Adjoint gr
         | Set.range fun gl : g.moves .left => Adjoint gl}
 termination_by g
@@ -28,17 +30,18 @@ theorem adjont_zero_eq_star : 0° = ⋆ := by
   unfold Adjoint
   simp only [reduceIte]
 
-theorem adjoint_not_end (g : GameForm) (p : Player) : ¬((g°).IsEnd p) := by
-  unfold Adjoint GameForm.IsEnd
+theorem adjoint_not_end (g : GameForm) (p : Player) : ¬(IsEnd p (g°)) := by
+  unfold Adjoint IsEnd
   by_cases h1 : g = 0 <;> simp [h1]
-  by_cases h2 : g.moves .left = ∅ <;> cases p <;> simp [h2]
+  all_goals by_cases h2 : g.moves .left = ∅ <;> cases p <;> simp [Form.moves]
   all_goals by_cases h3 : g.moves .right = ∅ <;> simp [h2, h3]
   exact h1 (GameForm.leftEnd_rightEnd_eq_zero h2 h3)
 
 -- TODO: Combine
 private theorem mem_leftMoves_mem_adjoint_rightMoves {g gl : GameForm} (h1 : gl ∈ g.moves .left) :
     gl° ∈ (g°).moves .right := by
-  rw [Adjoint, GameForm.IsEnd, GameForm.IsEnd]
+  rw [Adjoint, IsEnd, IsEnd]
+  simp only [Moves.moves]
   have h2 : g ≠ 0 := GameForm.mem_moves_ne_zero h1
   by_cases h3 : g.moves .left = ∅ <;> by_cases h4 : g.moves .right = ∅ <;> simp [*]
   · simp [h3] at h1
@@ -48,8 +51,9 @@ private theorem mem_leftMoves_mem_adjoint_rightMoves {g gl : GameForm} (h1 : gl 
 
 private theorem mem_rightMoves_mem_adjoint_leftMoves {g gr : GameForm} (h1 : gr ∈ g.moves .right) :
     gr° ∈ (g°).moves .left := by
-  rw [Adjoint, GameForm.IsEnd, GameForm.IsEnd]
+  rw [Adjoint, IsEnd, IsEnd]
   have h2 : g ≠ 0 := GameForm.mem_moves_ne_zero h1
+  simp only [Moves.moves]
   by_cases h3 : g.moves .left = ∅ <;> by_cases h4 : g.moves .right = ∅ <;> simp [*]
   · simp [h4] at h1
   · use gr
@@ -63,11 +67,11 @@ theorem mem_adjoint_mem_opposite {g gp : GameForm} {p : Player}
   · exact mem_rightMoves_mem_adjoint_leftMoves h1
 
 theorem mem_adjoint_exists_opposite {g gp : GameForm} {p : Player} (h1 : gp ∈ g°.moves p)
-    (h2 : ¬(g.IsEnd (-p))) : ∃ gnp ∈ g.moves (-p), gp = gnp° := by
+    (h2 : ¬(IsEnd (-p) g)) : ∃ gnp ∈ g.moves (-p), gp = gnp° := by
   unfold Adjoint at h1
   have h3 : g ≠ 0 := GameForm.not_end_ne_zero h2
   simp [h3] at h1
-  by_cases h4 : g.IsEnd p <;> cases p
+  by_cases h4 : IsEnd p g <;> cases p
   any_goals rw [Player.neg_left] at h2
   any_goals rw [Player.neg_right] at h2
   all_goals
@@ -78,9 +82,9 @@ theorem mem_adjoint_exists_opposite {g gp : GameForm} {p : Player} (h1 : gp ∈ 
     exact And.symm ⟨Eq.symm h6, h5⟩
 
 theorem mem_adjoint_end_opposite {g gp : GameForm} {p : Player}
-    (h1 : gp ∈ g°.moves p) (h2 : g.IsEnd (-p)) : gp = 0 := by
+    (h1 : gp ∈ g°.moves p) (h2 : IsEnd (-p) g) : gp = 0 := by
   unfold Adjoint at h1
-  by_cases h3 : g.IsEnd p
+  by_cases h3 : IsEnd p g
   · have h4 : g = 0 := GameForm.both_ends_eq_zero h3 h2
     simp only [h4, ↓reduceIte, star, moves_ofSets, Set.mem_singleton_iff] at h1
     exact h1
@@ -97,8 +101,8 @@ theorem mem_adjoint_end_opposite {g gp : GameForm} {p : Player}
 instance short_adjoint (g : GameForm) [h1 : GameForm.Short g] : GameForm.Short (g°) := by
   unfold Adjoint
   by_cases h2 : g = 0 <;> simp only [h2, reduceIte, GameForm.instShortStar]
-  by_cases h3 : g.IsEnd .left <;> simp [h3, reduceIte]
-    <;> by_cases h4 : g.IsEnd .right
+  by_cases h3 : IsEnd .left g <;> simp [h3, reduceIte]
+    <;> by_cases h4 : IsEnd .right g
     <;> rw [GameForm.short_def]
     <;> intro p
     <;> cases p

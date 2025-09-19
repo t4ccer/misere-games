@@ -7,7 +7,7 @@ open Form
 open GameForm.Misere.Outcome
 
 def IsBlockedEnd (g : GameForm) (p : Player) : Prop :=
-  (g.IsEnd p)
+  (IsEnd p g)
     ∧ (∀ gr ∈ g.moves (-p),
          (gr.IsBlockedEnd p
          ∨ (∃ grl,∃ (_ : grl ∈ gr.moves p), grl.IsBlockedEnd p)))
@@ -15,7 +15,7 @@ termination_by g
 decreasing_by all_goals form_wf
 
 def IsBlocking (g : GameForm) : Prop :=
-  (∀ p, g.IsEnd p → g.IsBlockedEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsBlocking)
+  (∀ p, IsEnd p g → g.IsBlockedEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsBlocking)
 termination_by g
 decreasing_by form_wf
 

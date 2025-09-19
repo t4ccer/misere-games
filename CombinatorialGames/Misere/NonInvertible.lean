@@ -10,6 +10,7 @@ import CombinatorialGames.GameForm.Adjoint
 
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
+open Form
 
 def AnyGame (_ : GameForm) := True
 
@@ -49,8 +50,8 @@ instance short_auxT {g h : GameForm} [h1 : GameForm.Short g] [h2 : GameForm.Shor
         exact short_adjoint gl
 
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
-    (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : h.IsEnd .left)
-    (h2 : ¬(g.IsEnd .left)) : ¬(g ≥m A h) := by
+    (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
+    (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
   let t := !{ Set.range fun hr : h.moves .right => hr°
             | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
 
@@ -74,7 +75,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       -- since (by the assumption on H) both components are Left ends
       apply add_end_WinsGoingFirst h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, GameForm.IsEnd]
+      simp only [h3, GameForm.leftMoves_ofSets, IsEnd, Form.moves]
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
@@ -120,10 +121,10 @@ alias theorem6_6 := leftEnd_not_leftEnd_not_ge
 
 theorem ClosedUnderNeg.rightEnd_not_rightEnd_not_ge {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
-    (h1 : h.IsEnd .right) (h2 : ¬(g.IsEnd .right)) : ¬(h ≥m A g) := by
-  unfold GameForm.IsEnd at h1 h2
-  have h3 : (-h).IsEnd .left := GameForm.end_neg_iff_player_neg.mpr h1
-  have h4 : ¬((-g).IsEnd .left) := GameForm.end_neg_iff_player_neg.not.mpr h2
+    (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
+  unfold IsEnd at h1 h2
+  have h3 : IsEnd .left (-h) := GameForm.end_neg_iff_player_neg.mpr h1
+  have h4 : ¬(IsEnd .left (-g)) := GameForm.end_neg_iff_player_neg.not.mpr h2
   have h5 : ¬((-g) ≥m A (-h)) := leftEnd_not_leftEnd_not_ge h0 h3 h4
   exact (ClosedUnderNeg.neg_ge_neg_iff h g).not.mp h5
 

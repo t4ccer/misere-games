@@ -10,6 +10,7 @@ import CombinatorialGames.Misere.Outcome
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
 
+open Form
 open MisereForm
 
 theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outcome.P := by
@@ -31,7 +32,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
       use h3
       exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gr)
     · rw [WinsGoingFirst_def]
-      by_cases h3 : g.IsEnd (-p)
+      by_cases h3 : IsEnd (-p) g
       · apply Or.inl
         have h4 : gr = 0 := mem_adjoint_end_opposite h2 h3
         rw [h4, add_zero]

@@ -86,6 +86,8 @@ theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
   simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
 
+def IsEnd (p : Player) (g : G) := moves p g = ∅
+
 end Form
 
 class MisereForm (G : Type v) extends Moves G where
