@@ -3,10 +3,12 @@ import CombinatorialGames.Misere.Outcome
 
 namespace GameForm
 
+open GameForm.Misere.Outcome
+
 def IsDeadEnd (g : GameForm) (p : Player) : Prop :=
   g.IsEnd p ∧ (∀ gp ∈ g.moves (-p), gp.IsDeadEnd p)
 termination_by g
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 def IsDeadEnd.IsEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnd p) : g.IsEnd p := by
   unfold IsDeadEnd at h1
@@ -27,28 +29,28 @@ theorem IsDeadEnd.add {g h : GameForm} {p : Player} (h1 : g.IsDeadEnd p) (h2 : h
   · exact IsDeadEnd.add (h1.moves gpp h3) h2
   · exact IsDeadEnd.add h1 (h2.moves gpp h3)
 termination_by (g, h)
-decreasing_by all_goals game_form_wf
+decreasing_by all_goals form_wf
 
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : g.IsDeadEnd p) :
-    MisereOutcome g = Outcome.ofPlayer p := by
+    MisereForm.MisereOutcome g = Outcome.ofPlayer p := by
   rw [MisereOutcome_eq_player_iff]
   apply And.intro (End_WinsGoingFirst h2.IsEnd)
-  unfold WinsGoingFirst
+  rw [WinsGoingFirst_def]
   simp only [exists_prop, not_or, not_exists, not_and, not_not, neg_neg]
   apply And.intro (zero_not_both_end h1 h2.IsEnd)
   intro gr h4
   exact End_WinsGoingFirst (h2.moves gr h4).IsEnd
 
-theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : g.IsDeadEnd .left) : MisereOutcome g = .L :=
-  lemma3.aux h1 h2
+theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : g.IsDeadEnd .left) :
+    MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2
 
-theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : g.IsDeadEnd .right) : MisereOutcome g = .R :=
-  lemma3.aux h1 h2
+theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : g.IsDeadEnd .right) :
+    MisereForm.MisereOutcome g = .R := lemma3.aux h1 h2
 
 def IsDeadEnding (g : GameForm) : Prop :=
   (∀ p, g.IsEnd p → g.IsDeadEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsDeadEnding)
 termination_by g
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 @[simp]
 theorem IsDeadEnding.IsDeadEnd {g : GameForm} {p : Player} (h1 : g.IsDeadEnding) (h2 : g.IsEnd p) :
@@ -76,6 +78,6 @@ theorem IsDeadEnding.add {g h : GameForm} (h1 : g.IsDeadEnding) (h2 : h.IsDeadEn
     · exact IsDeadEnding.add (h1.moves h3) h2
     · exact IsDeadEnding.add h1 (h2.moves h3)
 termination_by (g, h)
-decreasing_by all_goals game_form_wf
+decreasing_by all_goals form_wf
 
 end GameForm

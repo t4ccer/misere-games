@@ -7,12 +7,15 @@ Authors: Violeta Hernández Palacios, Reid Barton, Mario Carneiro, Isabel Longbo
 import CombinatorialGames.Mathlib.Neg
 import CombinatorialGames.Mathlib.Small
 import CombinatorialGames.OfSets
+import CombinatorialGames.Form
 import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Algebra.Order.Group.Unbundled.Basic
 import Mathlib.Algebra.Ring.Int.Defs
 import Mathlib.Data.QPF.Univariate.Basic
 
 universe u
+
+open Form
 
 def GameFunctor (α : Type (u + 1)) : Type (u + 1) :=
   {s : Player → Set α // ∀ p, Small.{u} (s p)}
@@ -50,6 +53,19 @@ instance : OfSets GameForm fun _ ↦ True where
 
 /-- The set of moves of the game. -/
 def moves (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
+
+instance : Form GameForm where
+  moves := GameForm.moves
+  isOption'_wf := by
+    refine ⟨fun x ↦ ?_⟩
+    apply QPF.Fix.ind
+    unfold Form.IsOption' moves
+    rintro _ ⟨⟨st, hst⟩, rfl⟩
+    constructor
+    rintro y hy
+    rw [QPF.Fix.dest_mk, Set.mem_iUnion] at hy
+    obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
+    exact h
 
 /-- The set of left moves of the game. -/
 scoped notation:max x:max "ᴸ" => moves Player.left x
@@ -100,66 +116,14 @@ theorem ofSets_inj {s₁ s₂ t₁ t₂ : Set GameForm} [Small s₁] [Small s₂
     !{s₁ | t₁} = !{s₂ | t₂} ↔ s₁ = s₂ ∧ t₁ = t₂ := by
   simp
 
-/-- `IsOption x y` means that `x` is either a left or a right move for `y`. -/
-def IsOption (x y : GameForm) : Prop :=
-  x ∈ ⋃ p, y.moves p
-
-@[aesop simp]
-lemma isOption_iff_mem_union {x y : GameForm} : IsOption x y ↔ x ∈ yᴸ ∪ yᴿ := by
-  simp [IsOption, Player.exists]
-
-theorem IsOption.of_mem_moves {p} {x y : GameForm} (h : x ∈ y.moves p) : IsOption x y :=
-  ⟨_, ⟨p, rfl⟩, h⟩
-
 instance (x : GameForm.{u}) : Small.{u} {y // IsOption y x} :=
   inferInstanceAs (Small (⋃ p, x.moves p))
-
-theorem isOption_wf : WellFounded IsOption := by
-  refine ⟨fun x ↦ ?_⟩
-  apply QPF.Fix.ind
-  unfold IsOption moves
-  rintro _ ⟨⟨st, hst⟩, rfl⟩
-  constructor
-  rintro y hy
-  rw [QPF.Fix.dest_mk, Set.mem_iUnion] at hy
-  obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
-  exact h
-
--- We make no use of `GameForm`'s definition from a `QPF` after this point.
-attribute [irreducible] GameForm
-
-instance : IsWellFounded _ IsOption := ⟨isOption_wf⟩
-
-theorem IsOption.irrefl (x : GameForm) : ¬ IsOption x x := _root_.irrefl x
-
-theorem self_notMem_moves (p : Player) (x : GameForm) : x ∉ x.moves p :=
-  fun hx ↦ IsOption.irrefl x (.of_mem_moves hx)
-
-/-- A (proper) subposition is any game in the transitive closure of `IsOption`. -/
-def Subposition : GameForm → GameForm → Prop :=
-  Relation.TransGen IsOption
-
-@[aesop unsafe apply 50%]
-theorem Subposition.of_mem_moves {p} {x y : GameForm} (h : x ∈ y.moves p) : Subposition x y :=
-  Relation.TransGen.single (.of_mem_moves h)
-
-theorem Subposition.trans {x y z : GameForm} (h₁ : Subposition x y) (h₂ : Subposition y z) :
-    Subposition x z :=
-  Relation.TransGen.trans h₁ h₂
 
 instance (x : GameForm.{u}) : Small.{u} {y // Subposition y x} :=
   small_transGen' _ x
 
-instance : IsTrans _ Subposition := inferInstanceAs (IsTrans _ (Relation.TransGen _))
-instance : IsWellFounded _ Subposition := inferInstanceAs (IsWellFounded _ (Relation.TransGen _))
-instance : WellFoundedRelation GameForm := ⟨Subposition, instIsWellFoundedSubposition.wf⟩
-
-/-- Discharges proof obligations of the form `⊢ Subposition ..` arising in termination proofs
-of definitions using well-founded recursion on `GameForm`. -/
-macro "game_form_wf" : tactic =>
-  `(tactic| all_goals solve_by_elim (maxDepth := 8)
-    [Prod.Lex.left, Prod.Lex.right, PSigma.Lex.left, PSigma.Lex.right,
-    Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
+-- We make no use of `GameForm`'s definition from a `QPF` after this point.
+attribute [irreducible] GameForm
 
 /-- **Conway recursion**: build data for a game by recursively building it on its
 left and right sets. You rarely need to use this explicitly, as the termination checker will handle
@@ -171,7 +135,7 @@ def moveRecOn {motive : GameForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ x.moves p, motive y) → motive x) : motive x :=
   mk x (fun p y _ ↦ moveRecOn y mk)
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 theorem moveRecOn_eq {motive : GameForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ x.moves p, motive y) → motive x) :
@@ -232,7 +196,7 @@ theorem one_def : (1 : GameForm) = !{{0} | ∅} := rfl
 private def neg' (x : GameForm) : GameForm :=
   !{Set.range fun y : xᴿ ↦ neg' y.1 | Set.range fun y : xᴸ ↦ neg' y.1}
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 /-- The negative of a game is defined by `-!{s | t} = !{-t | -s}`. -/
 instance : Neg GameForm where
@@ -278,7 +242,7 @@ theorem moves_neg (p : Player) (x : GameForm) :
   rw [neg_eq', moves_ofSets]
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
-  simp [isOption_iff_mem_union, Set.union_comm]
+  simp [isOption_iff_mem_union, Set.union_comm, Form.moves]
 
 @[simp]
 theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
@@ -298,7 +262,7 @@ private def add' (x y : GameForm) : GameForm :=
   !{(Set.range fun z : xᴸ ↦ add' z y) ∪ (Set.range fun z : yᴸ ↦ add' x z) |
     (Set.range fun z : xᴿ ↦ add' z y) ∪ (Set.range fun z : yᴿ ↦ add' x z)}
 termination_by (x, y)
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 /-- The sum of `x = !{s₁ | t₁}` and `y = !{s₂ | t₂}` is `!{s₁ + y, x + s₂ | t₁ + y, x + t₂}`. -/
 instance : Add GameForm where
@@ -343,10 +307,10 @@ theorem add_right_mem_moves_add {p : Player} {x y : GameForm} (h : x ∈ y.moves
   rw [moves_add]; left; use x
 
 theorem IsOption.add_left {x y z : GameForm} (h : IsOption x y) : IsOption (z + x) (z + y) := by
-  aesop
+  aesop (add simp [Form.moves])
 
 theorem IsOption.add_right {x y z : GameForm} (h : IsOption x y) : IsOption (x + z) (y + z) := by
-  aesop
+  aesop (add simp [Form.moves])
 
 theorem forall_moves_add {p : Player} {P : GameForm → Prop} {x y : GameForm} :
     (∀ a ∈ (x + y).moves p, P a) ↔
@@ -373,7 +337,7 @@ private theorem add_comm' (x y : GameForm) : x + y = y + x := by
   · refine and_congr_right_iff.2 fun h ↦ ?_
     rw [add_comm']
 termination_by (x, y)
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 private theorem add_assoc' (x y z : GameForm) : x + y + z = x + (y + z) := by
   ext1
@@ -383,7 +347,7 @@ private theorem add_assoc' (x y z : GameForm) : x + y + z = x + (y + z) := by
     congr! 2
     rw [add_assoc']
 termination_by (x, y, z)
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 instance : AddCommMonoid GameForm where
   add_zero := add_zero'
@@ -421,7 +385,7 @@ private theorem neg_add' (x y : GameForm) : -(x + y) = -x + -y := by
   · refine and_congr_right_iff.2 fun _ ↦ ?_
     rw [← neg_inj, neg_add', neg_neg]
 termination_by (x, y)
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 instance : SubtractionCommMonoid GameForm where
   neg_neg := neg_neg

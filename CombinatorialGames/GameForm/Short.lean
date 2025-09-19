@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios, Kim Morrison
 -/
 
 import CombinatorialGames.GameForm
+import CombinatorialGames.Form
 import Mathlib.Data.Finite.Prod
 import Mathlib.Data.Set.Finite.Lattice
 
@@ -22,10 +23,12 @@ universe u
 
 namespace GameForm
 
+open Form
+
 def ShortAux (x : GameForm) : Prop :=
   ∀ p, (x.moves p).Finite ∧ ∀ y ∈ x.moves p, ShortAux y
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 /-- A short game is one with finitely many subpositions. That is, the left and right sets are
 finite, and all of the games in them are short as well. -/
@@ -67,10 +70,10 @@ alias _root_.GameForm.IsOption.short := Short.isOption
 
 protected theorem subposition {x : GameForm} [Short x] (h : Subposition y x) : Short y := by
   cases h with
-  | single h => exact h.short
-  | tail IH h => have := h.short; exact Short.subposition IH
+  | single h => exact Short.isOption h
+  | tail IH h => have := Short.isOption h; exact Short.subposition IH
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 alias _root_.GameForm.IsOption.subposition := Short.subposition
 
@@ -82,10 +85,10 @@ theorem finite_setOf_subposition (x : GameForm) [Short x] : {y | Subposition y x
     simp [and_comm]
   rw [this]
   refine (finite_setOf_isOption x).union <| (finite_setOf_isOption x).biUnion fun y hy ↦ ?_
-  have := hy.short
+  have := Short.isOption hy
   exact finite_setOf_subposition y
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 instance (x : GameForm) [Short x] : Finite {y // Subposition y x} :=
   (Short.finite_setOf_subposition x).to_subtype
@@ -95,9 +98,9 @@ theorem _root_.GameForm.short_iff_finite_setOf_subposition {x : GameForm} :
   refine ⟨@finite_setOf_subposition x, fun h ↦ mk fun p ↦ ⟨?_, ?_⟩⟩
   on_goal 1 => refine h.subset fun y hy ↦ ?_
   on_goal 2 => refine fun y hy ↦ short_iff_finite_setOf_subposition.2 <| h.subset fun z hz ↦ ?_
-  all_goals game_form_wf
+  all_goals form_wf
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 @[simp]
 protected instance zero : Short 0 := by
@@ -114,7 +117,7 @@ protected instance neg (x : GameForm) [Short x] : Short (-x) := by
     intro y hy
     simpa using (Short.of_mem_moves hy).neg
 termination_by x
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 @[simp]
 theorem neg_iff {x : GameForm} : Short (-x) ↔ Short x :=
@@ -130,7 +133,7 @@ protected instance add (x y : GameForm) [Short x] [Short y] : Short (x + y) := b
       have := Short.of_mem_moves hz
       exact Short.add ..
 termination_by (x, y)
-decreasing_by game_form_wf
+decreasing_by form_wf
 
 protected instance sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
   .add ..
