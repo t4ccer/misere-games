@@ -210,7 +210,8 @@ def TombstoneFree.moves {g : AugmentedForm} (h1 : TombstoneFree g) :
   exact h1.right.right
 
 theorem ofSetsWithTombs_ff_TombstoneFree
-  {st : Player → Set AugmentedForm} [Small.{u} (st .left)] [Small.{u} (st .right)] (h1 : ∀ p, ∀ gp ∈ st p, TombstoneFree gp) : TombstoneFree (ofSetsWithTombs st false false) := by
+    {st : Player → Set AugmentedForm} [Small.{u} (st .left)] [Small.{u} (st .right)]
+    (h1 : ∀ p, ∀ gp ∈ st p, TombstoneFree gp) : TombstoneFree (ofSetsWithTombs st false false) := by
   unfold TombstoneFree
   refine ⟨?_, ?_, ?_⟩
   · rw [tombstone_ofSetsWithTombs]
@@ -238,28 +239,132 @@ theorem ofGameForm_tombstoneFree (g : GameForm) : TombstoneFree (ofGameForm g) :
     rw [<-h4]
     exact ih p h3 (Subtype.coe_prop h3)
 
+theorem tombstone_ofGameForm (g : GameForm) (p : Player) : tombstone p (ofGameForm g) = false := by
+  have h1 := ofGameForm_tombstoneFree g
+  unfold TombstoneFree at h1
+  refine eq_false_of_ne_true ?_
+  cases p
+  · exact h1.left
+  · exact h1.right.left
+
+theorem ofSetsWithTombs_eq_ff
+    {as : Player → Set AugmentedForm} [Small.{u} (as .left)] [Small.{u} (as .right)]
+    {bs : Player → Set AugmentedForm} [Small.{u} (bs .left)] [Small.{u} (bs .right)]
+    (h1 : ofSetsWithTombs as false false = ofSetsWithTombs bs false false) : as = bs := by
+  have ⟨h2, _, _⟩ := AugmentedForm.ext_iff.mp h1
+  simp only [moves_ofSetsWithTombs] at h2
+  exact funext_iff.mpr h2
+
+private theorem ofGameForm_Injective' {x y : GameForm} (h1 : ofGameForm x = ofGameForm y)
+    : x = y := by
+  refine GameForm.ext ?_
+  intro p
+  have h3 := (fun p => congrArg (moves p) h1) p
+  unfold ofGameForm at h3
+  simp [moves_ofSetsWithTombs] at h3
+  simp [Set.range_eq_iff] at h3
+  obtain ⟨h3, h4⟩ := h3
+  ext g
+  constructor <;> intro h5
+  · have h3 := h3 g h5
+    obtain ⟨yp, h6, h7⟩ := h3
+    have h8 := (ofGameForm_Injective' h7.symm).symm
+    rw [<-h8]
+    exact h6
+  · have h4 := h4 g h5
+    obtain ⟨yp, h6, h7⟩ := h4
+    have h8 := ofGameForm_Injective' h7
+    rw [<-h8]
+    exact h6
+termination_by (x, y)
+decreasing_by form_wf
+
+theorem ofGameForm_Injective : Function.Injective ofGameForm := by
+  intro _ _ h1
+  exact ofGameForm_Injective' h1
+
+theorem ofGameForm_moves_mem_iff {g gp : GameForm} {p : Player}
+    : (ofGameForm gp ∈ moves p (ofGameForm g)) ↔ (gp ∈ GameForm.moves p g) := by
+  constructor <;> intro h1
+  · rw [ofGameForm, moves_ofSetsWithTombs] at h1
+    simp only [Set.mem_range, Subtype.exists, exists_prop] at h1
+    obtain ⟨gpp, h1, h2⟩ := h1
+    have h3 : gpp = gp := ofGameForm_Injective h2
+    rw [<-h3]
+    exact h1
+  · unfold ofGameForm
+    rw [moves_ofSetsWithTombs]
+    refine Set.mem_range.mpr ?_
+    rw [<-ofGameForm]
+    refine SetCoe.exists.mpr ?_
+    use gp, h1
+
+theorem toGameForm_moves_mem' {g gp : AugmentedForm} {p : Player} (h1 : gp ∈ moves p g)
+    (h2 : TombstoneFree g)
+    : (toGameForm gp (TombstoneFree.moves h2 p gp h1) ∈ GameForm.moves p (toGameForm g h2)) := by
+  unfold toGameForm
+  cases p
+  all_goals
+  · simp only [GameForm.moves_ofSets, Set.mem_range, Subtype.exists]
+    use gp, h1
+    rw [toGameForm]
+
+@[simp]
 theorem toGameForm_ofGameForm (g : GameForm) :
   toGameForm (ofGameForm g) (ofGameForm_tombstoneFree g) = g := by
-  -- unfold ofGameForm toGameForm
   ext p gp
   constructor <;> intro h1
   · unfold ofGameForm toGameForm at h1
-    simp at h1
+    simp only [GameForm.moves_ofSets, Player.cases] at h1
     cases p
-    · simp at h1
+    all_goals
+    · simp only [Set.mem_range, Subtype.exists, moves_ofSetsWithTombs, exists_prop] at h1
       obtain ⟨g2, ⟨g3, ⟨h2, h3⟩⟩, h4⟩ := h1
       simp only [<-h3, <-h4]
-      have h5 : ∃ gl, gl ∈ GameForm.moves Player.left g := Exists.intro g3 h2
-      obtain ⟨gl, h5⟩ := h5
-      -- simp [<-h5]
+      rw [toGameForm_ofGameForm g3]
+      exact h2
+  · unfold ofGameForm toGameForm
+    simp only [GameForm.moves_ofSets, Player.cases]
+    cases p
+    all_goals
+    · simp only [Set.mem_range, Subtype.exists, moves_ofSetsWithTombs, exists_prop]
+      use (ofGameForm gp)
+      refine Exists.intro ?_ ?_
+      · use gp
+      · exact toGameForm_ofGameForm gp
+termination_by g
+decreasing_by form_wf
 
-      sorry
-    · sorry
-  · sorry
-
-theorem ofGameForm_toGameForm (g : AugmentedForm) (h : TombstoneFree g) :
-  ofGameForm (toGameForm g h) = g := by
-  sorry
+@[simp]
+theorem ofGameForm_toGameForm (g : AugmentedForm) (h1 : TombstoneFree g) :
+  ofGameForm (toGameForm g h1) = g := by
+  unfold ofGameForm
+  ext p x
+  · simp only [moves_ofSetsWithTombs, Set.mem_range, Subtype.exists, exists_prop]
+    constructor <;> intro h2
+    · unfold toGameForm ofGameForm at h2
+      simp only [GameForm.moves_ofSets, Player.cases] at h2
+      cases p
+      all_goals
+      · simp only [Set.mem_range, Subtype.exists] at h2
+        obtain ⟨gg, ⟨gl, h3, h4⟩, h5⟩ := h2
+        rw [<-h5]
+        rw [<-ofGameForm, <-h4, ofGameForm_toGameForm gl (TombstoneFree.moves h1 _ gl h3)]
+        exact h3
+    · use toGameForm x (TombstoneFree.moves h1 p x h2)
+      constructor
+      · exact toGameForm_moves_mem' h2 h1
+      · exact ofGameForm_toGameForm x (TombstoneFree.moves h1 p x h2)
+  · simp only [leftTombstone_ofSetsWithTombs, Bool.false_eq]
+    unfold TombstoneFree at h1
+    refine eq_false_of_ne_true ?_
+    exact h1.left
+  · simp only [rightTombstone_ofSetsWithTombs, Bool.false_eq]
+    unfold TombstoneFree at h1
+    refine eq_false_of_ne_true ?_
+    exact h1.right.left
+termination_by g
+decreasing_by form_wf
 
 instance : Zero AugmentedForm := ⟨ofSetsWithTombs (fun _ ↦ ∅) false false⟩
 
@@ -343,26 +448,51 @@ theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
   simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, GameForm.moves_ofSets,
              Set.isEmpty_coe_sort]
 
-theorem ofGameForm_moves_mem {g gp : GameForm} {p : Player} (h1 : gp ∈ GameForm.moves p g) :
-    ofGameForm gp ∈ moves p (ofGameForm g) := by
+theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
+    : ∃g, ofGameForm g = a := by
   unfold ofGameForm
-  rw [moves_ofSetsWithTombs]
-  refine Set.mem_range.mpr ?_
-  rw [<-ofGameForm]
-  refine SetCoe.exists.mpr ?_
-  use gp, h1
+  use !{fun p => Set.range (fun ap : moves p a => toGameForm ap (h1.moves p ap (Subtype.coe_prop ap)))}
+  refine AugmentedForm.ext_iff.mpr ?_
+  simp only [moves_ofSetsWithTombs, leftTombstone_ofSetsWithTombs, Bool.false_eq,
+             rightTombstone_ofSetsWithTombs]
+  refine ⟨?_, ?_, ?_⟩
+  · intro p
+    refine Eq.symm (Set.ext ?_)
+    intro al
+    constructor <;> intro h2
+    · simp only [Set.mem_range, Subtype.exists, GameForm.moves_ofSets, exists_prop]
+      use (toGameForm al (TombstoneFree.moves h1 p al h2))
+      simp only [ofGameForm_toGameForm, and_true]
+      use al, h2
+    · simp only [Set.mem_range, Subtype.exists, GameForm.moves_ofSets, exists_prop] at h2
+      obtain ⟨g1, ⟨g2, h6, h7⟩, h5⟩ := h2
+      simp only [<-h5, <-h7, ofGameForm_toGameForm, h6]
+  · unfold TombstoneFree at h1
+    refine eq_false_of_ne_true ?_
+    exact h1.left
+  · unfold TombstoneFree at h1
+    refine eq_false_of_ne_true ?_
+    exact h1.right.left
+
+theorem mem_moves_ofGameForm {g : GameForm} {ap : AugmentedForm} {p : Player}
+    (h1 : ap ∈ moves p (ofGameForm g)): ∃gp ∈ GameForm.moves p g, ofGameForm gp = ap := by
+  have h2 : TombstoneFree (ofGameForm g) := by exact ofGameForm_tombstoneFree g
+  have h3 : TombstoneFree ap := TombstoneFree.moves h2 p ap h1
+  obtain ⟨gp, h3⟩ := ofGameForm_exists_preimage h3
+  use gp
+  refine And.intro ?_ h3
+  rw [<-h3] at h1
+  exact ofGameForm_moves_mem_iff.mp h1
 
 theorem ofGameForm_add (g h : GameForm) : ofGameForm (g + h) = ofGameForm g + ofGameForm h := by
   rw [add_eq']
-  have h1 : (tombstone Player.left (ofGameForm g) && (ofGameForm h).EndLike Player.left ||
-        tombstone Player.left (ofGameForm h) && (ofGameForm g).EndLike Player.left) = false := sorry
-  have h2 : (tombstone Player.right (ofGameForm g) && (ofGameForm h).EndLike Player.right ||
-        tombstone Player.right (ofGameForm h) && (ofGameForm g).EndLike Player.right) = false := sorry
-  rw [h1, h2, ofGameForm]
+  simp only [tombstone_ofGameForm, Bool.false_and, Bool.or_self]
+  rw [GameForm.add_eq']
+  rw [ofGameForm]
   refine ext ?_ rfl rfl
   intro p
-  rw [moves_ofSetsWithTombs, moves_ofSetsWithTombs]
-  simp [Set.range_eq_iff]
+  simp only [moves_ofSetsWithTombs, Set.range_eq_iff, Set.mem_union, Set.mem_image, Subtype.forall,
+             GameForm.moves_ofSets, Subtype.exists, exists_prop]
   constructor
   · intro ghp h3
     apply Or.elim h3 <;> intro h3
@@ -370,28 +500,36 @@ theorem ofGameForm_add (g h : GameForm) : ofGameForm (g + h) = ofGameForm g + of
       rw [<-h4]
       apply Or.inl
       use ofGameForm gp
-      apply And.intro (ofGameForm_moves_mem h3)
+      apply And.intro (ofGameForm_moves_mem_iff.mpr h3)
       apply Eq.symm
       exact ofGameForm_add gp h
     · obtain ⟨hp, h3, h4⟩ := h3
       rw [<-h4]
       apply Or.inr
       use ofGameForm hp
-      apply And.intro (ofGameForm_moves_mem h3)
+      apply And.intro (ofGameForm_moves_mem_iff.mpr h3)
       apply Eq.symm
       exact ofGameForm_add g hp
-  · intro ghp
-    intro h3
+  · intro ghp h3
     apply Or.elim h3 <;> intro h3
     · obtain ⟨gp, h3, h4⟩ := h3
       rw [<-h4]
-      use g
+      obtain ⟨gp, h5, h6⟩ := mem_moves_ofGameForm h3
+      use (gp + h)
       constructor
-      · sorry
-      · have h5 : ∃ gpp, gpp ∈ GameForm.moves p g := sorry
-        obtain ⟨gpp, h5⟩ := h5
-        sorry
-    · sorry
+      · apply Or.inl
+        use gp
+      · rw [<-h6]
+        exact ofGameForm_add gp h
+    · obtain ⟨hpp, h3, h4⟩ := h3
+      rw [<-h4]
+      obtain ⟨hp, h5, h6⟩ := mem_moves_ofGameForm h3
+      use (g + hp)
+      constructor
+      · apply Or.inr
+        use hp
+      · rw [<-h6]
+        exact ofGameForm_add g hp
 termination_by (g, h)
 decreasing_by form_wf
 
