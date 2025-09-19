@@ -8,7 +8,7 @@ universe u
 variable {G : Type u} [g_form : MisereForm G]
 
 def IsPFree (g : G) : Prop :=
-  (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ Form.moves p g, IsPFree gp)
+  (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
 
@@ -33,7 +33,7 @@ def IsPFree.neg {g : GameForm} (h1 : IsPFree g) : IsPFree (-g) := by
     exact h4
 termination_by birthday g
 decreasing_by
-  rw [GameForm.birthday_neg, <-GameForm.birthday_neg g]
+  rw [Form.birthday_neg, <-Form.birthday_neg g]
   exact Form.birthday_lt_of_mem_moves h3
 
 theorem IsPFree_moves {g h : GameForm} {p : Player} (h1 : IsPFree g) (h2 : h ∈ g.moves p) :
