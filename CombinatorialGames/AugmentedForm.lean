@@ -395,7 +395,20 @@ decreasing_by form_wf
 
 private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
     hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
-  sorry
+  simp only [hasTombstone_add]
+  unfold EndLike
+  by_cases h1 : hasTombstone p x
+  <;> by_cases h2 : hasTombstone p y
+  <;> by_cases h3 : hasTombstone p z
+  <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, Set.image_eq_empty,
+                 Set.union_empty_iff, and_imp, and_self, and_true, false_and, false_or,
+                 iff_or_self, moves_add, or_false, or_iff_left_iff_imp, or_self, or_self_left,
+                 true_and, true_or]
+  <;> by_cases h4 : moves p x = ∅
+  <;> by_cases h5 : moves p y = ∅
+  <;> by_cases h6 : moves p z = ∅
+  <;> simp only [h4, h5, h6, and_true, and_false, or_false, or_self,
+                 implies_true, imp_self, imp_false, not_true_eq_false]
 
 private theorem add_assoc' (x y z : AugmentedForm) : x + y + z = x + (y + z) := by
   ext1
