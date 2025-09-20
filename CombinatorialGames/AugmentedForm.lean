@@ -365,7 +365,7 @@ theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
   cases p <;> simp only [hasTombstone_ofSetsWithTombs]
 
 @[simp]
-theorem moves_add (p : Player) (x y : AugmentedForm) :
+private theorem moves_add' (p : Player) (x y : AugmentedForm) :
     (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
   rw [add_eq', moves_ofSetsWithTombs]
 
@@ -382,7 +382,7 @@ private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
 
 private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
   ext
-  · simp only [moves_add, Set.mem_union, Set.mem_image, or_comm]
+  · simp only [moves_add', Set.mem_union, Set.mem_image, or_comm]
     congr! 3 <;>
     · refine and_congr_right_iff.2 fun h ↦ ?_
       rw [add_comm']
@@ -399,7 +399,7 @@ private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
   <;> by_cases h3 : hasTombstone p z
   <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, Set.image_eq_empty,
                  Set.union_empty_iff, and_imp, and_self, and_true, false_and, false_or,
-                 iff_or_self, moves_add, or_false, or_iff_left_iff_imp, or_self, or_self_left,
+                 iff_or_self, moves_add', or_false, or_iff_left_iff_imp, or_self, or_self_left,
                  true_and, true_or]
   <;> by_cases h4 : moves p x = ∅
   <;> by_cases h5 : moves p y = ∅
@@ -409,7 +409,7 @@ private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
 
 private theorem add_assoc' (x y z : AugmentedForm) : x + y + z = x + (y + z) := by
   ext1
-  · simp only [moves_add, Set.image_union, Set.image_image, Set.union_assoc]
+  · simp only [moves_add', Set.image_union, Set.image_image, Set.union_assoc]
     refine congrArg₂ _ ?_ (congrArg₂ _ ?_ ?_) <;>
     · ext
       congr! 2
@@ -557,11 +557,13 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := neg_neg'
 
-instance : Form AugmentedForm where
+@[simp]
+noncomputable instance : Form AugmentedForm where
   moves_neg := by
     intro p x
     simp only [neg_eq]
     simp only [Form.moves, ←neg_eq', ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
+  moves_add := moves_add'
 
 end AugmentedForm

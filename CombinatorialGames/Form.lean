@@ -14,8 +14,9 @@ class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
   isOption'_wf : WellFounded (Moves.IsOption' moves)
 
-class Form (G : Type v) extends Moves G, InvolutiveNeg G where
+class Form (G : Type v) extends Moves G, InvolutiveNeg G, Add G where
   moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
+  moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
 
 namespace Moves
 

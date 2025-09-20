@@ -241,20 +241,6 @@ theorem moves_neg (p : Player) (x : GameForm) :
     (-x).moves p = -x.moves (-p) := by
   rw [neg_eq', moves_ofSets]
 
-instance : Form GameForm where
-  moves_neg := moves_neg
-
-theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
-  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
-
-@[simp]
-theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
-  rw [isOption_neg, neg_neg]
-
-theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
-    (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
-  simp
-
 /-! ### Addition and subtraction -/
 
 private def add' (x y : GameForm) : GameForm :=
@@ -296,6 +282,22 @@ theorem ofSets_add_ofSets' (st₁ st₂ : Player → Set GameForm)
 theorem moves_add (p : Player) (x y : GameForm) :
     (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
   rw [add_eq', moves_ofSets]
+
+@[simp]
+instance : Form GameForm where
+  moves_neg := moves_neg
+  moves_add := moves_add
+
+theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
+  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
+
+@[simp]
+theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
+  rw [isOption_neg, neg_neg]
+
+theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
+    (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
+  simp
 
 theorem add_left_mem_moves_add {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
     z + x ∈ (z + y).moves p := by
