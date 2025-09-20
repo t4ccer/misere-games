@@ -1,5 +1,4 @@
-import CombinatorialGames.GameForm
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.GameForm.Misere.Outcome
 
 namespace Form
 
@@ -58,6 +57,7 @@ namespace GameForm
 
 open GameForm.Misere.Outcome
 open Form
+open Form.Misere.Outcome
 
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereForm.MisereOutcome g = Outcome.ofPlayer p := by

@@ -1,4 +1,4 @@
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Form.Misere.Outcome
 import CombinatorialGames.Misere.DeadEnding
 
 namespace GameForm

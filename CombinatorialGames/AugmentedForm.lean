@@ -1,6 +1,6 @@
 import CombinatorialGames.Form
 import CombinatorialGames.GameForm
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Form.Misere.Outcome
 
 universe u
 
@@ -136,11 +136,6 @@ theorem moveRecOn_eq {motive : AugmentedForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ x.moves p, motive y) → motive x) :
     moveRecOn x mk = mk x (fun _ y _ ↦ moveRecOn y mk) := by
   rw [moveRecOn]
-
-def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
-  g.hasTombstone p ∨ g.moves p = ∅ ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')
-  termination_by g
-  decreasing_by form_wf
 
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
@@ -570,7 +565,9 @@ noncomputable instance : Form AugmentedForm where
                moves_ofSetsWithTombs]
   moves_add := moves_add'
 
-noncomputable instance : MisereForm AugmentedForm where
-  WinsGoingFirst := WinsGoingFirst
+theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
+    : hasTombstone p (-g) ↔ hasTombstone (-p) g := by
+  rw [neg_eq']
+  exact Eq.to_iff rfl
 
 end AugmentedForm

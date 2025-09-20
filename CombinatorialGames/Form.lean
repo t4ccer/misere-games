@@ -99,10 +99,18 @@ theorem IsEnd.add_iff {g h : G} {p : Player} :
     simp only [IsEnd, moves_add, Set.union_empty_iff, Set.image_eq_empty]
     exact h1
 
+theorem IsEnd_neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
+  constructor <;> cases p
+  all_goals
+  · intro h1
+    simp only [IsEnd, moves_neg, Set.neg_eq_empty] at *
+    exact h1
+
 end Form
 
 class MisereForm (G : Type v) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
+  WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
 
 namespace MisereForm
 
