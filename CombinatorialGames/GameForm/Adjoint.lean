@@ -9,6 +9,7 @@ import Mathlib.Data.Countable.Small
 
 namespace GameForm
 
+open Moves (Short)
 open Classical in
 noncomputable def Adjoint (g : GameForm) : GameForm :=
   if g = (0 : GameForm) then ⋆
@@ -94,21 +95,26 @@ theorem mem_adjoint_end_opposite {g gp : GameForm} {p : Player}
       simp [h2] at h1
       exact h1
 
-instance short_adjoint (g : GameForm) [h1 : GameForm.Short g] : GameForm.Short (g°) := by
+instance short_adjoint (g : GameForm) [h1 : Short g] : Short (g°) := by
   unfold Adjoint
   by_cases h2 : g = 0 <;> simp only [h2, reduceIte, GameForm.instShortStar]
   by_cases h3 : g.IsEnd .left <;> simp [h3, reduceIte]
     <;> by_cases h4 : g.IsEnd .right
-    <;> rw [GameForm.short_def]
+    <;> rw [Moves.short_def]
     <;> intro p
     <;> cases p
+  any_goals change (GameForm.moves _ _).Finite ∧ ∀ y ∈ GameForm.moves _ _, Short y
   any_goals simp only [Player.cases, Set.finite_singleton, Set.mem_range, Set.mem_singleton_iff,
                        Short.zero, Subtype.exists, and_imp, and_self, exists_prop,
                        forall_apply_eq_imp_iff₂, forall_eq, forall_exists_index, moves_ofSets, h4,
                        reduceIte]
   all_goals constructor
-  any_goals exact Set.finite_range (fun gr : g.moves .right => Adjoint gr)
-  any_goals exact Set.finite_range (fun gl : g.moves .left => Adjoint gl)
+  any_goals
+    have : Finite (g.moves .right) := Short.finite_moves .right g
+    exact Set.finite_range (fun gr : g.moves .right => Adjoint gr)
+  any_goals
+    have : Finite (g.moves .left) := Short.finite_moves .left g
+    exact Set.finite_range (fun gl : g.moves .left => Adjoint gl)
   all_goals
   · intro gr h5
     have _ : Short gr := Short.of_mem_moves h5

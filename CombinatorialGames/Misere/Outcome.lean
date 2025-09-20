@@ -6,7 +6,7 @@ Authors: Tomasz Maciosowski
 
 import CombinatorialGames.Outcome
 import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.GameForm.Short
+import CombinatorialGames.Form.Short
 
 namespace GameForm.Misere.Outcome
 
@@ -99,7 +99,7 @@ decreasing_by
 class ClosedUnderNeg (A : GameForm → Prop) where
   neg_of (g : GameForm) (h1 : A g) : A (-g)
 
-instance : ClosedUnderNeg GameForm.Short where
+instance : ClosedUnderNeg Moves.Short where
   neg_of _ h := GameForm.Short.neg_iff.mpr h
 
 private theorem conjugate_of_conjugates (g : GameForm) :

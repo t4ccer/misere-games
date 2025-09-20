@@ -1,9 +1,9 @@
 import CombinatorialGames.AugmentedForm
 import CombinatorialGames.Form
+import CombinatorialGames.Form.Short
 import CombinatorialGames.GameForm
 import CombinatorialGames.GameForm.Adjoint
 import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.GameForm.Short
 import CombinatorialGames.GameForm.Special
 import CombinatorialGames.Mathlib.NatOrdinal
 import CombinatorialGames.Mathlib.Neg
