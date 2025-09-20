@@ -10,6 +10,7 @@ import CombinatorialGames.Form.Short
 
 namespace GameForm.Misere.Outcome
 
+open Form
 open MisereForm
 
 private def WinsGoingFirst' (g : GameForm) (p : Player) : Prop :=
@@ -50,7 +51,7 @@ theorem MisereGe_antisymm {A : GameForm → Prop} {g h : GameForm} (h1 : g ≥m 
   PartialOrder.le_antisymm (MisereOutcome (g + x)) (MisereOutcome (h + x)) (h2 x h3) (h1 x h3)
 
 
-theorem End_WinsGoingFirst {g : GameForm} {p : Player} (h1 : g.IsEnd p) : WinsGoingFirst p g := by
+theorem End_WinsGoingFirst {g : GameForm} {p : Player} (h1 : IsEnd p g) : WinsGoingFirst p g := by
   rw [WinsGoingFirst_def]
   exact Or.inl h1
 
@@ -99,8 +100,8 @@ decreasing_by
 class ClosedUnderNeg (A : GameForm → Prop) where
   neg_of (g : GameForm) (h1 : A g) : A (-g)
 
-instance : ClosedUnderNeg Moves.Short where
-  neg_of _ h := GameForm.Short.neg_iff.mpr h
+instance : ClosedUnderNeg Form.Short where
+  neg_of _ h := Form.Short.neg_iff.mpr h
 
 private theorem conjugate_of_conjugates (g : GameForm) :
     Outcome.ofPlayers
@@ -190,9 +191,9 @@ theorem outcome_eq_P_not_WinsGoingFirst {g : GameForm} {p : Player}
   · exact h3 h2
   · exact h4 h2
 
-theorem add_end_WinsGoingFirst {g h : GameForm} {p : Player} (h1 : g.IsEnd p)
-    (h2 : h.IsEnd p) : WinsGoingFirst p (g + h) :=
-  End_WinsGoingFirst (GameForm.IsEnd.add_iff.mpr ⟨h1, h2⟩)
+theorem add_end_WinsGoingFirst {g h : GameForm} {p : Player} (h1 : IsEnd p g)
+    (h2 : IsEnd p h) : WinsGoingFirst p (g + h) :=
+  End_WinsGoingFirst (IsEnd.add_iff.mpr ⟨h1, h2⟩)
 
 theorem wins_opposite_outcome_eq_P {g : GameForm} (h1 : ∀ p, MiserePlayerOutcome g p = -p) :
     MisereOutcome g = Outcome.P := by

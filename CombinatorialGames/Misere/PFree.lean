@@ -41,10 +41,10 @@ theorem IsPFree_moves {g h : GameForm} {p : Player} (h1 : IsPFree g) (h2 : h ∈
   unfold IsPFree at h1
   exact h1.right p h h2
 
-private def IsSpecial (g : GameForm) : Prop :=
-  ¬g.IsEnd Player.right
-  ∧ ∀ gr ∈ g.moves Player.right,
-      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ gr.moves Player.left), IsSpecial grl)
+private def IsSpecial (g : G) : Prop :=
+  ¬IsEnd Player.right g
+  ∧ ∀ gr ∈ moves .right g,
+      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial grl)
   termination_by g
   decreasing_by form_wf
 
@@ -101,16 +101,19 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     -- 0: Right does not win going first on g+1 (by h2), which means g+1
     -- cannot be a Right end
   · -- 1. Since g+1 is not a Right end, g cannot be a Right end
-    have h_g_plus_one_not_right_end : ¬(g + 1).IsEnd Player.right :=
+    have h_g_plus_one_not_right_end : ¬IsEnd Player.right (g + 1) :=
       fun h_end => h2 (GameForm.Misere.Outcome.End_WinsGoingFirst h_end)
 
     -- If g were a Right end, then g+1 would also be a Right end (since 1 is a
     -- Right end)
     intro h_g_right_end
     apply h_g_plus_one_not_right_end
-    unfold GameForm.IsEnd at h_g_right_end ⊢
+    unfold IsEnd at h_g_right_end ⊢
+    simp only [Form.moves]
     rw [GameForm.moves_add, GameForm.rightMoves_one, Set.image_empty, Set.union_empty]
-    rw [h_g_right_end, Set.image_empty]
+    simp only [Set.image_eq_empty]
+    simp only [Form.moves] at h_g_right_end
+    rw [h_g_right_end]
 
   · -- for each right move gr of g, show either gr has outcome L or ∃ special
     -- left move

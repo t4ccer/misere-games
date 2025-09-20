@@ -21,11 +21,11 @@ on combinatorial games. This functionality is now implemented through the `game_
 
 universe u
 
-namespace Moves
+namespace Form
 
-open Moves
+open Form
 
-variable {G : Type u} [g_form : Moves G]
+variable {G : Type u} [g_form : Form G]
 
 def ShortAux (x : G) : Prop :=
   ∀ p, (Moves.moves p x).Finite ∧ ∀ y ∈ Moves.moves p x, ShortAux y
@@ -105,49 +105,48 @@ theorem _root_.Moves.short_iff_finite_setOf_subposition {x : G} :
 termination_by x
 decreasing_by form_wf
 
-end Short
-end Moves
+protected instance add (x y : G) [Short x] [Short y] : Short (x + y) := by
+  refine Short.mk fun p ↦ ⟨?_, ?_⟩
+  · change (moves p (x + y)).Finite; rw [moves_add]
+    simpa using ⟨(Short.finite_moves _ x).image _, (Short.finite_moves _ y).image _⟩
+  · intro z hz; change z ∈ moves p (x + y) at hz; rw [moves_add] at hz
+    cases hz with
+    | inl h => obtain ⟨a, ha, rfl⟩ := h; have := Short.of_mem_moves ha; exact Short.add ..
+    | inr h => obtain ⟨b, hb, rfl⟩ := h; have := Short.of_mem_moves hb; exact Short.add ..
+termination_by (x, y)
+decreasing_by form_wf
 
-namespace GameForm
-open Moves (Short)
-variable {x y : GameForm}
-
-@[simp]
-protected instance Short.zero : Short (0 : GameForm) := by
-  rw [zero_def, Moves.short_def]; simp [Moves.moves]
-
-@[simp]
-protected instance Short.one : Short (1 : GameForm) := by
-  rw [one_def, Moves.short_def]; simp [Moves.moves, Short.zero]
-
--- TODO: we are blocked for doing this for AugmentedForm until neg is
--- implemented. Should neg be added to Form?
-protected instance Short.neg (x : GameForm) [Short x] : Short (-x) := by
-  rw [Moves.short_def]; intro p; constructor
-  · change (GameForm.moves p (-x)).Finite; rw [GameForm.moves_neg]
+protected instance neg (x : G) [Short x] : Short (-x) := by
+  rw [short_def]; intro p; constructor
+  · change (moves p (-x)).Finite; rw [moves_neg]
     simpa [← Set.image_neg_eq_neg] using (Short.finite_moves _ x).image _
-  · intro y hy; change y ∈ GameForm.moves p (-x) at hy; rw [GameForm.moves_neg] at hy
-    have h_neg_y : -y ∈ GameForm.moves (-p) x := by simp [Set.mem_neg] at hy; exact hy
+  · intro y hy; change y ∈ moves p (-x) at hy; rw [moves_neg] at hy
+    have h_neg_y : -y ∈ moves (-p) x := by simp [Set.mem_neg] at hy; exact hy
     have : Short (-y) := Short.of_mem_moves h_neg_y
     simpa using Short.neg (-y)
 termination_by x
 decreasing_by form_wf
 
 @[simp]
-theorem Short.neg_iff {x : GameForm} : Short (-x) ↔ Short x :=
+theorem neg_iff {x : G} : Short (-x) ↔ Short x :=
   ⟨fun _ ↦ by simpa using Short.neg (-x), fun _ ↦ Short.neg x⟩
 
--- TODO: should add be added to Form?
-protected instance Short.add (x y : GameForm) [Short x] [Short y] : Short (x + y) := by
-  refine Short.mk fun p ↦ ⟨?_, ?_⟩
-  · change (GameForm.moves p (x + y)).Finite; rw [GameForm.moves_add]
-    simpa using ⟨(Short.finite_moves _ x).image _, (Short.finite_moves _ y).image _⟩
-  · intro z hz; change z ∈ GameForm.moves p (x + y) at hz; rw [GameForm.moves_add] at hz
-    cases hz with
-    | inl h => obtain ⟨a, ha, rfl⟩ := h; have := Short.of_mem_moves ha; exact Short.add ..
-    | inr h => obtain ⟨b, hb, rfl⟩ := h; have := Short.of_mem_moves hb; exact Short.add ..
-termination_by (x, y)
-decreasing_by form_wf
+end Short
+end Form
+
+namespace GameForm
+
+open Form (Short)
+
+variable {x y : GameForm}
+
+@[simp]
+protected instance Short.zero : Short (0 : GameForm) := by
+  rw [zero_def, Form.short_def]; simp [Moves.moves]
+
+@[simp]
+protected instance Short.one : Short (1 : GameForm) := by
+  rw [one_def, Form.short_def]; simp [Moves.moves, Short.zero]
 
 protected instance Short.sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
   Short.add ..

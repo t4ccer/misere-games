@@ -10,6 +10,7 @@ import CombinatorialGames.GameForm.Adjoint
 
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
+open Form
 
 def AnyGame (_ : GameForm) := True
 
@@ -20,44 +21,44 @@ noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : h.moves .right => hr°
    | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
 
-instance short_auxT {g h : GameForm} [h1 : Moves.Short g] [h2 : Moves.Short h]
-    : Moves.Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
+instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
+    : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
   unfold leftEnd_not_leftEnd_not_ge.auxT
-  refine Moves.short_def.mpr ?_
+  refine short_def.mpr ?_
   intro p
-  change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Moves.Short y
+  change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Short y
   constructor
   · cases p
     · simp only [GameForm.moves_ofSets, Player.cases]
-      have : Finite (h.moves .right) := Moves.Short.finite_moves .right h
+      have : Finite (h.moves .right) := Short.finite_moves .right h
       exact Set.finite_range (fun hr : h.moves .right => hr°)
     · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
     · obtain ⟨gp', h3, h4⟩ := h3
       rw [<-h4]
-      have _ : Moves.Short gp' := Moves.Short.of_mem_moves h3
+      have _ : Short gp' := Short.of_mem_moves h3
       exact short_adjoint gp'
     · rw [h3]
-      refine Moves.short_def.mpr ?_
+      refine short_def.mpr ?_
       intro p
-      change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Moves.Short y
+      change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Short y
       constructor <;> cases p
       · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
       · simp only [GameForm.moves_ofSets, Player.cases]
-        have : Finite (g.moves .left) := Moves.Short.finite_moves .left g
+        have : Finite (g.moves .left) := Short.finite_moves .left g
         exact Set.finite_range (fun gl : g.moves .left => gl°)
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
                    exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
         intro gl h4
-        have _ : Moves.Short gl := Moves.Short.of_mem_moves h4
+        have _ : Short gl := Short.of_mem_moves h4
         exact short_adjoint gl
 
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
-    (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : h.IsEnd .left)
-    (h2 : ¬(g.IsEnd .left)) : ¬(g ≥m A h) := by
+    (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
+    (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
   let t := !{ Set.range fun hr : h.moves .right => hr°
             | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
 
@@ -81,7 +82,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       -- since (by the assumption on H) both components are Left ends
       apply add_end_WinsGoingFirst h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, GameForm.IsEnd]
+      simp only [h3, GameForm.leftMoves_ofSets, IsEnd, Form.moves]
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
@@ -127,10 +128,10 @@ alias theorem6_6 := leftEnd_not_leftEnd_not_ge
 
 theorem ClosedUnderNeg.rightEnd_not_rightEnd_not_ge {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
-    (h1 : h.IsEnd .right) (h2 : ¬(g.IsEnd .right)) : ¬(h ≥m A g) := by
-  unfold GameForm.IsEnd at h1 h2
-  have h3 : (-h).IsEnd .left := GameForm.end_neg_iff_player_neg.mpr h1
-  have h4 : ¬((-g).IsEnd .left) := GameForm.end_neg_iff_player_neg.not.mpr h2
+    (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
+  unfold IsEnd at h1 h2
+  have h3 : IsEnd .left (-h) := GameForm.end_neg_iff_player_neg.mpr h1
+  have h4 : ¬(IsEnd .left (-g)) := GameForm.end_neg_iff_player_neg.not.mpr h2
   have h5 : ¬((-g) ≥m A (-h)) := leftEnd_not_leftEnd_not_ge h0 h3 h4
   exact (ClosedUnderNeg.neg_ge_neg_iff h g).not.mp h5
 
@@ -140,7 +141,7 @@ class EqZeroIdentical (A : GameForm → Prop) extends (ClosedUnderNeg A) where
 instance : EqZeroIdentical AnyGame where
   has_T_g_zero _ := trivial
 
-instance : EqZeroIdentical Moves.Short where
+instance : EqZeroIdentical Short where
   has_T_g_zero _ := short_auxT
 
 theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
@@ -170,5 +171,5 @@ theorem EqZeroIdentical.eq_zero_iff_identical_zero {A : GameForm → Prop} [EqZe
 theorem Transfinite.eq_zero_iff_identical_zero {g : GameForm} :
     (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero trivial
 
-theorem Short.eq_zero_iff_identical_zero {g : GameForm} [h1 : Moves.Short g] :
-    (g =m Moves.Short 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h1
+theorem Short.eq_zero_iff_identical_zero {g : GameForm} [h1 : Short g] :
+    (g =m Short 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h1

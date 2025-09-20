@@ -241,20 +241,6 @@ theorem moves_neg (p : Player) (x : GameForm) :
     (-x).moves p = -x.moves (-p) := by
   rw [neg_eq', moves_ofSets]
 
-instance : Form GameForm where
-  moves_neg := moves_neg
-
-theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
-  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
-
-@[simp]
-theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
-  rw [isOption_neg, neg_neg]
-
-theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
-    (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
-  simp
-
 /-! ### Addition and subtraction -/
 
 private def add' (x y : GameForm) : GameForm :=
@@ -296,6 +282,22 @@ theorem ofSets_add_ofSets' (st₁ st₂ : Player → Set GameForm)
 theorem moves_add (p : Player) (x y : GameForm) :
     (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
   rw [add_eq', moves_ofSets]
+
+@[simp]
+instance : Form GameForm where
+  moves_neg := moves_neg
+  moves_add := moves_add
+
+theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
+  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
+
+@[simp]
+theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
+  rw [isOption_neg, neg_neg]
+
+theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
+    (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
+  simp
 
 theorem add_left_mem_moves_add {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
     z + x ∈ (z + y).moves p := by
@@ -486,34 +488,25 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x �
   use n + 1
   simp [eq_add_one_of_mem_rightMoves_intCast hx]
 
-def IsEnd (g : GameForm) (p : Player) := g.moves p = ∅
-
-theorem IsEnd.add_iff {g h : GameForm} {p : Player} :
-    (g + h).IsEnd p ↔ (g.IsEnd p ∧ h.IsEnd p) := by
-  constructor <;> intro h1
-  · unfold IsEnd at *
-    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty] at h1
-    exact h1
-  · unfold IsEnd at h1
-    simp only [h1, IsEnd, moves_add, Set.image_empty, Set.union_self]
-
-theorem end_neg_iff_player_neg {g : GameForm} {p : Player} : (-g).IsEnd p ↔ g.IsEnd (-p) := by
+theorem end_neg_iff_player_neg {g : GameForm} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
   constructor <;> cases p
   all_goals
   · intro h1
-    simp only [IsEnd, moves_neg, Set.involutiveNeg, Set.neg_eq_empty] at *
+    simp only [IsEnd, moves_neg, Set.involutiveNeg, Set.neg_eq_empty, Form.moves] at *
     exact h1
 
-theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : g.IsEnd .left) (h2 : g.IsEnd .right) :
+theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : IsEnd .left g) (h2 : IsEnd .right g) :
     g = 0 := by
   unfold IsEnd at h1 h2
   rw [zero_def]
   ext p
   cases p
-  · simp only [h1, moves_ofSets]
-  · simp only [h2, moves_ofSets]
+  · simp only [Moves.moves, moves_ofSets, Set.mem_empty_iff_false, iff_false] at ⊢ h1
+    simp only [h1, Set.mem_empty_iff_false, not_false_eq_true]
+  · simp only [moves_ofSets, Form.moves] at ⊢ h2
+    rw [h2]
 
-theorem both_ends_eq_zero {g : GameForm} {p : Player} (h1 : g.IsEnd p) (h2 : g.IsEnd (-p)) :
+theorem both_ends_eq_zero {g : GameForm} {p : Player} (h1 : IsEnd p g) (h2 : IsEnd (-p) g) :
     g = 0 := by
   cases p
   · exact leftEnd_rightEnd_eq_zero h1 h2
@@ -524,22 +517,22 @@ theorem mem_moves_ne_zero {g gl : GameForm} {p : Player} (h1 : gl ∈ g.moves p)
   intro h2
   simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
 
-theorem not_end_ne_zero {g : GameForm} {p : Player} (h1 : ¬(g.IsEnd p)) : g ≠ 0 := by
+theorem not_end_ne_zero {g : GameForm} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
   rw [zero_def]
   intro h2
   rw [h2] at h1
-  simp only [IsEnd, moves_ofSets, not_true_eq_false] at h1
+  simp only [IsEnd, Moves.moves, moves_ofSets, not_true_eq_false] at h1
 
-theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬g.IsEnd p := by
+theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   apply not_forall.mp
   intro h2
   exact h1 (leftEnd_rightEnd_eq_zero (h2 .left) (h2 .right))
 
-theorem zero_end {p : Player} : (0 : GameForm).IsEnd p := by
-  rw [zero_def, IsEnd, moves_ofSets]
+theorem zero_end {p : Player} : IsEnd p (0 : GameForm) := by
+  simp only [IsEnd, Moves.moves, zero_def, moves_ofSets]
 
-theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : g.IsEnd p) :
-    ¬g.IsEnd (-p) :=
+theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd p g) :
+    ¬IsEnd (-p) g :=
   fun h3 => h1 (both_ends_eq_zero h2 h3)
 
 end GameForm

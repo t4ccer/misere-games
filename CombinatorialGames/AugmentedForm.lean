@@ -142,13 +142,9 @@ def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
   termination_by g
   decreasing_by form_wf
 
-instance : MisereForm AugmentedForm where
-  WinsGoingFirst := AugmentedForm.WinsGoingFirst
-
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
-  g.hasTombstone p ∨ (g.moves p = ∅) -- TODO: .IsEnd to be form-polymorphic
-
+  g.hasTombstone p ∨ (Form.IsEnd p g)
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
@@ -334,7 +330,7 @@ theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone 
 
 @[simp]
 theorem EndLike_zero (p : Player) : EndLike (0 : AugmentedForm) p := by
-  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true]
+  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd, Form.moves]
 
 theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
@@ -365,7 +361,7 @@ theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
   cases p <;> simp only [hasTombstone_ofSetsWithTombs]
 
 @[simp]
-theorem moves_add (p : Player) (x y : AugmentedForm) :
+private theorem moves_add' (p : Player) (x y : AugmentedForm) :
     (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
   rw [add_eq', moves_ofSetsWithTombs]
 
@@ -382,7 +378,7 @@ private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
 
 private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
   ext
-  · simp only [moves_add, Set.mem_union, Set.mem_image, or_comm]
+  · simp only [moves_add', Set.mem_union, Set.mem_image, or_comm]
     congr! 3 <;>
     · refine and_congr_right_iff.2 fun h ↦ ?_
       rw [add_comm']
@@ -393,14 +389,14 @@ decreasing_by form_wf
 private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
     hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
   simp only [hasTombstone_add]
-  unfold EndLike
+  unfold EndLike Form.IsEnd
   by_cases h1 : hasTombstone p x
   <;> by_cases h2 : hasTombstone p y
   <;> by_cases h3 : hasTombstone p z
   <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, Set.image_eq_empty,
                  Set.union_empty_iff, and_imp, and_self, and_true, false_and, false_or,
-                 iff_or_self, moves_add, or_false, or_iff_left_iff_imp, or_self, or_self_left,
-                 true_and, true_or]
+                 iff_or_self, moves_add', or_false, or_iff_left_iff_imp, or_self, or_self_left,
+                 true_and, true_or, Form.moves, Form.IsEnd]
   <;> by_cases h4 : moves p x = ∅
   <;> by_cases h5 : moves p y = ∅
   <;> by_cases h6 : moves p z = ∅
@@ -409,7 +405,7 @@ private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
 
 private theorem add_assoc' (x y z : AugmentedForm) : x + y + z = x + (y + z) := by
   ext1
-  · simp only [moves_add, Set.image_union, Set.image_image, Set.union_assoc]
+  · simp only [moves_add', Set.image_union, Set.image_image, Set.union_assoc]
     refine congrArg₂ _ ?_ (congrArg₂ _ ?_ ?_) <;>
     · ext
       congr! 2
@@ -524,16 +520,24 @@ instance : Neg AugmentedForm where
 
 theorem neg_eq (x : AugmentedForm)
     : (-x) = ofSetsWithTombs
+               (fun p => (Set.range fun xp : x.moves (-p) => -xp))
+               (fun p => hasTombstone (-p) x) := by
+  simp only [Neg.neg, Player.cases]
+  rw [neg']
+  congr
+
+private theorem neg_eq' (x : AugmentedForm)
+    : (-x) = ofSetsWithTombs
                (fun p => (Set.range fun xp : x.moves (-p) => neg' xp))
                (fun p => hasTombstone (-p) x) := by
   simp only [Neg.neg, Player.cases]
   rw [neg']
   congr
 
-private theorem neg_eq' (x : AugmentedForm) : (-x) = neg' x := by rfl
+private theorem neg'_eq (x : AugmentedForm) : (-x) = neg' x := by rfl
 
 private theorem neg_neg' (x : AugmentedForm) : -(-x) = x := by
-  simp only [neg_eq, hasTombstone_ofSetsWithTombs, neg_neg]
+  simp only [neg_eq', hasTombstone_ofSetsWithTombs, neg_neg]
   rw [<-ofSets_moves_tombs x]
   congr
   funext p
@@ -557,11 +561,16 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := neg_neg'
 
-instance : Form AugmentedForm where
+@[simp]
+noncomputable instance : Form AugmentedForm where
   moves_neg := by
     intro p x
-    simp only [neg_eq]
-    simp only [Form.moves, ←neg_eq', ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
+    simp only [neg_eq']
+    simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
+  moves_add := moves_add'
+
+noncomputable instance : MisereForm AugmentedForm where
+  WinsGoingFirst := WinsGoingFirst
 
 end AugmentedForm

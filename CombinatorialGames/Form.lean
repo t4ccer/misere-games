@@ -14,8 +14,9 @@ class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
   isOption'_wf : WellFounded (Moves.IsOption' moves)
 
-class Form (G : Type v) extends Moves G, InvolutiveNeg G where
+class Form (G : Type v) extends Moves G, InvolutiveNeg G, Add G where
   moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
+  moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
 
 namespace Moves
 
@@ -74,11 +75,13 @@ macro "form_wf" : tactic =>
     [Prod.Lex.left, Prod.Lex.right, PSigma.Lex.left, PSigma.Lex.right,
     Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
 
+def IsEnd (p : Player) (g : G) := moves p g = ∅
+
 end Moves
 
 namespace Form
 
-export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves)
+export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves IsEnd)
 
 variable {G : Type u} [g_form : Form G]
 
@@ -86,9 +89,19 @@ theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
   simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
 
+theorem IsEnd.add_iff {g h : G} {p : Player} :
+    IsEnd p (g + h) ↔ (IsEnd p g ∧ IsEnd p h) := by
+  constructor <;> intro h1
+  · unfold IsEnd at *
+    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty] at h1
+    exact h1
+  · unfold IsEnd at h1
+    simp only [IsEnd, moves_add, Set.union_empty_iff, Set.image_eq_empty]
+    exact h1
+
 end Form
 
-class MisereForm (G : Type v) extends Moves G where
+class MisereForm (G : Type v) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
 
 namespace MisereForm
