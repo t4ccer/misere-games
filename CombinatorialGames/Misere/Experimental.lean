@@ -29,7 +29,7 @@ class NoP (A : GameForm → Prop) where
   no_P (g : GameForm) (h1 : A g) : MisereForm.MisereOutcome g ≠ .P
 
 class DeadEnding (A : GameForm → Prop) where
-  dead_ending (g : GameForm) : g.IsDeadEnding
+  dead_ending (g : GameForm) : IsDeadEnding g
 
 theorem theorem4 {A : GameForm → Prop} [ClosedUnderNeg A] [ClosedUnderSum A]
     [ClosedUnderFollower A] [DeadEnding A] [NoP A] (g : GameForm) (h1 : A g) :
