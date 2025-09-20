@@ -41,10 +41,10 @@ theorem IsPFree_moves {g h : GameForm} {p : Player} (h1 : IsPFree g) (h2 : h ∈
   unfold IsPFree at h1
   exact h1.right p h h2
 
-private def IsSpecial (g : GameForm) : Prop :=
+private def IsSpecial (g : G) : Prop :=
   ¬IsEnd Player.right g
-  ∧ ∀ gr ∈ g.moves Player.right,
-      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ gr.moves Player.left), IsSpecial grl)
+  ∧ ∀ gr ∈ moves .right g,
+      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial grl)
   termination_by g
   decreasing_by form_wf
 
