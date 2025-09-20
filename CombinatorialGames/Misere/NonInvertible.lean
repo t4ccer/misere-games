@@ -22,32 +22,38 @@ noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
 
 instance short_auxT {g h : GameForm} [h1 : Moves.Short g] [h2 : Moves.Short h]
     : Moves.Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
-      sorry
---  unfold leftEnd_not_leftEnd_not_ge.auxT
---  refine Moves.short_def.mpr ?_
---  intro p
---  constructor
---  · cases p
---      <;> simp only [GameForm.moves_ofSets, Player.cases, Set.finite_range, Set.finite_singleton]
---  · intro gp h3
---    cases p <;> simp at h3
---    · obtain ⟨gp', h3, h4⟩ := h3
---      rw [<-h4]
---      have _ : GameForm.Short gp' := GameForm.Short.of_mem_moves h3
---      exact short_adjoint gp'
---    · rw [h3]
---      refine GameForm.short_def.mpr ?_
---      intro p
---      constructor <;> cases p
---      · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
---      · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_range]
---      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
---                   IsEmpty.forall_iff, implies_true]
---      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
---                   exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
---        intro gl h4
---        have _ : GameForm.Short gl := GameForm.Short.of_mem_moves h4
---        exact short_adjoint gl
+  unfold leftEnd_not_leftEnd_not_ge.auxT
+  refine Moves.short_def.mpr ?_
+  intro p
+  change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Moves.Short y
+  constructor
+  · cases p
+    · simp only [GameForm.moves_ofSets, Player.cases]
+      have : Finite (h.moves .right) := Moves.Short.finite_moves .right h
+      exact Set.finite_range (fun hr : h.moves .right => hr°)
+    · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
+  · intro gp h3
+    cases p <;> simp at h3
+    · obtain ⟨gp', h3, h4⟩ := h3
+      rw [<-h4]
+      have _ : Moves.Short gp' := Moves.Short.of_mem_moves h3
+      exact short_adjoint gp'
+    · rw [h3]
+      refine Moves.short_def.mpr ?_
+      intro p
+      change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Moves.Short y
+      constructor <;> cases p
+      · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
+      · simp only [GameForm.moves_ofSets, Player.cases]
+        have : Finite (g.moves .left) := Moves.Short.finite_moves .left g
+        exact Set.finite_range (fun gl : g.moves .left => gl°)
+      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
+                   IsEmpty.forall_iff, implies_true]
+      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
+                   exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
+        intro gl h4
+        have _ : Moves.Short gl := Moves.Short.of_mem_moves h4
+        exact short_adjoint gl
 
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : h.IsEnd .left)
