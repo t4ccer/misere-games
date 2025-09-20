@@ -144,7 +144,7 @@ def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
 
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
-  g.hasTombstone p ∨ (g.moves p = ∅) -- TODO: .IsEnd to be form-polymorphic
+  g.hasTombstone p ∨ (Form.IsEnd p g)
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
@@ -330,7 +330,7 @@ theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone 
 
 @[simp]
 theorem EndLike_zero (p : Player) : EndLike (0 : AugmentedForm) p := by
-  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true]
+  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd, Form.moves]
 
 theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
@@ -389,14 +389,14 @@ decreasing_by form_wf
 private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
     hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
   simp only [hasTombstone_add]
-  unfold EndLike
+  unfold EndLike Form.IsEnd
   by_cases h1 : hasTombstone p x
   <;> by_cases h2 : hasTombstone p y
   <;> by_cases h3 : hasTombstone p z
   <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, Set.image_eq_empty,
                  Set.union_empty_iff, and_imp, and_self, and_true, false_and, false_or,
                  iff_or_self, moves_add', or_false, or_iff_left_iff_imp, or_self, or_self_left,
-                 true_and, true_or]
+                 true_and, true_or, Form.moves, Form.IsEnd]
   <;> by_cases h4 : moves p x = ∅
   <;> by_cases h5 : moves p y = ∅
   <;> by_cases h6 : moves p z = ∅

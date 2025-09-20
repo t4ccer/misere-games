@@ -75,19 +75,19 @@ macro "form_wf" : tactic =>
     [Prod.Lex.left, Prod.Lex.right, PSigma.Lex.left, PSigma.Lex.right,
     Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
 
+def IsEnd (p : Player) (g : G) := moves p g = ∅
+
 end Moves
 
 namespace Form
 
-export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves)
+export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves IsEnd)
 
 variable {G : Type u} [g_form : Form G]
 
 theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
   simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
-
-def IsEnd (p : Player) (g : G) := moves p g = ∅
 
 theorem IsEnd.add_iff {g h : G} {p : Player} :
     IsEnd p (g + h) ↔ (IsEnd p g ∧ IsEnd p h) := by
