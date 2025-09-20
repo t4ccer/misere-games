@@ -488,17 +488,6 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x �
   use n + 1
   simp [eq_add_one_of_mem_rightMoves_intCast hx]
 
-theorem IsEnd.add_iff {g h : GameForm} {p : Player} :
-    IsEnd p (g + h) ↔ (IsEnd p g ∧ IsEnd p h) := by
-  constructor <;> intro h1
-  · unfold IsEnd at *
-    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty, Form.moves] at h1
-    exact h1
-  · unfold IsEnd at h1
-    simp only [IsEnd, Moves.moves, moves_add, Set.union_empty_iff, Set.image_eq_empty]
-    simp only [Moves.moves] at h1
-    exact h1
-
 theorem end_neg_iff_player_neg {g : GameForm} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
   constructor <;> cases p
   all_goals

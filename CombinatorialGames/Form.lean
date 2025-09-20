@@ -89,6 +89,16 @@ theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
 
 def IsEnd (p : Player) (g : G) := moves p g = ∅
 
+theorem IsEnd.add_iff {g h : G} {p : Player} :
+    IsEnd p (g + h) ↔ (IsEnd p g ∧ IsEnd p h) := by
+  constructor <;> intro h1
+  · unfold IsEnd at *
+    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty] at h1
+    exact h1
+  · unfold IsEnd at h1
+    simp only [IsEnd, moves_add, Set.union_empty_iff, Set.image_eq_empty]
+    exact h1
+
 end Form
 
 class MisereForm (G : Type v) extends Moves G where
