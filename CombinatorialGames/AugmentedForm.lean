@@ -142,13 +142,9 @@ def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
   termination_by g
   decreasing_by form_wf
 
-instance : MisereForm AugmentedForm where
-  WinsGoingFirst := AugmentedForm.WinsGoingFirst
-
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
   g.hasTombstone p ∨ (g.moves p = ∅) -- TODO: .IsEnd to be form-polymorphic
-
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
@@ -573,5 +569,8 @@ noncomputable instance : Form AugmentedForm where
     simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add := moves_add'
+
+noncomputable instance : MisereForm AugmentedForm where
+  WinsGoingFirst := WinsGoingFirst
 
 end AugmentedForm

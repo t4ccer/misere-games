@@ -101,7 +101,7 @@ theorem IsEnd.add_iff {g h : G} {p : Player} :
 
 end Form
 
-class MisereForm (G : Type v) extends Moves G where
+class MisereForm (G : Type v) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
 
 namespace MisereForm
