@@ -100,8 +100,8 @@ decreasing_by
 class ClosedUnderNeg (A : GameForm → Prop) where
   neg_of (g : GameForm) (h1 : A g) : A (-g)
 
-instance : ClosedUnderNeg Moves.Short where
-  neg_of _ h := GameForm.Short.neg_iff.mpr h
+instance : ClosedUnderNeg Form.Short where
+  neg_of _ h := Form.Short.neg_iff.mpr h
 
 private theorem conjugate_of_conjugates (g : GameForm) :
     Outcome.ofPlayers

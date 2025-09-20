@@ -10,7 +10,6 @@ import Mathlib.Data.Countable.Small
 namespace GameForm
 
 open Form
-open Moves (Short)
 
 open Classical in
 noncomputable def Adjoint (g : GameForm) : GameForm :=
@@ -104,7 +103,7 @@ instance short_adjoint (g : GameForm) [h1 : Short g] : Short (g°) := by
   by_cases h2 : g = 0 <;> simp only [h2, reduceIte, GameForm.instShortStar]
   by_cases h3 : IsEnd .left g <;> simp [h3, reduceIte]
     <;> by_cases h4 : IsEnd .right g
-    <;> rw [Moves.short_def]
+    <;> rw [short_def]
     <;> intro p
     <;> cases p
   any_goals change (GameForm.moves _ _).Finite ∧ ∀ y ∈ GameForm.moves _ _, Short y
