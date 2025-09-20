@@ -524,16 +524,24 @@ instance : Neg AugmentedForm where
 
 theorem neg_eq (x : AugmentedForm)
     : (-x) = ofSetsWithTombs
+               (fun p => (Set.range fun xp : x.moves (-p) => -xp))
+               (fun p => hasTombstone (-p) x) := by
+  simp only [Neg.neg, Player.cases]
+  rw [neg']
+  congr
+
+private theorem neg_eq' (x : AugmentedForm)
+    : (-x) = ofSetsWithTombs
                (fun p => (Set.range fun xp : x.moves (-p) => neg' xp))
                (fun p => hasTombstone (-p) x) := by
   simp only [Neg.neg, Player.cases]
   rw [neg']
   congr
 
-private theorem neg_eq' (x : AugmentedForm) : (-x) = neg' x := by rfl
+private theorem neg'_eq (x : AugmentedForm) : (-x) = neg' x := by rfl
 
 private theorem neg_neg' (x : AugmentedForm) : -(-x) = x := by
-  simp only [neg_eq, hasTombstone_ofSetsWithTombs, neg_neg]
+  simp only [neg_eq', hasTombstone_ofSetsWithTombs, neg_neg]
   rw [<-ofSets_moves_tombs x]
   congr
   funext p
@@ -561,8 +569,8 @@ instance : InvolutiveNeg AugmentedForm where
 noncomputable instance : Form AugmentedForm where
   moves_neg := by
     intro p x
-    simp only [neg_eq]
-    simp only [Form.moves, ←neg_eq', ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
+    simp only [neg_eq']
+    simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add := moves_add'
 
