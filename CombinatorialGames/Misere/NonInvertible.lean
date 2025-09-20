@@ -20,11 +20,11 @@ noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : h.moves .right => hr°
    | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
 
-instance short_auxT {g h : GameForm} [h1 : Form.Short g] [h2 : Form.Short h]
-    : Form.Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
+instance short_auxT {g h : GameForm} [h1 : Moves.Short g] [h2 : Moves.Short h]
+    : Moves.Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
       sorry
 --  unfold leftEnd_not_leftEnd_not_ge.auxT
---  refine Form.short_def.mpr ?_
+--  refine Moves.short_def.mpr ?_
 --  intro p
 --  constructor
 --  · cases p
@@ -134,7 +134,7 @@ class EqZeroIdentical (A : GameForm → Prop) extends (ClosedUnderNeg A) where
 instance : EqZeroIdentical AnyGame where
   has_T_g_zero _ := trivial
 
-instance : EqZeroIdentical Form.Short where
+instance : EqZeroIdentical Moves.Short where
   has_T_g_zero _ := short_auxT
 
 theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
@@ -164,5 +164,5 @@ theorem EqZeroIdentical.eq_zero_iff_identical_zero {A : GameForm → Prop} [EqZe
 theorem Transfinite.eq_zero_iff_identical_zero {g : GameForm} :
     (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero trivial
 
-theorem Short.eq_zero_iff_identical_zero {g : GameForm} [h1 : Form.Short g] :
-    (g =m Form.Short 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h1
+theorem Short.eq_zero_iff_identical_zero {g : GameForm} [h1 : Moves.Short g] :
+    (g =m Moves.Short 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h1

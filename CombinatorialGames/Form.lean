@@ -1,23 +1,28 @@
+import CombinatorialGames.Mathlib.Neg
 import CombinatorialGames.Mathlib.Small
 import CombinatorialGames.Player
 import CombinatorialGames.Outcome
+import Mathlib.Algebra.Group.Pointwise.Set.Basic
 
 universe u v
 
 -- Implementation detail
-def Form.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
+def Moves.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
    x ∈ ⋃ p, moves p y
 
-class Form (G : Type v) where
+class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
-  isOption'_wf : WellFounded (Form.IsOption' moves)
+  isOption'_wf : WellFounded (Moves.IsOption' moves)
 
-namespace Form
+class Form (G : Type v) extends Moves G, InvolutiveNeg G where
+  moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
 
-variable {G : Type u} [g_form : Form G]
+namespace Moves
+
+variable {G : Type u} [g_moves : Moves G]
 
 /-- `IsOption x y` means that `x` is either a left or a right move for `y`. -/
-def IsOption (x y : G) : Prop := IsOption' g_form.moves x y
+def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
 
 -- /-- The set of left moves of the game. -/
 -- scoped notation:max g:max "ᴸ" => Form.moves Player.left g
@@ -26,17 +31,17 @@ def IsOption (x y : G) : Prop := IsOption' g_form.moves x y
 -- scoped notation:max g:max "ᴿ" => Form.moves Player.right g
 
 @[aesop simp]
-lemma isOption_iff_mem_union {x y : G} :
-    IsOption x y ↔ x ∈ Form.moves .left y ∪ Form.moves .right y := by
+lemma IsOption.iff_mem_union {x y : G} :
+    IsOption x y ↔ x ∈ moves .left y ∪ moves .right y := by
   simp [IsOption, IsOption', Player.exists]
 
 theorem IsOption.of_mem_moves {x y : G} {p : Player} (h : x ∈ moves p y) :
     IsOption x y := ⟨_, ⟨p, rfl⟩, h⟩
 
 instance (x : G) : Small.{u} {y // IsOption y x} :=
-  inferInstanceAs (Small (⋃ p, Form.moves p x))
+  inferInstanceAs (Small (⋃ p, moves p x))
 
-theorem isOption_wf : WellFounded (@IsOption G _) := g_form.isOption'_wf
+theorem isOption_wf : WellFounded (@IsOption G _) := g_moves.isOption'_wf
 
 instance : IsWellFounded _ (@IsOption G _) := ⟨isOption_wf⟩
 
@@ -69,9 +74,21 @@ macro "form_wf" : tactic =>
     [Prod.Lex.left, Prod.Lex.right, PSigma.Lex.left, PSigma.Lex.right,
     Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
 
+end Moves
+
+namespace Form
+
+export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves)
+
+variable {G : Type u} [g_form : Form G]
+
+theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
+    (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
+  simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
+
 end Form
 
-class MisereForm (G : Type v) extends Form G where
+class MisereForm (G : Type v) extends Moves G where
   WinsGoingFirst (p : Player) (g : G) : Prop
 
 namespace MisereForm

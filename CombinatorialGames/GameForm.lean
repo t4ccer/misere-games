@@ -54,12 +54,12 @@ instance : OfSets GameForm fun _ ↦ True where
 /-- The set of moves of the game. -/
 def moves (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
 
-instance : Form GameForm where
+instance : Moves GameForm where
   moves := GameForm.moves
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
     apply QPF.Fix.ind
-    unfold Form.IsOption' moves
+    unfold Moves.IsOption' moves
     rintro _ ⟨⟨st, hst⟩, rfl⟩
     constructor
     rintro y hy
@@ -241,8 +241,11 @@ theorem moves_neg (p : Player) (x : GameForm) :
     (-x).moves p = -x.moves (-p) := by
   rw [neg_eq', moves_ofSets]
 
+instance : Form GameForm where
+  moves_neg := moves_neg
+
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
-  simp [isOption_iff_mem_union, Set.union_comm, Form.moves]
+  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
 
 @[simp]
 theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
@@ -250,10 +253,6 @@ theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y 
 
 theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
     (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
-  simp
-
-theorem exists_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
-    (∃ y ∈ (-x).moves p, P y) ↔ (∃ y ∈ x.moves (-p), P (-y)) := by
   simp
 
 /-! ### Addition and subtraction -/

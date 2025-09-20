@@ -9,7 +9,7 @@ import Mathlib.Data.Countable.Small
 
 namespace GameForm
 
-open Form (Short)
+open Moves (Short)
 open Classical in
 noncomputable def Adjoint (g : GameForm) : GameForm :=
   if g = (0 : GameForm) then ⋆

@@ -91,30 +91,15 @@ theorem neg_WinsGoingFirst_iff_WinsGoingFirst_player_neg (g : GameForm) (p : Pla
     exact h3 h2
 termination_by Form.birthday g
 decreasing_by
-  · simp only [GameForm.moves_neg, Set.mem_neg] at h1
-    rw [Form.lt_birthday_iff]
-    cases p
-    · apply Or.inr
-      use -gp
-      apply And.intro h1
-      rw [GameForm.birthday_neg]
-    · apply Or.inl
-      use -gp
-      apply And.intro h1
-      rw [GameForm.birthday_neg]
-  · rw [GameForm.birthday_neg, Form.lt_birthday_iff]
-    cases p
-    · apply Or.inr
-      use gp
-      exact And.intro h1 (Preorder.le_refl (Form.birthday gp))
-    · apply Or.inl
-      use gp
-      exact And.intro h1 (Preorder.le_refl (Form.birthday gp))
+  · rw [<-Form.birthday_neg g]
+    exact Form.birthday_lt_of_mem_moves h1
+  · rw [Form.birthday_neg gp]
+    exact Form.birthday_lt_of_mem_moves h1
 
 class ClosedUnderNeg (A : GameForm → Prop) where
   neg_of (g : GameForm) (h1 : A g) : A (-g)
 
-instance : ClosedUnderNeg Form.Short where
+instance : ClosedUnderNeg Moves.Short where
   neg_of _ h := GameForm.Short.neg_iff.mpr h
 
 private theorem conjugate_of_conjugates (g : GameForm) :
