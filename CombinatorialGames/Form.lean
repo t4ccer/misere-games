@@ -14,13 +14,15 @@ class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
   isOption'_wf : WellFounded (Moves.IsOption' moves)
 
-class Form (G : Type v) extends Moves G, InvolutiveNeg G, Add G where
+class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, Add G, Zero G where
   moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
   moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
+  moves_zero (p : Player) : moves p 0 = ∅
+  moves_small (p : Player) (x : G) : Small.{v} (moves p x)
 
 namespace Moves
 
-variable {G : Type u} [g_moves : Moves G]
+variable {G : Type (u + 1)} [g_moves : Moves G]
 
 /-- `IsOption x y` means that `x` is either a left or a right move for `y`. -/
 def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
@@ -39,7 +41,7 @@ lemma IsOption.iff_mem_union {x y : G} :
 theorem IsOption.of_mem_moves {x y : G} {p : Player} (h : x ∈ moves p y) :
     IsOption x y := ⟨_, ⟨p, rfl⟩, h⟩
 
-instance (x : G) : Small.{u} {y // IsOption y x} :=
+instance (x : G) : Small.{u + 1} {y // IsOption y x} :=
   inferInstanceAs (Small (⋃ p, moves p x))
 
 theorem isOption_wf : WellFounded (@IsOption G _) := g_moves.isOption'_wf
@@ -63,7 +65,7 @@ theorem Subposition.trans {x y z : G} (h₁ : Subposition x y) (h₂ : Subpositi
     Subposition x z :=
   Relation.TransGen.trans h₁ h₂
 
-instance (x : G) : Small.{u} {y // Subposition y x} :=
+instance (x : G) : Small.{u + 1} {y // Subposition y x} :=
   small_transGen' _ x
 
 instance : IsTrans _ (@Subposition G _) := inferInstanceAs (IsTrans _ (Relation.TransGen _))
@@ -83,7 +85,7 @@ namespace Form
 
 export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves IsEnd)
 
-variable {G : Type u} [g_form : Form G]
+variable {G : Type (u + 1)} [g_form : Form G]
 
 theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
@@ -99,14 +101,34 @@ theorem IsEnd.add_iff {g h : G} {p : Player} :
     simp only [IsEnd, moves_add, Set.union_empty_iff, Set.image_eq_empty]
     exact h1
 
+theorem IsEnd_neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
+  constructor <;> cases p
+  all_goals
+  · intro h1
+    simp only [IsEnd, moves_neg, Set.neg_eq_empty] at *
+    exact h1
+
+theorem IsEnd_zero {p : Player} : IsEnd p (0 : G) := by
+  rw [IsEnd, moves_zero]
+
+theorem mem_moves_ne_zero {g gl : G} {p : Player} (h1 : gl ∈ moves p g) : g ≠ 0 := by
+  intro h2
+  simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
+
+theorem not_IsEnd_ne_zero {g : G} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
+  intro h2
+  rw [h2] at h1
+  exact h1 IsEnd_zero
+
 end Form
 
-class MisereForm (G : Type v) extends Form G where
+class MisereForm (G : Type (v + 1)) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
+  WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
 
 namespace MisereForm
 
-variable {G : Type u} [g_form : MisereForm G]
+variable {G : Type (u + 1)} [g_form : MisereForm G]
 
 open scoped Classical in
 noncomputable def MiserePlayerOutcome : G → Player → Player :=

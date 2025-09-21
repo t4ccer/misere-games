@@ -1,11 +1,12 @@
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Form.Misere.Outcome
 import CombinatorialGames.Misere.DeadEnding
 import CombinatorialGames.Form
 import CombinatorialGames.AugmentedForm
+import CombinatorialGames.AugmentedForm.Misere.Outcome
 
 universe u
 
-variable {G : Type u} [Form G]
+variable {G : Type (u + 1)} [Form G]
 
 open Form
 open GameForm.Misere.Outcome
