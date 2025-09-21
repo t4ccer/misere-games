@@ -321,18 +321,29 @@ private def IsSpecial_aug (g : AugmentedForm) : Prop :=
 
 private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSpecial_aug g) :
     ¬WinsGoingFirst .right g := by
-      /- proof strategy:
-        0. g is not Right end-like, so Right does not win immediately going
-        first
-        1. consider any right move gr of g
-        2. since g is special, we have two cases:
-          3. gr has outcome L
-            4. then Left wins
-          5. there exists a left move grl of gr that is special
-            6. by induction, right does not win going first on grl, so Left
-            wins
-      -/
-  sorry
+  unfold IsSpecial_aug at h1
+  obtain ⟨h1, h2⟩ := h1
+  simp only [WinsGoingFirst]
+  unfold AugmentedForm.WinsGoingFirst'
+  simp only [Player.neg_right, exists_prop, not_or, not_exists, not_and, not_not]
+  -- 0. g is not Right end-like, so Right does not win immediately going first
+  apply And.intro h1
+  -- 1. consider any right move gr of g
+  intro gr h_gr_mem_right
+  -- 2. since g is special, we have two cases:
+  obtain h_outcome_eq_L | h4 := h2 gr h_gr_mem_right
+  · -- 3. gr has outcome L
+    -- 4. then Left wins
+    exact (MisereOutcome_eq_L_iff.mp h_outcome_eq_L).left
+  · -- 5. there exists a left move grl of gr that is special
+    obtain ⟨grl, h_grl_mem_left, h_grl_special⟩ := h4
+    -- 6. by induction, right does not win going first on grl, so Left wins
+    have h_not_right_grl : ¬WinsGoingFirst .right grl :=
+      special_implies_not_right_wins_aug h_grl_special
+    unfold AugmentedForm.WinsGoingFirst'
+    exact Or.inr (BEx.intro grl h_grl_mem_left h_not_right_grl)
+termination_by g
+decreasing_by form_wf
 
 lemma add_one_not_right_wins_implies_special_aug {g : AugmentedForm} (h1 : IsPFree g) (h2 :
     ¬WinsGoingFirst .right (g + (1 : GameForm))) : IsSpecial_aug g := by
