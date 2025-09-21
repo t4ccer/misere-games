@@ -566,6 +566,7 @@ noncomputable instance : Form AugmentedForm where
     simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add := moves_add'
+  moves_zero p := by simp only [Moves.moves, moves_zero]
   moves_small := instSmallElemMoves
 
 theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}

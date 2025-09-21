@@ -287,6 +287,7 @@ theorem moves_add (p : Player) (x y : GameForm) :
 instance : Form GameForm where
   moves_neg := moves_neg
   moves_add := moves_add
+  moves_zero := moves_zero
   moves_small := instSmallElemMoves
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
@@ -505,17 +506,6 @@ theorem both_ends_eq_zero {g : GameForm} {p : Player} (h1 : IsEnd p g) (h2 : IsE
   cases p
   · exact leftEnd_rightEnd_eq_zero h1 h2
   · exact leftEnd_rightEnd_eq_zero h2 h1
-
-/-- A game with Left options is not zero -/
-theorem mem_moves_ne_zero {g gl : GameForm} {p : Player} (h1 : gl ∈ g.moves p) : g ≠ 0 := by
-  intro h2
-  simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
-
-theorem not_end_ne_zero {g : GameForm} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
-  rw [zero_def]
-  intro h2
-  rw [h2] at h1
-  simp only [IsEnd, Moves.moves, moves_ofSets, not_true_eq_false] at h1
 
 theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   apply not_forall.mp

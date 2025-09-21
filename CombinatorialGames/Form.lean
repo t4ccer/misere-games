@@ -14,9 +14,10 @@ class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
   isOption'_wf : WellFounded (Moves.IsOption' moves)
 
-class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, Add G where
+class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, Add G, Zero G where
   moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
   moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
+  moves_zero (p : Player) : moves p 0 = ∅
   moves_small (p : Player) (x : G) : Small.{v} (moves p x)
 
 namespace Moves
@@ -106,6 +107,18 @@ theorem IsEnd_neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g :
   · intro h1
     simp only [IsEnd, moves_neg, Set.neg_eq_empty] at *
     exact h1
+
+theorem IsEnd_zero {p : Player} : IsEnd p (0 : G) := by
+  rw [IsEnd, moves_zero]
+
+theorem mem_moves_ne_zero {g gl : G} {p : Player} (h1 : gl ∈ moves p g) : g ≠ 0 := by
+  intro h2
+  simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
+
+theorem not_IsEnd_ne_zero {g : G} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
+  intro h2
+  rw [h2] at h1
+  exact h1 IsEnd_zero
 
 end Form
 
