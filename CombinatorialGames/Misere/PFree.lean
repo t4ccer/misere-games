@@ -5,7 +5,7 @@ open Form.Misere.Outcome
 open MisereForm
 
 universe u
-variable {G : Type u} [g_form : MisereForm G]
+variable {G : Type (u + 1)} [g_form : MisereForm G]
 
 def IsPFree (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)

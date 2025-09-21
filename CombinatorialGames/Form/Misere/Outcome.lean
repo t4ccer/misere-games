@@ -14,7 +14,7 @@ open MisereForm
 
 universe u
 
-variable {G : Type u} [g_misere : MisereForm G]
+variable {G : Type (u + 1)} [g_misere : MisereForm G]
 
 private theorem conjugate_of_conjugates (g : G) :
     Outcome.ofPlayers

@@ -25,11 +25,11 @@ namespace Form
 
 open Form
 
-variable {G : Type u} [g_form : Form G]
+variable {G : Type (u + 1)} [g_form : Form G]
 
 /-- The birthday of a form is inductively defined as the least strict upper bound of the
 birthdays of its options. It may be thought as the "step" in which a certain game is constructed. -/
-noncomputable def birthday (x : G) : NatOrdinal.{u} :=
+noncomputable def birthday (x : G) : NatOrdinal.{u + 1} :=
   ⨆ y : {y // IsOption y x}, Order.succ (birthday y)
 termination_by x
 decreasing_by form_wf

@@ -287,6 +287,7 @@ theorem moves_add (p : Player) (x y : GameForm) :
 instance : Form GameForm where
   moves_neg := moves_neg
   moves_add := moves_add
+  moves_small := instSmallElemMoves
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
   simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]

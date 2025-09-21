@@ -4,7 +4,7 @@ namespace Form
 
 universe u
 
-variable {G : Type u} [g_form : Form G]
+variable {G : Type (u + 1)} [g_form : Form G]
 
 open Form
 

@@ -121,6 +121,8 @@ instance : Moves AugmentedForm where
     obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
     exact h
 
+instance (p : Player) (x : AugmentedForm.{u}) : Small.{u} (x.moves p) := x.dest.1.2 p
+
 -- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
 
 attribute [irreducible] AugmentedForm
@@ -564,6 +566,7 @@ noncomputable instance : Form AugmentedForm where
     simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add := moves_add'
+  moves_small := instSmallElemMoves
 
 theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
     : hasTombstone p (-g) ↔ hasTombstone (-p) g := by
