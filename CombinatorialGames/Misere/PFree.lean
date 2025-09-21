@@ -1,33 +1,34 @@
-import CombinatorialGames.GameForm
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.AugmentedForm.Misere.Outcome
+import CombinatorialGames.GameForm.Misere.Outcome
 
 open Form
+open Form.Misere.Outcome
 open MisereForm
 
 universe u
-variable {G : Type u} [g_form : MisereForm G]
+variable {G : Type (u + 1)} [g_form : MisereForm G]
 
 def IsPFree (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
 
-def IsPFree.neg {g : GameForm} (h1 : IsPFree g) : IsPFree (-g) := by
+def IsPFree.neg {g : G} (h1 : IsPFree g) : IsPFree (-g) := by
   unfold IsPFree at *
   obtain ⟨h1, h2⟩ := h1
   constructor
-  ·
-    unfold MisereOutcome Outcome.ofPlayers
-    simp [GameForm.Misere.Outcome.outcome_eq_neg_player_conjugate]
+  · unfold MisereOutcome Outcome.ofPlayers
+    simp only [outcome_eq_neg_player_conjugate,
+               Player.neg_left, Player.neg_right, ne_eq]
     cases h3 : MiserePlayerOutcome g .left <;> cases h4 : MiserePlayerOutcome g .right
     <;> simp only [reduceCtorEq, not_false_eq_true, not_true_eq_false]
-    refine h1 (GameForm.Misere.Outcome.wins_opposite_outcome_eq_P ?_)
+    refine h1 (wins_opposite_outcome_eq_P ?_)
     intro p
     cases p
     · exact h3
     · exact h4
   · intro p gp h3
-    simp only [GameForm.moves_neg, Set.involutiveNeg, Set.mem_neg, moves] at h3
+    simp only [moves_neg, Set.mem_neg] at h3
     have h4 := (h2 (-p) (-gp) h3).neg
     rw [neg_neg] at h4
     exact h4
@@ -36,7 +37,7 @@ decreasing_by
   rw [Form.birthday_neg, <-Form.birthday_neg g]
   exact Form.birthday_lt_of_mem_moves h3
 
-theorem IsPFree_moves {g h : GameForm} {p : Player} (h1 : IsPFree g) (h2 : h ∈ g.moves p) :
+theorem IsPFree_moves {g h : G} {p : Player} (h1 : IsPFree g) (h2 : h ∈ moves p g) :
     IsPFree h := by
   unfold IsPFree at h1
   exact h1.right p h h2
@@ -65,7 +66,9 @@ private lemma special_implies_not_right_wins { g : GameForm } (h1: IsSpecial g) 
       obtain ⟨grl, hgrl_mem, hgrl_special⟩ := h_left_special
       have h4 := special_implies_not_right_wins hgrl_special
       have h_left_wins_gr : WinsGoingFirst .left gr := by
-        rw [GameForm.Misere.Outcome.WinsGoingFirst_def]; right; exact ⟨grl, hgrl_mem, h4⟩
+        rw [GameForm.Misere.Outcome.WinsGoingFirst_def]
+        right
+        exact ⟨grl, hgrl_mem, h4⟩
       exact hgr_win h_left_wins_gr
       termination_by g
       decreasing_by form_wf
@@ -145,16 +148,18 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     cases h_left_wins_gr_plus_one with
     | inl h_gr1_left_end =>
       have h_gr_is_left_move : gr ∈ (gr + 1).moves Player.left := by
-        rw [GameForm.moves_add, GameForm.leftMoves_one]
+        rw [GameForm.moves_add, GameForm.leftMoves_one, GameForm.moves]
         right; simp
-      have : (gr + 1).moves Player.left = ∅ := h_gr1_left_end
-      rw [this] at h_gr_is_left_move
+      simp only [moves] at h_gr1_left_end
+      rw [h_gr1_left_end] at h_gr_is_left_move
       exfalso
       exact h_gr_is_left_move
     | inr h_left_has_winning_move =>
       obtain ⟨winning_move, h_winning_mem, h_winning_wins⟩ := h_left_has_winning_move
 
-      rw [GameForm.moves_add, GameForm.leftMoves_one] at h_winning_mem
+      rw [moves_add] at h_winning_mem
+      simp only [moves] at h_winning_mem
+      rw [GameForm.leftMoves_one] at h_winning_mem
       simp only [Set.mem_union, Set.mem_image, Set.mem_singleton_iff] at h_winning_mem
 
       cases h_winning_mem with
@@ -203,7 +208,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
           cases h_rest with
           | inl h_R =>
             exfalso
-            rw [GameForm.Misere.Outcome.MisereOutcome_eq_R_iff] at h_R
+            rw [MisereOutcome_eq_R_iff] at h_R
             obtain ⟨h_right_wins_gr, _⟩ := h_R
             exact h_right_not_wins_gr h_right_wins_gr
           | inr h_N =>
@@ -235,7 +240,7 @@ theorem add_one_outcome_ne_P {g : GameForm} (h1 : IsPFree g) : MisereOutcome (g 
   -- 0. Assume for contradiction that g+1 has outcome P
   -- 1. This means Right does not win g+1 going first
   have h_right_not_wins_g1 : ¬WinsGoingFirst .right (g + 1) :=
-    GameForm.Misere.Outcome.outcome_eq_P_not_WinsGoingFirst h_outcome_P
+    outcome_eq_P_not_WinsGoingFirst h_outcome_P
 
   -- 2. By add_one_P_gives_special, g is special
   have h_g_special : IsSpecial g := add_one_not_right_wins_implies_special h1 h_right_not_wins_g1
@@ -258,7 +263,7 @@ theorem add_one_outcome_ne_P {g : GameForm} (h1 : IsPFree g) : MisereOutcome (g 
   -- 7. But we assumed that g+1 had outcome P, which means Left does not win
   -- g+1 going first: this is a contradiction.
   have h_left_not_wins_g_plus_one : ¬WinsGoingFirst .left (g + 1) :=
-    GameForm.Misere.Outcome.outcome_eq_P_not_WinsGoingFirst h_outcome_P
+    outcome_eq_P_not_WinsGoingFirst h_outcome_P
 
   exact h_left_not_wins_g_plus_one h_left_wins_g_plus_one
 
@@ -298,3 +303,79 @@ theorem add_int_IsPFree {g : GameForm} (h1 : IsPFree g) (n : ℤ) : IsPFree (g +
     rw [<-add_comm]
     exact h3
 termination_by n.natAbs
+
+-- augmented form versions
+
+-- this should be moved to AugmentedForm
+lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} : 
+    AugmentedForm.EndLike (g + h) p ↔ (AugmentedForm.EndLike g p ∧ AugmentedForm.EndLike h p) := by
+  simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
+  tauto
+
+private def IsSpecial_aug (g : AugmentedForm) : Prop :=
+  ¬AugmentedForm.EndLike g Player.right
+  ∧ ∀ gr ∈ moves .right g,
+      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial_aug grl)
+  termination_by g
+  decreasing_by form_wf
+
+private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSpecial_aug g) :
+    ¬WinsGoingFirst .right g := by
+      /- proof strategy:
+        0. g is not Right end-like, so Right does not win immediately going
+        first
+        1. consider any right move gr of g
+        2. since g is special, we have two cases:
+          3. gr has outcome L
+            4. then Left wins
+          5. there exists a left move grl of gr that is special
+            6. by induction, right does not win going first on grl, so Left
+            wins
+      -/
+  sorry
+
+lemma add_one_not_right_wins_implies_special_aug {g : AugmentedForm} (h1 : IsPFree g) (h2 :
+    ¬WinsGoingFirst .right (g + (1 : GameForm))) : IsSpecial_aug g := by
+      /- proof strategy:
+        0. Right does not win going first on g+1 (by h2), which means g+1
+        cannot be Right end-like.
+        1. Since g+1 is not Right end-like, g cannot be Right end-like
+        (EndLike_add_iff).
+        2. Let gr be an arbitrary Right move of g.
+        3. Since gr is a Right move of g, we know that gr+1 is a Right move of
+        g+1.
+        4. Since Right does not win g+1 going first (by h2), we know that Left
+        must win gr+1 going first.
+        5. Since 1 is not Left end-like, gr+1 is not Left end-like
+        (EndLike_add_iff), so there must exist some winning move for Left from
+        gr+1.
+        6. This winning move is either to gr (by playing on 1), or to some
+        grl+1, where grl is a Left move of gr.
+        7. Assume first that the winning move is to gr (by playing on 1):
+          8. Since this is a winning move for Left (from gr+1), it follows that
+          gr must have outcome L or P.
+          9. Since g is p-free (h1), we know that gr is p-free.
+          10. So, gr must have outcome L.
+        11. Assume instead now that the winning move is to some grl+1:
+          12. Since this move is winning for Left (from gr+1), we know that
+          Right does not win going first on grl+1.
+          13. Since grl is p-free (h1), we know that grl is p-free.
+          14. By induction, we must have grl.IsSpecial.
+      -/
+  sorry
+
+theorem add_one_outcome_ne_P_aug {g : AugmentedForm} (h1 : IsPFree g) : MisereOutcome (g + (1 : GameForm)) ≠ .P := by
+  /- proof strategy:
+      (same as for GameForm from before)
+      0. Assume for a contradiction that g+1 has outcome P.
+      1. This means that Right does not win g+1 going first.
+      2. By add_one_P_gives_special, we know that g.IsSpecial.
+      3. By SpecialImpliesWin, we know that Right does not win g going first.
+      4. We will now show that Left wins g+1 going first.
+      5. Left can play on g+1 to g (by playing on 1).
+      6. We know that Right does not win g going first, and so Left wins g+1
+      going first (by playing on 1 to leave g).
+      7. But we assumed that g+1 had outcome P, which means Left does not win
+      g+1 going first: this is a contradiction.
+  -/
+  sorry

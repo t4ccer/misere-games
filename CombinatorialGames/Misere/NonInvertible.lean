@@ -5,12 +5,13 @@ Authors: Tomasz Maciosowski
 -/
 
 import CombinatorialGames.Misere.Adjoint
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Form.Misere.Outcome
 import CombinatorialGames.GameForm.Adjoint
 
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
 open Form
+open Form.Misere.Outcome
 
 def AnyGame (_ : GameForm) := True
 
@@ -18,8 +19,8 @@ instance : ClosedUnderNeg AnyGame where
   neg_of _ _ := trivial
 
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
-  !{ Set.range fun hr : h.moves .right => hr°
-   | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
+  !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
+   | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
 
 instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
@@ -31,7 +32,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
   · cases p
     · simp only [GameForm.moves_ofSets, Player.cases]
       have : Finite (h.moves .right) := Short.finite_moves .right h
-      exact Set.finite_range (fun hr : h.moves .right => hr°)
+      exact Set.finite_range (fun hr : h.moves .right => (hr : GameForm)°)
     · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
@@ -47,7 +48,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
       · simp only [GameForm.moves_ofSets, Player.cases]
         have : Finite (g.moves .left) := Short.finite_moves .left g
-        exact Set.finite_range (fun gl : g.moves .left => gl°)
+        exact Set.finite_range (fun gl : g.moves .left => (gl : GameForm)°)
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
@@ -59,17 +60,17 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
     (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
-  let t := !{ Set.range fun hr : h.moves .right => hr°
-            | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
+  let t := !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
+            | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
 
   -- First consider H + T
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
     apply not_rightWinsGoingFirst_ge_P
     rw [WinsGoingFirst_def]
-    simp only [GameForm.moves_add, Set.union_empty_iff, Set.image_eq_empty, Set.mem_union,
+    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty, Set.mem_union,
                Set.mem_image, not_or, not_and]
     apply And.intro (fun _ => by
-      simp only [t, GameForm.rightMoves_ofSets, Set.singleton_ne_empty, not_false_eq_true])
+      simp only [t, GameForm.rightMoves_ofSets, Set.singleton_ne_empty, not_false_eq_true, moves])
     simp only [Player.neg_right, exists_prop, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
@@ -81,7 +82,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
       apply add_end_WinsGoingFirst h1
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
+      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff, Form.moves] at h3
       simp only [h3, GameForm.leftMoves_ofSets, IsEnd, Form.moves]
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
@@ -89,24 +90,24 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     rw [WinsGoingFirst_def]
     apply Or.inr
     -- Right has a move to G + { | (G^L)° }
-    use (g + !{∅ | Set.range fun gl : g.moves .left => gl°})
+    use (g + !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°})
     constructor
-    · rw [WinsGoingFirst_def]
+    · rw [WinsGoingFirst']
       simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
         Set.image_empty, Set.union_empty, Set.image_eq_empty, Player.neg_left, Set.mem_image,
-        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not]
+        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, Form.moves]
 
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
-      rw [WinsGoingFirst_def]
+      rw [WinsGoingFirst']
       apply Or.inr
       -- There must be at least one such option, by the assumption on G;
       -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
       simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
         Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
-        exists_exists_and_eq_and]
+        exists_exists_and_eq_and, Form.moves]
       refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gl))
       apply Or.inr
       use gl
@@ -130,8 +131,8 @@ theorem ClosedUnderNeg.rightEnd_not_rightEnd_not_ge {A : GameForm → Prop} [Clo
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
     (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
   unfold IsEnd at h1 h2
-  have h3 : IsEnd .left (-h) := GameForm.end_neg_iff_player_neg.mpr h1
-  have h4 : ¬(IsEnd .left (-g)) := GameForm.end_neg_iff_player_neg.not.mpr h2
+  have h3 : IsEnd .left (-h) := IsEnd_neg_iff_neg.mpr h1
+  have h4 : ¬(IsEnd .left (-g)) := IsEnd_neg_iff_neg.not.mpr h2
   have h5 : ¬((-g) ≥m A (-h)) := leftEnd_not_leftEnd_not_ge h0 h3 h4
   exact (ClosedUnderNeg.neg_ge_neg_iff h g).not.mp h5
 

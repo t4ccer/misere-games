@@ -287,6 +287,8 @@ theorem moves_add (p : Player) (x y : GameForm) :
 instance : Form GameForm where
   moves_neg := moves_neg
   moves_add := moves_add
+  moves_zero := moves_zero
+  moves_small := instSmallElemMoves
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
   simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
@@ -488,13 +490,6 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x �
   use n + 1
   simp [eq_add_one_of_mem_rightMoves_intCast hx]
 
-theorem end_neg_iff_player_neg {g : GameForm} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
-  constructor <;> cases p
-  all_goals
-  · intro h1
-    simp only [IsEnd, moves_neg, Set.involutiveNeg, Set.neg_eq_empty, Form.moves] at *
-    exact h1
-
 theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : IsEnd .left g) (h2 : IsEnd .right g) :
     g = 0 := by
   unfold IsEnd at h1 h2
@@ -511,17 +506,6 @@ theorem both_ends_eq_zero {g : GameForm} {p : Player} (h1 : IsEnd p g) (h2 : IsE
   cases p
   · exact leftEnd_rightEnd_eq_zero h1 h2
   · exact leftEnd_rightEnd_eq_zero h2 h1
-
-/-- A game with Left options is not zero -/
-theorem mem_moves_ne_zero {g gl : GameForm} {p : Player} (h1 : gl ∈ g.moves p) : g ≠ 0 := by
-  intro h2
-  simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
-
-theorem not_end_ne_zero {g : GameForm} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
-  rw [zero_def]
-  intro h2
-  rw [h2] at h1
-  simp only [IsEnd, Moves.moves, moves_ofSets, not_true_eq_false] at h1
 
 theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   apply not_forall.mp

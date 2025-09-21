@@ -25,7 +25,7 @@ namespace Form
 
 open Form
 
-variable {G : Type u} [g_form : Form G]
+variable {G : Type (u + 1)} [g_form : Form G]
 
 def ShortAux (x : G) : Prop :=
   ∀ p, (Moves.moves p x).Finite ∧ ∀ y ∈ Moves.moves p x, ShortAux y

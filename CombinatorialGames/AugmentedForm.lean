@@ -1,6 +1,6 @@
 import CombinatorialGames.Form
 import CombinatorialGames.GameForm
-import CombinatorialGames.Misere.Outcome
+import CombinatorialGames.Form.Misere.Outcome
 
 universe u
 
@@ -121,6 +121,8 @@ instance : Moves AugmentedForm where
     obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
     exact h
 
+instance (p : Player) (x : AugmentedForm.{u}) : Small.{u} (x.moves p) := x.dest.1.2 p
+
 -- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
 
 attribute [irreducible] AugmentedForm
@@ -140,11 +142,6 @@ theorem moveRecOn_eq {motive : AugmentedForm → Sort*} (x)
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
   g.hasTombstone p ∨ (Form.IsEnd p g)
-
-def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
-  EndLike g p ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')
-  termination_by g
-  decreasing_by form_wf
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
@@ -569,8 +566,12 @@ noncomputable instance : Form AugmentedForm where
     simp only [Form.moves, ←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add := moves_add'
+  moves_zero p := by simp only [Moves.moves, moves_zero]
+  moves_small := instSmallElemMoves
 
-noncomputable instance : MisereForm AugmentedForm where
-  WinsGoingFirst := WinsGoingFirst
+theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
+    : hasTombstone p (-g) ↔ hasTombstone (-p) g := by
+  rw [neg_eq']
+  exact Eq.to_iff rfl
 
 end AugmentedForm
