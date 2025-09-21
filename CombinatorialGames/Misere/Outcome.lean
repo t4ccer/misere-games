@@ -14,7 +14,7 @@ open Form
 open MisereForm
 
 private def WinsGoingFirst' (g : GameForm) (p : Player) : Prop :=
-  g.moves p = ∅ ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst' g' (-p))
+  IsEnd p g ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst' g' (-p))
 termination_by g
 decreasing_by form_wf
 
@@ -22,7 +22,7 @@ instance : MisereForm GameForm where
   WinsGoingFirst p g := WinsGoingFirst' g p
 
 theorem WinsGoingFirst_def (p : Player) (g : GameForm) :
-  WinsGoingFirst p g = ((moves p g = ∅) ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')) := by
+  WinsGoingFirst p g = ((IsEnd p g) ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')) := by
   unfold WinsGoingFirst
   unfold instMisereForm
   simp only [exists_prop, eq_iff_iff]

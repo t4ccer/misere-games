@@ -137,14 +137,14 @@ theorem moveRecOn_eq {motive : AugmentedForm → Sort*} (x)
     moveRecOn x mk = mk x (fun _ y _ ↦ moveRecOn y mk) := by
   rw [moveRecOn]
 
-def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
-  g.hasTombstone p ∨ g.moves p = ∅ ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')
-  termination_by g
-  decreasing_by form_wf
-
 open scoped Classical in
 noncomputable def EndLike (g : AugmentedForm) (p : Player) : Prop :=
   g.hasTombstone p ∨ (Form.IsEnd p g)
+
+def WinsGoingFirst (p : Player) (g : AugmentedForm) : Prop :=
+  EndLike g p ∨ (∃ g', ∃ (_ : g' ∈ g.moves p), ¬WinsGoingFirst (-p) g')
+  termination_by g
+  decreasing_by form_wf
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
