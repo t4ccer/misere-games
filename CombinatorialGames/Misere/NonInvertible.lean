@@ -19,8 +19,8 @@ instance : ClosedUnderNeg AnyGame where
   neg_of _ _ := trivial
 
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
-  !{ Set.range fun hr : h.moves .right => hr°
-   | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
+  !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
+   | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
 
 instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
@@ -32,7 +32,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
   · cases p
     · simp only [GameForm.moves_ofSets, Player.cases]
       have : Finite (h.moves .right) := Short.finite_moves .right h
-      exact Set.finite_range (fun hr : h.moves .right => hr°)
+      exact Set.finite_range (fun hr : h.moves .right => (hr : GameForm)°)
     · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
@@ -48,7 +48,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
       · simp only [GameForm.moves_ofSets, Player.cases]
         have : Finite (g.moves .left) := Short.finite_moves .left g
-        exact Set.finite_range (fun gl : g.moves .left => gl°)
+        exact Set.finite_range (fun gl : g.moves .left => (gl : GameForm)°)
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
@@ -60,8 +60,8 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
     (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
-  let t := !{ Set.range fun hr : h.moves .right => hr°
-            | { !{∅ | Set.range fun gl : g.moves .left => gl°} } }
+  let t := !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
+            | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
 
   -- First consider H + T
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
@@ -90,7 +90,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     rw [WinsGoingFirst_def]
     apply Or.inr
     -- Right has a move to G + { | (G^L)° }
-    use (g + !{∅ | Set.range fun gl : g.moves .left => gl°})
+    use (g + !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°})
     constructor
     · rw [WinsGoingFirst']
       simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
