@@ -150,7 +150,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
       have h_gr_is_left_move : gr ∈ (gr + 1).moves Player.left := by
         rw [GameForm.moves_add, GameForm.leftMoves_one, GameForm.moves]
         right; simp
-      simp only [moves] at h_gr1_left_end
+      simp only [moves, IsEnd] at h_gr1_left_end
       rw [h_gr1_left_end] at h_gr_is_left_move
       exfalso
       exact h_gr_is_left_move

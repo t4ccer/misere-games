@@ -18,7 +18,7 @@ open MisereForm
 universe u
 
 def WinsGoingFirst' (p : Player) (g : GameForm) : Prop :=
-  Form.moves p g = ∅ ∨ (∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g')
+  Form.IsEnd p g ∨ (∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g')
 termination_by g
 decreasing_by form_wf
 
@@ -66,7 +66,7 @@ instance : MisereForm GameForm where
 
 theorem WinsGoingFirst_def (g : GameForm) (p : Player)
   : WinsGoingFirst p g
-    = (Form.moves p g = ∅ ∨ ∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g') := by
+    = (Form.IsEnd p g ∨ ∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g') := by
   simp only [WinsGoingFirst]
   rw [WinsGoingFirst']
 

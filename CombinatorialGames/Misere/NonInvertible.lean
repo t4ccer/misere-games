@@ -67,10 +67,9 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
     apply not_rightWinsGoingFirst_ge_P
     rw [WinsGoingFirst_def]
-    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty, Set.mem_union,
-               Set.mem_image, not_or, not_and]
-    apply And.intro (fun _ => by
-      simp only [t, GameForm.rightMoves_ofSets, Set.singleton_ne_empty, not_false_eq_true, moves])
+    simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff]
+    apply And.intro (fun h3 => by
+      simp [t, Set.singleton_ne_empty, not_false_eq_true, moves, IsEnd])
     simp only [Player.neg_right, exists_prop, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
@@ -95,8 +94,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     · rw [WinsGoingFirst']
       simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
         Set.image_empty, Set.union_empty, Set.image_eq_empty, Player.neg_left, Set.mem_image,
-        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, Form.moves]
-
+        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, Form.moves, IsEnd]
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }

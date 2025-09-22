@@ -20,8 +20,8 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
     rw [WinsGoingFirst_def]
-    simp only [moves_add, Set.union_empty_iff, Set.image_eq_empty, Set.mem_union,
-               Set.mem_image, exists_prop, not_or, not_and, not_exists, not_not]
+    simp [moves_add, Set.mem_union, Set.mem_image, exists_prop, not_or, not_and, not_exists,
+          not_not, IsEnd.add_iff]
     apply And.intro (fun _ => adjoint_not_end g p)
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
