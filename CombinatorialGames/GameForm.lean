@@ -301,14 +301,6 @@ theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
     (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
   simp
 
-theorem add_left_mem_moves_add {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
-    z + x ∈ (z + y).moves p := by
-  rw [moves_add]; right; use x
-
-theorem add_right_mem_moves_add {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
-    x + z ∈ (y + z).moves p := by
-  rw [moves_add]; left; use x
-
 theorem IsOption.add_left {x y z : GameForm} (h : IsOption x y) : IsOption (z + x) (z + y) := by
   aesop (add simp [Form.moves])
 
@@ -370,11 +362,11 @@ theorem moves_sub (p : Player) (x y : GameForm) :
 
 theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
     z - x ∈ (z - y).moves (-p) := by
-  apply add_left_mem_moves_add; simpa
+  apply add_left_mem_moves_add; simpa [Form.moves]
 
 theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ y.moves (-p)) (z : GameForm) :
     z - x ∈ (z - y).moves p := by
-  apply add_left_mem_moves_add; simpa
+  apply add_left_mem_moves_add; simpa [Form.moves]
 
 theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
     x - z ∈ (y - z).moves p :=

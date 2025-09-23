@@ -26,7 +26,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
     · have h3 : gr + gr° ∈ (gr + g°).moves (-p) :=
-        GameForm.add_left_mem_moves_add (mem_adjoint_mem_opposite h2) gr
+        add_left_mem_moves_add (mem_adjoint_mem_opposite h2) gr
       rw [WinsGoingFirst']
       apply Or.inr
       use gr + gr°
@@ -42,7 +42,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
         have ⟨gl, h3, h4⟩ := mem_adjoint_exists_opposite h2 h3
         rw [h4]
         use gl + gl°
-        use GameForm.add_right_mem_moves_add h3 (gl°)
+        use add_right_mem_moves_add h3 (gl°)
         exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gl)
   simp only [h1, reduceIte]
 termination_by g

@@ -75,8 +75,8 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
       refine outcome_eq_P_leftWinsGoingFirst ?_ (outcome_add_adjoint_eq_P hr)
-      refine GameForm.add_left_mem_moves_add ?_ hr
-      simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
+      refine add_left_mem_moves_add ?_ hr
+      simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop, Form.moves]
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
@@ -109,8 +109,8 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gl))
       apply Or.inr
       use gl
-    · refine GameForm.add_left_mem_moves_add ?_ g
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
+    · refine add_left_mem_moves_add ?_ g
+      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff, Form.moves]
   unfold MisereGe
   intro h5
   have h6 : MisereForm.MisereOutcome (g + t) ≥ Outcome.P :=

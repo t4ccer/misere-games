@@ -120,6 +120,14 @@ theorem not_IsEnd_ne_zero {g : G} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 :=
   rw [h2] at h1
   exact h1 IsEnd_zero
 
+theorem add_left_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
+    z + x ∈ moves p (z + y) := by
+  rw [moves_add]; right; use x
+
+theorem add_right_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
+    x + z ∈ moves p (y + z) := by
+  rw [moves_add]; left; use x
+
 end Form
 
 class MisereForm (G : Type (v + 1)) extends Form G where
