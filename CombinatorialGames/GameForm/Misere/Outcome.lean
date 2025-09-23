@@ -132,7 +132,7 @@ theorem ClosedUnderNeg.neg_ge_neg_iff {A : GameForm → Prop} [ClosedUnderNeg A]
     exact h2
   · exact not_ge_neg_iff.aux h1
 
-theorem outcome_eq_P_leftWinsGoingFirst {g gl : GameForm} (h1 : gl ∈ g.moves .left)
+theorem outcome_eq_P_leftWinsGoingFirst {g gl : GameForm} (h1 : gl ∈ moves .left g)
     (h2 : MisereOutcome gl = Outcome.P) : WinsGoingFirst .left g := by
   unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h2
   by_cases h3 : WinsGoingFirst .left gl
@@ -141,7 +141,7 @@ theorem outcome_eq_P_leftWinsGoingFirst {g gl : GameForm} (h1 : gl ∈ g.moves .
   simp only [WinsGoingFirst] at h4
   rw [WinsGoingFirst_def]
   apply Or.inr
-  simp only [Player.neg_left, exists_prop, Form.moves]
+  simp only [Player.neg_left, exists_prop]
   use gl
 
 theorem add_end_WinsGoingFirst {g h : GameForm} {p : Player} (h1 : IsEnd p g)

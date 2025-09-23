@@ -112,10 +112,8 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     intro h_g_right_end
     apply h_g_plus_one_not_right_end
     unfold IsEnd at h_g_right_end ⊢
-    simp only [Form.moves]
-    rw [GameForm.moves_add, GameForm.rightMoves_one, Set.image_empty, Set.union_empty]
+    rw [moves_add, GameForm.rightMoves_one, Set.image_empty, Set.union_empty]
     simp only [Set.image_eq_empty]
-    simp only [Form.moves] at h_g_right_end
     rw [h_g_right_end]
 
   · -- for each right move gr of g, show either gr has outcome L or ∃ special
@@ -124,8 +122,8 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     -- 2. Let gr be an arbitrary Right move of g
     -- 3. Since gr is a Right move of g, we know that gr+1 is a Right move of
     -- g+1
-    have h_gr_plus_one_mem : gr + 1 ∈ (g + 1).moves Player.right := by
-      rw [GameForm.moves_add]
+    have h_gr_plus_one_mem : gr + 1 ∈ moves .right (g + 1) := by
+      rw [moves_add]
       left
       use gr, h_gr_mem
 
@@ -147,10 +145,10 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     rw [GameForm.Misere.Outcome.WinsGoingFirst_def] at h_left_wins_gr_plus_one
     cases h_left_wins_gr_plus_one with
     | inl h_gr1_left_end =>
-      have h_gr_is_left_move : gr ∈ (gr + 1).moves Player.left := by
-        rw [GameForm.moves_add, GameForm.leftMoves_one, GameForm.moves]
+      have h_gr_is_left_move : gr ∈ moves .left (gr + 1) := by
+        rw [moves_add, GameForm.leftMoves_one]
         right; simp
-      simp only [moves, IsEnd] at h_gr1_left_end
+      simp only [IsEnd] at h_gr1_left_end
       rw [h_gr1_left_end] at h_gr_is_left_move
       exfalso
       exact h_gr_is_left_move
@@ -158,7 +156,6 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
       obtain ⟨winning_move, h_winning_mem, h_winning_wins⟩ := h_left_has_winning_move
 
       rw [moves_add] at h_winning_mem
-      simp only [moves] at h_winning_mem
       rw [GameForm.leftMoves_one] at h_winning_mem
       simp only [Set.mem_union, Set.mem_image, Set.mem_singleton_iff] at h_winning_mem
 
@@ -250,8 +247,8 @@ theorem add_one_outcome_ne_P {g : GameForm} (h1 : IsPFree g) : MisereOutcome (g 
 
   -- 4. We will now show that Left wins g+1 going first.
   -- 5. Left can play on g+1 to g (by playing on 1)
-  have h_g_is_left_move : g ∈ (g + 1).moves Player.left := by
-    rw [GameForm.moves_add, GameForm.leftMoves_one]
+  have h_g_is_left_move : g ∈ moves .left (g + 1) := by
+    rw [moves_add, GameForm.leftMoves_one]
     right; simp
 
   -- 6. Since Right doesn't win g going first, Left wins g+1 going first
@@ -271,7 +268,7 @@ theorem add_one_IsPFree {g : GameForm} (h1 : IsPFree g) : IsPFree (g + 1) := by
   unfold IsPFree
   apply And.intro (add_one_outcome_ne_P h1)
   intro p
-  simp only [GameForm.moves_add, Set.mem_union, Set.mem_image, moves]
+  simp only [moves_add, Set.mem_union, Set.mem_image]
   intro gp h2
   apply Or.elim h2 <;> intro h2
   · obtain ⟨k, h3, h4⟩ := h2

@@ -27,7 +27,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
     apply And.intro (fun _ => adjoint_not_end g p)
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
-    · have h3 : gr + gr° ∈ (gr + g°).moves (-p) :=
+    · have h3 : gr + gr° ∈ moves (-p) (gr + g°) :=
         add_left_mem_moves_add (mem_adjoint_mem_opposite h2) gr
       rw [WinsGoingFirst']
       apply Or.inr

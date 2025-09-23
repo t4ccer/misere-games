@@ -36,12 +36,12 @@ recommended_spelling "star" for "⋆" in [«term⋆»]
 @[simp] theorem rightMoves_star : ⋆ᴿ = {0} := moves_ofSets ..
 
 -- TODO: remove the above theorems
-@[simp] theorem moves_star (p : Player) : moves p ⋆ = {0} := moves_ofSets ..
+@[simp] theorem moves_star (p : Player) : Form.moves p ⋆ = {0} := moves_ofSets ..
 
 @[simp] theorem neg_star : -⋆ = ⋆ := by simp [star]
 
 @[simp] instance : Short ⋆ := by
-  rw [star, Form.short_def]; simp [Moves.moves]
+  rw [star, Form.short_def]; simp
 
 /-! ### Half -/
 
@@ -56,7 +56,7 @@ recommended_spelling "half" for "½" in [«term½»]
 @[simp] theorem rightMoves_half : ½ᴿ = {1} := rightMoves_ofSets ..
 
 instance : Short ½ := by
-  rw [half, Form.short_def]; simp [Moves.moves]
+  rw [half, Form.short_def]; simp
 
 /-! ### Up and down -/
 
@@ -71,7 +71,7 @@ recommended_spelling "up" for "↑" in [«term↑»]
 @[simp] theorem rightMoves_up : ↑ᴿ = {⋆} := rightMoves_ofSets ..
 
 instance : Short ↑ := by
-  rw [up, Form.short_def]; simp [Moves.moves]
+  rw [up, Form.short_def]; simp
 
 /-- The game `↓ = {⋆ | 0}`. -/
 def down : GameForm :=
@@ -87,7 +87,7 @@ recommended_spelling "down" for "↓" in [«term↓»]
 @[simp] theorem neg_up : -↑ = ↓ := by simp [up, down]
 
 instance : Short ↓ := by
-  rw [down, Form.short_def]; simp [Moves.moves]
+  rw [down, Form.short_def]; simp
 
 /-! ### Tiny and miny -/
 
@@ -108,8 +108,8 @@ theorem rightMoves_tiny (x : GameForm) : (⧾x)ᴿ = {!{{0} | {-x}}} :=
   rightMoves_ofSets ..
 
 instance (x : GameForm) [Short x] : Short (⧾x) := by
-  have : Short (!{{0} | {-x}}) := by rw [Form.short_def]; simp [Form.moves]; infer_instance
-  rw [tiny, Form.short_def]; simp [Form.moves, this]
+  have : Short (!{{0} | {-x}}) := by rw [Form.short_def]; simp; infer_instance
+  rw [tiny, Form.short_def]; simp [this]
 
 /-- A miny game `⧿x` is defined as `{{x | 0} | 0}`. -/
 def miny (x : GameForm) : GameForm :=

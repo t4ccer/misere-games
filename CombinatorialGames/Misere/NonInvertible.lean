@@ -18,20 +18,20 @@ instance : ClosedUnderNeg AnyGame where
   neg_of _ _ := trivial
 
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
-  !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
-   | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
+  !{ Set.range fun hr : moves .right h => (hr : GameForm)°
+   | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
 instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
   unfold leftEnd_not_leftEnd_not_ge.auxT
   refine short_def.mpr ?_
   intro p
-  change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Short y
+  change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
   constructor
   · cases p
     · simp only [GameForm.moves_ofSets, Player.cases]
-      have : Finite (h.moves .right) := Short.finite_moves .right h
-      exact Set.finite_range (fun hr : h.moves .right => (hr : GameForm)°)
+      have : Finite (moves .right h) := Short.finite_moves .right h
+      exact Set.finite_range (fun hr : moves .right h => (hr : GameForm)°)
     · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
@@ -42,12 +42,12 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     · rw [h3]
       refine short_def.mpr ?_
       intro p
-      change (GameForm.moves p _).Finite ∧ ∀ y ∈ GameForm.moves p _, Short y
+      change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
       constructor <;> cases p
       · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
       · simp only [GameForm.moves_ofSets, Player.cases]
-        have : Finite (g.moves .left) := Short.finite_moves .left g
-        exact Set.finite_range (fun gl : g.moves .left => (gl : GameForm)°)
+        have : Finite (moves .left g) := Short.finite_moves .left g
+        exact Set.finite_range (fun gl : moves .left g => (gl : GameForm)°)
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
@@ -59,8 +59,8 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
     (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
-  let t := !{ Set.range fun hr : h.moves .right => (hr : GameForm)°
-            | { !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°} } }
+  let t := !{ Set.range fun hr : moves .right h => (hr : GameForm)°
+            | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
   -- First consider H + T
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
@@ -68,32 +68,32 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     rw [WinsGoingFirst_def]
     simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff]
     apply And.intro (fun h3 => by
-      simp [t, Set.singleton_ne_empty, not_false_eq_true, moves, IsEnd])
+      simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd])
     simp only [Player.neg_right, exists_prop, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
       refine outcome_eq_P_leftWinsGoingFirst ?_ (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
-      simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop, Form.moves]
+      simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
       apply add_end_WinsGoingFirst h1
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff, Form.moves] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, IsEnd, Form.moves]
+      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
+      simp only [h3, GameForm.leftMoves_ofSets, IsEnd]
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
     rw [WinsGoingFirst_def]
     apply Or.inr
     -- Right has a move to G + { | (G^L)° }
-    use (g + !{∅ | Set.range fun gl : g.moves .left => (gl : GameForm)°})
+    use (g + !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°})
     constructor
     · rw [WinsGoingFirst']
-      simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
+      simp only [Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
         Set.image_empty, Set.union_empty, Set.image_eq_empty, Player.neg_left, Set.mem_image,
-        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, Form.moves, IsEnd]
+        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, IsEnd]
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
@@ -102,14 +102,14 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       -- There must be at least one such option, by the assumption on G;
       -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
-      simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
+      simp only [Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
         Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
-        exists_exists_and_eq_and, Form.moves]
+        exists_exists_and_eq_and]
       refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl))
       apply Or.inr
       use gl
     · refine add_left_mem_moves_add ?_ g
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff, Form.moves]
+      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
   unfold MisereGe
   intro h5
   have h6 : MisereForm.MisereOutcome (g + t) ≥ Outcome.P :=

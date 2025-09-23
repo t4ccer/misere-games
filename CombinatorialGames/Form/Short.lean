@@ -142,11 +142,16 @@ variable {x y : GameForm}
 
 @[simp]
 protected instance Short.zero : Short (0 : GameForm) := by
-  rw [zero_def, Form.short_def]; simp [Moves.moves]
+  rw [Form.short_def]
+  simp only [Form.moves_zero, Set.finite_empty, Set.mem_empty_iff_false, IsEmpty.forall_iff,
+             implies_true, and_self]
 
 @[simp]
 protected instance Short.one : Short (1 : GameForm) := by
-  rw [one_def, Form.short_def]; simp [Moves.moves, Short.zero]
+  rw [one_def, Form.short_def]
+  simp only [moves_ofSets, Player.cases, Player.forall, Set.finite_singleton, Set.mem_singleton_iff,
+             forall_eq, Short.zero, and_self, Set.finite_empty, Set.mem_empty_iff_false,
+             IsEmpty.forall_iff, implies_true]
 
 protected instance Short.sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
   Short.add ..

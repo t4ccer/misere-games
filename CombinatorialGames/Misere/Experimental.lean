@@ -15,14 +15,14 @@ namespace GameForm
 
 def IsBlockedEnd (g : GameForm) (p : Player) : Prop :=
   (IsEnd p g)
-    ∧ (∀ gr ∈ g.moves (-p),
+    ∧ (∀ gr ∈ moves (-p) g,
          (gr.IsBlockedEnd p
-         ∨ (∃ grl,∃ (_ : grl ∈ gr.moves p), grl.IsBlockedEnd p)))
+         ∨ (∃ grl,∃ (_ : grl ∈ moves p gr), grl.IsBlockedEnd p)))
 termination_by g
 decreasing_by all_goals form_wf
 
 def IsBlocking (g : GameForm) : Prop :=
-  (∀ p, IsEnd p g → g.IsBlockedEnd p) ∧ (∀ p, ∀gp ∈ g.moves p, gp.IsBlocking)
+  (∀ p, IsEnd p g → g.IsBlockedEnd p) ∧ (∀ p, ∀gp ∈ moves p g, gp.IsBlocking)
 termination_by g
 decreasing_by form_wf
 
@@ -63,21 +63,21 @@ macro_rules | `($x ≥ma $u $y) => `(AugmentedMisereGe $u $x $y)
 
 def Maintenance (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
   match p with
-  | .right => ∀ gr ∈ g.moves .right,
-      (∃ hr ∈ h.moves .right, gr ≥m U hr) ∨
-      (∃ grl ∈ gr.moves .left, grl ≥m U h)
-  | .left => ∀ hl ∈ h.moves .left,
-      (∃ gl ∈ g.moves .left, gl ≥m U hl) ∨
-      (∃ hlr ∈ hl.moves .right, g ≥m U hlr)
+  | .right => ∀ gr ∈ moves .right g,
+      (∃ hr ∈ moves .right h, gr ≥m U hr) ∨
+      (∃ grl ∈ moves .left gr, grl ≥m U h)
+  | .left => ∀ hl ∈ moves .left h,
+      (∃ gl ∈ moves .left g, gl ≥m U hl) ∨
+      (∃ hlr ∈ moves .right hl, g ≥m U hlr)
 
 def Augmented_maintenance (U : GameForm → Prop) (g h : AugmentedForm) (p : Player) : Prop :=
   match p with
-  | .right => ∀ gr ∈ g.moves .right,
-      (∃ hr ∈ h.moves .right, gr ≥ma U hr) ∨
-      (∃ grl ∈ gr.moves .left, grl ≥ma U h)
-  | .left => ∀ hl ∈ h.moves .left,
-      (∃ gl ∈ g.moves .left, gl ≥ma U hl) ∨
-      (∃ hlr ∈ hl.moves .right, g ≥ma U hlr)
+  | .right => ∀ gr ∈ moves .right g,
+      (∃ hr ∈ moves .right h, gr ≥ma U hr) ∨
+      (∃ grl ∈ moves .left gr, grl ≥ma U h)
+  | .left => ∀ hl ∈ moves .left h,
+      (∃ gl ∈ moves .left g, gl ≥ma U hl) ∨
+      (∃ hlr ∈ moves .right hl, g ≥ma U hlr)
 
 def Proviso (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
   IsEnd p g → Strong U h p
@@ -104,20 +104,20 @@ lemma misereOutcome_coercion_compat (g : GameForm) :
 
 -- can just replace with ofGameForms_moves_mem_iff
 lemma moves_coercion_compat (g : GameForm) (p : Player) (x : GameForm) :
-    x ∈ g.moves p ↔ (x : AugmentedForm) ∈ (g : AugmentedForm).moves p := by
+    x ∈ moves p g ↔ (x : AugmentedForm) ∈ moves p (g : AugmentedForm) := by
   exact AugmentedForm.ofGameForm_moves_mem_iff.symm
 
 lemma moves_empty_coercion_compat (g : GameForm) (p : Player) :
-    g.moves p = ∅ ↔ (g : AugmentedForm).moves p = ∅ := by
+    moves p g = ∅ ↔ moves p (g : AugmentedForm) = ∅ := by
   simp only [Set.eq_empty_iff_forall_notMem]
   constructor
   · intro h ap hap
     have ⟨gp, hgp, heq⟩ := AugmentedForm.mem_moves_ofGameForm hap
     rw [← heq] at hap
-    have : gp ∈ g.moves p := AugmentedForm.ofGameForm_moves_mem_iff.mp hap
+    have : gp ∈ moves p g := AugmentedForm.ofGameForm_moves_mem_iff.mp hap
     exact h gp this
   · intro h gp hgp
-    have : (gp : AugmentedForm) ∈ (g : AugmentedForm).moves p :=
+    have : (gp : AugmentedForm) ∈ moves p (g : AugmentedForm) :=
       AugmentedForm.ofGameForm_moves_mem_iff.mpr hgp
     exact h (gp : AugmentedForm) this
 

@@ -79,7 +79,7 @@ theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .right g) :
 theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEnding h) :
     IsDeadEnding (g + h) := by
   unfold IsDeadEnding
-  simp only [moves_add, Set.mem_union, Set.mem_image, Form.moves]
+  simp only [moves_add, Set.mem_union, Set.mem_image]
   constructor <;> intro p
   · intro h3
     have ⟨h4, h5⟩ := IsEnd.add_iff.mp h3

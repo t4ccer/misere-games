@@ -52,14 +52,14 @@ instance : OfSets GameForm fun _ ↦ True where
   ofSets st _ := QPF.Fix.mk ⟨st, fun | .left => inferInstance | .right => inferInstance⟩
 
 /-- The set of moves of the game. -/
-def moves (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
+private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
 
 instance : Moves GameForm where
-  moves := GameForm.moves
+  moves := moves'
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
     apply QPF.Fix.ind
-    unfold Moves.IsOption' moves
+    unfold Moves.IsOption' moves'
     rintro _ ⟨⟨st, hst⟩, rfl⟩
     constructor
     rintro y hy
@@ -73,15 +73,15 @@ scoped notation:max x:max "ᴸ" => moves Player.left x
 /-- The set of right moves of the game. -/
 scoped notation:max x:max "ᴿ" => moves Player.right x
 
-instance (p : Player) (x : GameForm.{u}) : Small.{u} (x.moves p) := x.dest.2 p
+instance (p : Player) (x : GameForm.{u}) : Small.{u} (moves p x) := x.dest.2 p
 
 @[simp]
 theorem moves_ofSets (p) (st : Player → Set GameForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
-    !{st}.moves p = st p := by
-  dsimp [ofSets]; ext; rw [moves, QPF.Fix.dest_mk]
+    moves p !{st} = st p := by
+  dsimp [ofSets]; ext; simp only [moves, moves', QPF.Fix.dest_mk]
 
 @[simp]
-theorem ofSets_moves (x : GameForm) : !{x.moves} = x := x.mk_dest
+theorem ofSets_moves (x : GameForm) : !{fun p => moves p x} = x := x.mk_dest
 
 @[simp]
 theorem leftMoves_ofSets (s t : Set GameForm) [Small.{u} s] [Small.{u} t] : !{s | t}ᴸ = s :=
@@ -101,7 +101,7 @@ theorem ofSets_leftMoves_rightMoves (x : GameForm) : !{xᴸ | xᴿ} = x := by
 For the weaker but more common notion of equivalence where `x = y` if `x ≤ y` and `y ≤ x`,
 use `Game`. -/
 @[ext]
-theorem ext {x y : GameForm.{u}} (h : ∀ p, x.moves p = y.moves p) :
+theorem ext {x y : GameForm.{u}} (h : ∀ p, moves p x = moves p y) :
     x = y := by
   rw [← ofSets_moves x, ← ofSets_moves y]
   simp_rw [funext h]
@@ -117,7 +117,7 @@ theorem ofSets_inj {s₁ s₂ t₁ t₂ : Set GameForm} [Small s₁] [Small s₂
   simp
 
 instance (x : GameForm.{u}) : Small.{u} {y // IsOption y x} :=
-  inferInstanceAs (Small (⋃ p, x.moves p))
+  inferInstanceAs (Small (⋃ p, moves p x))
 
 instance (x : GameForm.{u}) : Small.{u} {y // Subposition y x} :=
   small_transGen' _ x
@@ -132,13 +132,13 @@ things for you.
 See `ofSetsRecOn` for an alternate form. -/
 @[elab_as_elim]
 def moveRecOn {motive : GameForm → Sort*} (x)
-    (mk : Π x, (Π p, Π y ∈ x.moves p, motive y) → motive x) : motive x :=
+    (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) : motive x :=
   mk x (fun p y _ ↦ moveRecOn y mk)
 termination_by x
 decreasing_by form_wf
 
 theorem moveRecOn_eq {motive : GameForm → Sort*} (x)
-    (mk : Π x, (Π p, Π y ∈ x.moves p, motive y) → motive x) :
+    (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) :
     moveRecOn x mk = mk x (fun _ y _ ↦ moveRecOn y mk) := by
   rw [moveRecOn]
 
@@ -179,7 +179,7 @@ instance : Zero GameForm := ⟨!{fun _ ↦ ∅}⟩
 
 theorem zero_def : (0 : GameForm) = !{fun _ ↦ ∅} := rfl
 
-@[simp] theorem moves_zero (p : Player) : moves p 0 = ∅ := moves_ofSets ..
+private theorem moves_zero' (p : Player) : moves p (0 : GameForm) = ∅ := moves_ofSets ..
 
 instance : Inhabited GameForm := ⟨0⟩
 
@@ -188,8 +188,8 @@ instance : One GameForm := ⟨!{{0} | ∅}⟩
 
 theorem one_def : (1 : GameForm) = !{{0} | ∅} := rfl
 
-@[simp] theorem leftMoves_one : 1ᴸ = {0} := leftMoves_ofSets ..
-@[simp] theorem rightMoves_one : 1ᴿ = ∅ := rightMoves_ofSets ..
+@[simp] theorem leftMoves_one : (1 : GameForm)ᴸ = {0} := leftMoves_ofSets ..
+@[simp] theorem rightMoves_one : (1 : GameForm)ᴿ = ∅ := rightMoves_ofSets ..
 
 /-! ### Negation -/
 
@@ -233,19 +233,19 @@ instance : NegZeroClass GameForm where
 theorem neg_eq (x : GameForm) : -x = !{-xᴿ | -xᴸ} := by
   rw [← neg_ofSets, ofSets_leftMoves_rightMoves]
 
-theorem neg_eq' (x : GameForm) : -x = !{fun p ↦ -x.moves (-p)} := by
+theorem neg_eq' (x : GameForm) : -x = !{fun p ↦ -moves (-p) x} := by
   rw [neg_eq, ofSets_eq_ofSets_cases (fun _ ↦ -_)]; rfl
 
-@[simp]
-theorem moves_neg (p : Player) (x : GameForm) :
-    (-x).moves p = -x.moves (-p) := by
+private theorem moves_neg' (p : Player) (x : GameForm) :
+    moves p (-x) = -moves (-p) x := by
   rw [neg_eq', moves_ofSets]
 
 /-! ### Addition and subtraction -/
 
+set_option maxHeartbeats 400000 in
 private def add' (x y : GameForm) : GameForm :=
-  !{(Set.range fun z : xᴸ ↦ add' z y) ∪ (Set.range fun z : yᴸ ↦ add' x z) |
-    (Set.range fun z : xᴿ ↦ add' z y) ∪ (Set.range fun z : yᴿ ↦ add' x z)}
+  !{(Set.range fun z : moves .left x ↦ add' z y) ∪ (Set.range fun z : moves .left y ↦ add' x z) |
+    (Set.range fun z : moves .right x ↦ add' z y) ∪ (Set.range fun z : moves .right y ↦ add' x z)}
 termination_by (x, y)
 decreasing_by form_wf
 
@@ -260,7 +260,7 @@ theorem add_eq (x y : GameForm) : x + y =
   simp [HAdd.hAdd, Add.add, Set.ext_iff]
 
 theorem add_eq' (x y : GameForm) : x + y =
-    !{fun p ↦ (· + y) '' x.moves p ∪ (x + ·) '' y.moves p} := by
+    !{fun p ↦ (· + y) '' moves p x ∪ (x + ·) '' moves p y} := by
   rw [add_eq, ofSets_eq_ofSets_cases (fun _ ↦ _ ∪ _)]
 
 theorem ofSets_add_ofSets
@@ -278,52 +278,51 @@ theorem ofSets_add_ofSets' (st₁ st₂ : Player → Set GameForm)
   rw [ofSets_eq_ofSets_cases, ofSets_eq_ofSets_cases st₂, ofSets_eq_ofSets_cases (fun _ ↦ _ ∪ _),
     ofSets_add_ofSets]
 
-@[simp]
-theorem moves_add (p : Player) (x y : GameForm) :
-    (x + y).moves p = (· + y) '' x.moves p ∪ (x + ·) '' y.moves p := by
+private theorem moves_add' (p : Player) (x y : GameForm) :
+    moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y := by
   rw [add_eq', moves_ofSets]
 
-@[simp]
 instance : Form GameForm where
-  moves_neg := moves_neg
-  moves_add := moves_add
-  moves_zero := moves_zero
+  moves_neg := moves_neg'
+  moves_add := moves_add'
+  moves_zero := moves_zero'
   moves_small := instSmallElemMoves
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
-  simp [IsOption.iff_mem_union, Set.union_comm, Form.moves]
+  simp only [moves_neg, IsOption.iff_mem_union, Player.neg_left, Player.neg_right,
+             Set.union_comm, Set.mem_union, Set.mem_neg]
 
 @[simp]
 theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y := by
   rw [isOption_neg, neg_neg]
 
 theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
-    (∀ y ∈ (-x).moves p, P y) ↔ (∀ y ∈ x.moves (-p), P (-y)) := by
-  simp
+    (∀ y ∈ moves p (-x), P y) ↔ (∀ y ∈ moves (-p) x, P (-y)) := by
+  simp only [moves_neg, Set.mem_neg, Set.forall_mem_neg]
 
 theorem IsOption.add_left {x y z : GameForm} (h : IsOption x y) : IsOption (z + x) (z + y) := by
-  aesop (add simp [Form.moves])
+  aesop (add simp [moves_add])
 
 theorem IsOption.add_right {x y z : GameForm} (h : IsOption x y) : IsOption (x + z) (y + z) := by
-  aesop (add simp [Form.moves])
+  aesop (add simp [moves_add])
 
 theorem forall_moves_add {p : Player} {P : GameForm → Prop} {x y : GameForm} :
-    (∀ a ∈ (x + y).moves p, P a) ↔
-      (∀ a ∈ x.moves p, P (a + y)) ∧ (∀ b ∈ y.moves p, P (x + b)) := by
-  aesop
+    (∀ a ∈ moves p (x + y), P a) ↔
+      (∀ a ∈ moves p x, P (a + y)) ∧ (∀ b ∈ moves p y, P (x + b)) := by
+  aesop (add simp [moves_add])
 
 theorem exists_moves_add {p : Player} {P : GameForm → Prop} {x y : GameForm} :
-    (∃ a ∈ (x + y).moves p, P a) ↔
-      (∃ a ∈ x.moves p, P (a + y)) ∨ (∃ b ∈ y.moves p, P (x + b)) := by
-  aesop
+    (∃ a ∈ moves p (x + y), P a) ↔
+      (∃ a ∈ moves p x, P (a + y)) ∨ (∃ b ∈ moves p y, P (x + b)) := by
+  aesop (add simp [moves_add])
 
 @[simp]
 theorem add_eq_zero_iff {x y : GameForm} : x + y = 0 ↔ x = 0 ∧ y = 0 := by
-  constructor <;> simp_all [GameForm.ext_iff]
+  constructor <;> simp_all [GameForm.ext_iff, moves_add, moves_zero]
 
 private theorem add_zero' (x : GameForm) : x + 0 = x := by
   refine moveRecOn x ?_
-  aesop
+  aesop (add simp [moves_zero, moves_add])
 
 private theorem add_comm' (x y : GameForm) : x + y = y + x := by
   ext
@@ -357,19 +356,19 @@ instance : SubNegMonoid GameForm where
 
 @[simp]
 theorem moves_sub (p : Player) (x y : GameForm) :
-    (x - y).moves p = (· - y) '' x.moves p ∪ (x + ·) '' (-y.moves (-p)) := by
-  simp [sub_eq_add_neg]
+    moves p (x - y) = (· - y) '' moves p x ∪ (x + ·) '' (-moves (-p) y) := by
+  simp only [sub_eq_add_neg, moves_add, moves_neg, Set.involutiveNeg]
 
-theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
-    z - x ∈ (z - y).moves (-p) := by
-  apply add_left_mem_moves_add; simpa [Form.moves]
+theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
+    z - x ∈ moves (-p) (z - y) := by
+  apply add_left_mem_moves_add; simpa [moves_neg]
 
-theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ y.moves (-p)) (z : GameForm) :
-    z - x ∈ (z - y).moves p := by
-  apply add_left_mem_moves_add; simpa [Form.moves]
+theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ moves (-p) y) (z : GameForm) :
+    z - x ∈ moves p (z - y) := by
+  apply add_left_mem_moves_add; simpa [moves_neg]
 
-theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ y.moves p) (z : GameForm) :
-    x - z ∈ (y - z).moves p :=
+theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
+    x - z ∈ moves p (y - z) :=
   add_right_mem_moves_add h _
 
 private theorem neg_add' (x y : GameForm) : -(x + y) = -x + -y := by
@@ -395,41 +394,41 @@ For that, use `NatOrdinal.toGameForm`. -/
 instance : AddCommMonoidWithOne GameForm where
 
 /-- This version of the theorem is more convenient for the `game_cmp` tactic. -/
-theorem leftMoves_natCast_succ' : ∀ n : ℕ, n.succᴸ = {(n : GameForm)}
+theorem leftMoves_natCast_succ' : ∀ n : ℕ, (n.succ : GameForm)ᴸ = {(n : GameForm)}
   | 0 => by simp
   | n + 1 => by
     rw [Nat.cast_succ, moves_add, leftMoves_natCast_succ']
     simp
 
 @[simp 1100] -- This should trigger before `leftMoves_add`.
-theorem leftMoves_natCast_succ (n : ℕ) : (n + 1)ᴸ = {(n : GameForm)} :=
+theorem leftMoves_natCast_succ (n : ℕ) : ((n + 1) : GameForm)ᴸ = {(n : GameForm)} :=
   leftMoves_natCast_succ' n
 
 @[simp 1100] -- This should trigger before `rightMoves_add`.
-theorem rightMoves_natCast : ∀ n : ℕ, nᴿ = ∅
-  | 0 => by simp
+theorem rightMoves_natCast : ∀ n : ℕ, (n : GameForm)ᴿ = ∅
+  | 0 => by simp [moves_zero]
   | n + 1 => by
     rw [Nat.cast_succ, moves_add, rightMoves_natCast]
     simp
 
 @[simp 1100]
 theorem leftMoves_ofNat (n : ℕ) [n.AtLeastTwo] : ofNat(n)ᴸ = {((n - 1 : ℕ) : GameForm)} := by
-  change nᴸ = _
+  change (n : GameForm)ᴸ = _
   rw [← Nat.succ_pred (NeZero.out (n := n)), leftMoves_natCast_succ']
   simp
 
 @[simp 1100]
-theorem rightMoves_ofNat (n : ℕ) [n.AtLeastTwo] : ofNat(n)ᴿ = ∅ :=
+theorem rightMoves_ofNat (n : ℕ) [n.AtLeastTwo] : (ofNat(n) : GameForm)ᴿ = ∅ :=
   rightMoves_natCast n
 
 theorem natCast_succ_eq (n : ℕ) : (n + 1 : GameForm) = !{{(n : GameForm)} | ∅} := by
-  ext p; cases p <;> simp
+  ext p; cases p <;> simp [moves_add]
 
 /-- Every left option of a natural number is equal to a smaller natural number. -/
-theorem eq_natCast_of_mem_leftMoves_natCast {n : ℕ} {x : GameForm} (hx : x ∈ nᴸ) :
+theorem eq_natCast_of_mem_leftMoves_natCast {n : ℕ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     ∃ m : ℕ, m < n ∧ m = x := by
   cases n with
-  | zero => simp at hx
+  | zero => simp [moves_zero] at hx
   | succ n =>
     use n
     simp_all
@@ -455,29 +454,30 @@ theorem intCast_neg (n : ℤ) : ((-n : ℤ) : GameForm) = -(n : GameForm) := by
     | succ n => rfl
   | negSucc n => exact (neg_neg _).symm
 
-theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ nᴸ) :
+theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     x = (n - 1 : ℤ) := by
   obtain ⟨n, rfl | rfl⟩ := n.eq_nat_or_neg
   · cases n
-    · simp at hx
+    · simp [moves_zero] at hx
     · rw [intCast_nat] at hx
       simp_all
-  · simp at hx
+  · simp only [intCast_neg, intCast_nat, moves_neg, Player.neg_left,
+               rightMoves_natCast, Set.neg_empty, Set.mem_empty_iff_false] at hx
 
-theorem eq_add_one_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ nᴿ) :
+theorem eq_add_one_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴿ) :
     x = (n + 1 : ℤ) := by
-  have : -x ∈ (-n : ℤ)ᴸ := by simpa
+  have : -x ∈ ((-n : ℤ) : GameForm)ᴸ := by simpa [moves_neg]
   rw [← neg_inj]
   simpa [← GameForm.intCast_neg, add_comm] using eq_sub_one_of_mem_leftMoves_intCast this
 
 /-- Every left option of an integer is equal to a smaller integer. -/
-theorem eq_intCast_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ nᴸ) :
+theorem eq_intCast_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     ∃ m : ℤ, m < n ∧ m = x := by
   use n - 1
   simp [eq_sub_one_of_mem_leftMoves_intCast hx]
 
 /-- Every right option of an integer is equal to a larger integer. -/
-theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ nᴿ) :
+theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴿ) :
     ∃ m : ℤ, n < m ∧ m = x := by
   use n + 1
   simp [eq_add_one_of_mem_rightMoves_intCast hx]
@@ -488,9 +488,9 @@ theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : IsEnd .left g) (h2 : IsEnd
   rw [zero_def]
   ext p
   cases p
-  · simp only [Moves.moves, moves_ofSets, Set.mem_empty_iff_false, iff_false] at ⊢ h1
+  · simp only [moves_ofSets, Set.mem_empty_iff_false, iff_false] at ⊢ h1
     simp only [h1, Set.mem_empty_iff_false, not_false_eq_true]
-  · simp only [moves_ofSets, Form.moves] at ⊢ h2
+  · simp only [moves_ofSets] at ⊢ h2
     rw [h2]
 
 theorem both_ends_eq_zero {g : GameForm} {p : Player} (h1 : IsEnd p g) (h2 : IsEnd (-p) g) :
@@ -505,7 +505,7 @@ theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   exact h1 (leftEnd_rightEnd_eq_zero (h2 .left) (h2 .right))
 
 theorem zero_end {p : Player} : IsEnd p (0 : GameForm) := by
-  simp only [IsEnd, Moves.moves, zero_def, moves_ofSets]
+  simp only [IsEnd, zero_def, moves_ofSets]
 
 theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd p g) :
     ¬IsEnd (-p) g :=
