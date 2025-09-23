@@ -58,8 +58,8 @@ decreasing_by
 
 noncomputable instance : MisereForm AugmentedForm where
   WinsGoingFirst := WinsGoingFirst'
-  WinsGoingFirst_neg_iff := WinsGoingFirst_neg_iff'
-  WinsGoingFirst_of_IsEnd g p h1 := by
+  WinsGoingFirst_neg_iff' := WinsGoingFirst_neg_iff'
+  WinsGoingFirst_of_IsEnd' g p h1 := by
     unfold WinsGoingFirst'
     apply Or.inl
     unfold EndLike

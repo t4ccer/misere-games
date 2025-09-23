@@ -15,10 +15,10 @@ class Moves (G : Type v) where
   isOption'_wf : WellFounded (Moves.IsOption' moves)
 
 class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, Add G, Zero G where
-  moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
-  moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
-  moves_zero (p : Player) : moves p 0 = ∅
-  moves_small (p : Player) (x : G) : Small.{v} (moves p x)
+  moves_neg' (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x)
+  moves_add' (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
+  moves_zero' (p : Player) : moves p 0 = ∅
+  moves_small' (p : Player) (x : G) : Small.{v} (moves p x)
 
 namespace Moves
 
@@ -87,6 +87,22 @@ export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition 
 
 variable {G : Type (u + 1)} [g_form : Form G]
 
+@[simp]
+theorem moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x) :=
+  moves_neg' p x
+
+@[simp]
+theorem moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y :=
+  moves_add' p x y
+
+@[simp]
+theorem moves_zero (p : Player) : @moves G _ p 0 = ∅ :=
+  moves_zero' p
+
+@[simp]
+theorem moves_small (p : Player) (x : G) : Small.{u} (moves p x) :=
+  moves_small' p x
+
 theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
   simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
@@ -132,12 +148,20 @@ end Form
 
 class MisereForm (G : Type (v + 1)) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
-  WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
-  WinsGoingFirst_of_IsEnd (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g
+  WinsGoingFirst_neg_iff' (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
+  WinsGoingFirst_of_IsEnd' (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g
 
 namespace MisereForm
 
 variable {G : Type (u + 1)} [g_form : MisereForm G]
+
+@[simp]
+theorem WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g) :=
+  WinsGoingFirst_neg_iff' g p
+
+@[simp]
+theorem WinsGoingFirst_of_IsEnd (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g :=
+  WinsGoingFirst_of_IsEnd' g p h1
 
 open scoped Classical in
 noncomputable def MiserePlayerOutcome : G → Player → Player :=

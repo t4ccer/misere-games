@@ -550,14 +550,14 @@ instance : InvolutiveNeg AugmentedForm where
 
 @[simp]
 noncomputable instance : Form AugmentedForm where
-  moves_neg := by
+  moves_neg' := by
     intro p x
     simp only [neg_eq']
     simp only [←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
-  moves_add := moves_add'
-  moves_zero p := by simp only [moves_zero]
-  moves_small := instSmallElemMoves
+  moves_add' := moves_add'
+  moves_zero' p := by simp only [moves_zero]
+  moves_small' := instSmallElemMoves
 
 -- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
 

@@ -283,10 +283,10 @@ private theorem moves_add' (p : Player) (x y : GameForm) :
   rw [add_eq', moves_ofSets]
 
 instance : Form GameForm where
-  moves_neg := moves_neg'
-  moves_add := moves_add'
-  moves_zero := moves_zero'
-  moves_small := instSmallElemMoves
+  moves_neg' := moves_neg'
+  moves_add' := moves_add'
+  moves_zero' := moves_zero'
+  moves_small' := instSmallElemMoves
 
 theorem isOption_neg {x y : GameForm} : IsOption x (-y) ↔ IsOption (-x) y := by
   simp only [moves_neg, IsOption.iff_mem_union, Player.neg_left, Player.neg_right,
