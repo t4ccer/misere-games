@@ -596,4 +596,15 @@ theorem ofGameForm_IsEnd {g : GameForm} {p : Player} :
       simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort] at h1
       exact h1
 
+theorem mem_ofGameForm_exists_mem {g : GameForm} {gp : AugmentedForm} {p : Player}
+  (h1 : AugmentedForm.TombstoneFree gp)
+  (h2 : gp ∈ Form.moves p (AugmentedForm.ofGameForm g))
+    : ∃ gp', gp' ∈ Form.moves p g ∧ AugmentedForm.ofGameForm gp' = gp := by
+  have ⟨gp', h4⟩ := AugmentedForm.ofGameForm_exists_preimage h1
+  rw [<-h4] at h2
+  have h5 := AugmentedForm.ofGameForm_moves_mem_iff.mp h2
+  use gp'
+  simp only [Form.moves]
+  exact And.intro h5 h4
+
 end AugmentedForm

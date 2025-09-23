@@ -1,4 +1,6 @@
 import CombinatorialGames.AugmentedForm
+import CombinatorialGames.AugmentedForm.Adjoint
+import CombinatorialGames.AugmentedForm.Misere.Adjoint
 import CombinatorialGames.AugmentedForm.Misere.Outcome
 import CombinatorialGames.Form
 import CombinatorialGames.Form.Birthday
@@ -7,13 +9,13 @@ import CombinatorialGames.Form.Short
 import CombinatorialGames.GameForm
 import CombinatorialGames.GameForm.Adjoint
 import CombinatorialGames.GameForm.Birthday
+import CombinatorialGames.GameForm.Misere.Adjoint
 import CombinatorialGames.GameForm.Misere.Outcome
 import CombinatorialGames.GameForm.Special
 import CombinatorialGames.Mathlib.NatOrdinal
 import CombinatorialGames.Mathlib.Neg
 import CombinatorialGames.Mathlib.OrdinalAlias
 import CombinatorialGames.Mathlib.Small
-import CombinatorialGames.Misere.Adjoint
 import CombinatorialGames.Misere.DeadEnding
 import CombinatorialGames.Misere.Experimental
 import CombinatorialGames.Misere.NonInvertible

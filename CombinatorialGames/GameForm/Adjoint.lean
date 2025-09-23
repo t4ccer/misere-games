@@ -13,7 +13,7 @@ open Form
 
 universe u
 
-variable {G : Type (u + 1)} [g_misere : Form G]
+variable {G : Type (u + 1)} [g_form : Form G]
 
 open Classical in
 noncomputable def Adjoint (g : G) : GameForm.{u} :=

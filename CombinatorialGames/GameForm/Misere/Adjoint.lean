@@ -6,13 +6,15 @@ Authors: Tomasz Maciosowski
 
 import CombinatorialGames.GameForm.Adjoint
 import CombinatorialGames.GameForm.Misere.Outcome
+import CombinatorialGames.AugmentedForm.Misere.Outcome
 
 open GameForm.Adjoint
 open Form.Misere.Outcome
 open GameForm.Misere.Outcome
-
 open Form
 open MisereForm
+
+namespace GameForm.Misere.Adjoint
 
 theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outcome.P := by
   apply wins_opposite_outcome_eq_P
@@ -20,7 +22,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
     rw [WinsGoingFirst_def]
-    simp [moves_add, Set.mem_union, Set.mem_image, exists_prop, not_or, not_and, not_exists,
+    simp [Form.moves_add, Set.mem_union, Set.mem_image, exists_prop, not_or, not_and, not_exists,
           not_not, IsEnd.add_iff]
     apply And.intro (fun _ => adjoint_not_end g p)
     intro k h1
@@ -47,3 +49,5 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
   simp only [h1, reduceIte]
 termination_by g
 decreasing_by all_goals form_wf
+
+end GameForm.Misere.Adjoint

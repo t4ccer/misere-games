@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
 
-import CombinatorialGames.Misere.Adjoint
+import CombinatorialGames.GameForm.Misere.Adjoint
 import CombinatorialGames.Form.Misere.Outcome
-import CombinatorialGames.GameForm.Adjoint
 
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
@@ -74,7 +73,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
-      refine outcome_eq_P_leftWinsGoingFirst ?_ (outcome_add_adjoint_eq_P hr)
+      refine outcome_eq_P_leftWinsGoingFirst ?_ (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
       simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop, Form.moves]
       exists hr
@@ -106,7 +105,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       simp only [Player.neg_right, GameForm.moves_add, GameForm.moves_ofSets, Player.cases,
         Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
         exists_exists_and_eq_and, Form.moves]
-      refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gl))
+      refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl))
       apply Or.inr
       use gl
     · refine add_left_mem_moves_add ?_ g
