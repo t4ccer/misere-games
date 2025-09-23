@@ -579,4 +579,21 @@ lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} :
   simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
   tauto
 
+theorem ofGameForm_IsEnd {g : GameForm} {p : Player} :
+    Form.IsEnd p g ↔ EndLike (ofGameForm g) p := by
+  constructor <;> intro h1
+  · unfold ofGameForm EndLike Moves.IsEnd
+    apply Or.inr
+    simp only [Moves.moves]
+    rw [moves_ofSetsWithTombs]
+    unfold Moves.IsEnd at h1
+    simp only [Moves.moves] at h1
+    simp only [Set.range_eq_empty_iff, h1, Set.isEmpty_coe_sort]
+  · unfold ofGameForm EndLike Moves.IsEnd at h1
+    apply Or.elim h1 <;> intro h1
+    · simp only [hasTombstone_ofSetsWithTombs] at h1
+    · simp only [Moves.moves] at h1
+      simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort] at h1
+      exact h1
+
 end AugmentedForm
