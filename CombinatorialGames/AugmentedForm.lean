@@ -574,4 +574,9 @@ theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
   rw [neg_eq']
   exact Eq.to_iff rfl
 
+lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} :
+    AugmentedForm.EndLike (g + h) p ↔ (AugmentedForm.EndLike g p ∧ AugmentedForm.EndLike h p) := by
+  simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
+  tauto
+
 end AugmentedForm

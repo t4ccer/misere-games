@@ -306,12 +306,6 @@ termination_by n.natAbs
 
 -- augmented form versions
 
--- this should be moved to AugmentedForm
-lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} : 
-    AugmentedForm.EndLike (g + h) p ↔ (AugmentedForm.EndLike g p ∧ AugmentedForm.EndLike h p) := by
-  simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
-  tauto
-
 private def IsSpecial_aug (g : AugmentedForm) : Prop :=
   ¬AugmentedForm.EndLike g Player.right
   ∧ ∀ gr ∈ moves .right g,
