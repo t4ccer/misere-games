@@ -63,6 +63,7 @@ decreasing_by
 instance : MisereForm GameForm where
   WinsGoingFirst := WinsGoingFirst'
   WinsGoingFirst_neg_iff := WinsGoingFirst_neg_iff'
+  WinsGoingFirst_of_IsEnd _ _ := End_WinsGoingFirst
 
 theorem WinsGoingFirst_def (g : GameForm) (p : Player)
   : WinsGoingFirst p g

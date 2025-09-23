@@ -125,6 +125,7 @@ end Form
 class MisereForm (G : Type (v + 1)) extends Form G where
   WinsGoingFirst (p : Player) (g : G) : Prop
   WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
+  WinsGoingFirst_of_IsEnd (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g
 
 namespace MisereForm
 
