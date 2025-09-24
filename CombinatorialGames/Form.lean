@@ -107,6 +107,7 @@ theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
   simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
 
+@[simp]
 theorem IsEnd.add_iff {g h : G} {p : Player} :
     IsEnd p (g + h) ↔ (IsEnd p g ∧ IsEnd p h) := by
   constructor <;> intro h1
@@ -124,6 +125,7 @@ theorem IsEnd_neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g :
     simp only [IsEnd, moves_neg, Set.neg_eq_empty] at *
     exact h1
 
+@[simp]
 theorem IsEnd_zero {p : Player} : IsEnd p (0 : G) := by
   rw [IsEnd, moves_zero]
 
