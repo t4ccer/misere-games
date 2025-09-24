@@ -17,12 +17,12 @@ open MisereForm
 
 universe u
 
-def WinsGoingFirst' (p : Player) (g : GameForm) : Prop :=
+private def WinsGoingFirst' (p : Player) (g : GameForm) : Prop :=
   Form.IsEnd p g ∨ (∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g')
 termination_by g
 decreasing_by form_wf
 
-theorem End_WinsGoingFirst {g : GameForm} {p : Player} (h1 : IsEnd p g)
+private theorem End_WinsGoingFirst' {g : GameForm} {p : Player} (h1 : IsEnd p g)
     : WinsGoingFirst' p g := by
   rw [WinsGoingFirst']
   exact Or.inl h1
@@ -34,7 +34,7 @@ private theorem WinsGoingFirst_neg_iff' (g : GameForm) (p : Player) :
     <;> rw [WinsGoingFirst'] at h1
     <;> apply Or.elim h1
     <;> intro h1
-  · exact End_WinsGoingFirst (IsEnd_neg_iff_neg.mp h1)
+  · exact End_WinsGoingFirst' (IsEnd_neg_iff_neg.mp h1)
   · obtain ⟨gp, h1, h2⟩ := h1
     rw [WinsGoingFirst', neg_neg]
     simp only [exists_prop]
@@ -42,7 +42,7 @@ private theorem WinsGoingFirst_neg_iff' (g : GameForm) (p : Player) :
     use -gp
     simp only [Form.moves_neg, instForm, Set.mem_neg] at h1
     exact And.intro h1 ((WinsGoingFirst_neg_iff' gp p).not.mpr h2)
-  · exact End_WinsGoingFirst (IsEnd_neg_iff_neg.mpr h1)
+  · exact End_WinsGoingFirst' (IsEnd_neg_iff_neg.mpr h1)
   · obtain ⟨gp, h1, h2⟩ := h1
     rw [WinsGoingFirst']
     apply Or.inr
@@ -59,17 +59,36 @@ decreasing_by
   · rw [Form.birthday_neg gp]
     exact Form.birthday_lt_of_mem_moves h1
 
-@[simp]
 instance : MisereForm GameForm where
   WinsGoingFirst := WinsGoingFirst'
   WinsGoingFirst_neg_iff' := WinsGoingFirst_neg_iff'
-  WinsGoingFirst_of_IsEnd' _ _ := End_WinsGoingFirst
+  WinsGoingFirst_of_IsEnd' _ _ := End_WinsGoingFirst'
 
-theorem WinsGoingFirst_def (g : GameForm) (p : Player)
-  : WinsGoingFirst p g
-    = (Form.IsEnd p g ∨ ∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g') := by
+private theorem WinsGoingFirst_def (g : GameForm) (p : Player)
+  : WinsGoingFirst p g ↔ WinsGoingFirst' p g := by rfl
+
+theorem WinsGoingFirst_iff (g : GameForm) (p : Player)
+    : WinsGoingFirst p g ↔ Form.IsEnd p g ∨ (∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g') := by
+  nth_rw 1 [MisereForm.WinsGoingFirst, instMisereForm]
+  dsimp only [instForm.eq_1]
+  unfold WinsGoingFirst'
+  simp only [exists_prop, <-WinsGoingFirst_def]
+
+theorem WinsGoingFirst_of_End {g : GameForm} {p : Player} (h1 : IsEnd p g)
+    : WinsGoingFirst p g := End_WinsGoingFirst' h1
+
+theorem WinsGoingFirst_of_moves {g : GameForm} {p : Player}
+    (h1 : ∃ g' ∈ moves p g, ¬WinsGoingFirst (-p) g')
+    : WinsGoingFirst p g := by
   simp only [WinsGoingFirst]
-  rw [WinsGoingFirst']
+  unfold WinsGoingFirst'
+  apply Or.inr
+  exact bex_def.mpr h1
+
+theorem not_WinsGoingFirst {g : GameForm} {p : Player}
+    : ¬MisereForm.WinsGoingFirst p g ↔ (¬IsEnd p g ∧ (∀ g' ∈ moves p g, MisereForm.WinsGoingFirst (-p) g')) := by
+  rw [WinsGoingFirst_iff]
+  simp only [not_or, not_exists, not_and, not_not]
 
 def MisereEq (A : GameForm → Prop) (g h : GameForm) : Prop :=
   ∀ (x : GameForm), A x → MisereOutcome (g + x) = MisereOutcome (h + x)
@@ -138,14 +157,12 @@ theorem outcome_eq_P_leftWinsGoingFirst {g gl : GameForm} (h1 : gl ∈ moves .le
   by_cases h3 : WinsGoingFirst .left gl
     <;> by_cases h4 : WinsGoingFirst .right gl
     <;> simp only [h3, h4, reduceIte, reduceCtorEq] at h2
-  simp only [WinsGoingFirst] at h4
-  rw [WinsGoingFirst_def]
-  apply Or.inr
-  simp only [Player.neg_left, exists_prop]
+  apply WinsGoingFirst_of_moves
+  simp only [Player.neg_left]
   use gl
 
 theorem add_end_WinsGoingFirst {g h : GameForm} {p : Player} (h1 : IsEnd p g)
     (h2 : IsEnd p h) : WinsGoingFirst p (g + h) :=
-  End_WinsGoingFirst (IsEnd.add_iff.mpr ⟨h1, h2⟩)
+  WinsGoingFirst_of_End (IsEnd.add_iff.mpr ⟨h1, h2⟩)
 
 end GameForm.Misere.Outcome

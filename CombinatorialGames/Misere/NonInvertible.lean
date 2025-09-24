@@ -65,11 +65,11 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
   -- First consider H + T
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
     apply not_rightWinsGoingFirst_ge_P
-    rw [WinsGoingFirst_def]
+    rw [WinsGoingFirst_iff]
     simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff]
     apply And.intro (fun h3 => by
       simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd])
-    simp only [Player.neg_right, exists_prop, not_exists, not_and, not_not]
+    simp only [Player.neg_right, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
@@ -85,31 +85,31 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
-    rw [WinsGoingFirst_def]
-    apply Or.inr
+    apply WinsGoingFirst_of_moves
     -- Right has a move to G + { | (G^L)° }
     use (g + !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°})
     constructor
-    · rw [WinsGoingFirst']
-      simp only [Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
-        Set.image_empty, Set.union_empty, Set.image_eq_empty, Player.neg_left, Set.mem_image,
-        exists_prop, exists_exists_and_eq_and, not_or, not_exists, not_and, not_not, IsEnd]
+    · refine add_left_mem_moves_add ?_ g
+      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
+    · rw [not_WinsGoingFirst]
+      simp only [IsEnd, Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
+                 Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
+                 Player.neg_left, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
-      rw [WinsGoingFirst']
-      apply Or.inr
+      apply WinsGoingFirst_of_moves
       -- There must be at least one such option, by the assumption on G;
       -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
       simp only [Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
-        Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
-        exists_exists_and_eq_and]
-      refine And.intro ?_ (outcome_eq_P_not_WinsGoingFirst (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl))
-      apply Or.inr
-      use gl
-    · refine add_left_mem_moves_add ?_ g
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
+                 Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
+                 exists_exists_and_eq_and]
+      constructor
+      · apply Or.inr
+        use gl
+      · apply outcome_eq_P_not_WinsGoingFirst
+        exact GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl
   unfold MisereGe
   intro h5
   have h6 : MisereForm.MisereOutcome (g + t) ≥ Outcome.P :=

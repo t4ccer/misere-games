@@ -62,12 +62,11 @@ open Form.Misere.Outcome
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereForm.MisereOutcome g = Outcome.ofPlayer p := by
   rw [MisereOutcome_eq_player_iff]
-  apply And.intro (End_WinsGoingFirst (IsDeadEnd_IsEnd h2))
-  rw [WinsGoingFirst_def]
-  simp only [exists_prop, not_or, not_exists, not_and, not_not, neg_neg]
+  apply And.intro (WinsGoingFirst_of_End (IsDeadEnd_IsEnd h2))
+  simp only [not_WinsGoingFirst, neg_neg]
   apply And.intro (zero_not_both_end h1 (IsDeadEnd_IsEnd h2))
   intro gr h4
-  exact End_WinsGoingFirst (IsDeadEnd_IsEnd (IsDeadEnd_moves h2 gr h4))
+  exact WinsGoingFirst_of_End (IsDeadEnd_IsEnd (IsDeadEnd_moves h2 gr h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2

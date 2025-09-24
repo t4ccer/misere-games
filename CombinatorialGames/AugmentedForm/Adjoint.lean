@@ -49,4 +49,9 @@ theorem mem_adjoint_exists_opposite {g gp : AugmentedForm} {p : Player}
     use gpp
     simp only [Player.neg_left, Player.neg_right, h9, h10, h8, true_and]
 
+@[simp]
+theorem adjoint_not_EndLike {g : AugmentedForm} {p : Player}
+    : ¬EndLike (ofGameForm (g°)) p :=
+  EndLike_ofGameForm_iff.not.mpr (GameForm.Adjoint.adjoint_not_end g p)
+
 end AugmentedForm.Adjoint

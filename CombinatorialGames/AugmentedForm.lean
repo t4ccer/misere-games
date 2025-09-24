@@ -196,6 +196,7 @@ theorem ofGameForm_tombstoneFree (g : GameForm) : TombstoneFree (ofGameForm g) :
     rw [<-h4]
     exact ih p h3 (Subtype.coe_prop h3)
 
+@[simp]
 theorem not_hasTombstone_ofGameForm (g : GameForm) (p : Player)
     : ¬hasTombstone p (ofGameForm g) :=
   (ofGameForm_tombstoneFree g).not_hasTombstone p
@@ -344,6 +345,7 @@ theorem add_eq' (x y : AugmentedForm) : x + y =
   · ext p
     cases p <;> rfl
 
+@[simp]
 theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
     (x + y).hasTombstone p ↔ ((x.hasTombstone p ∧ EndLike y p) ∨ (y.hasTombstone p ∧ EndLike x p)) := by
   rw [add_eq]
@@ -568,24 +570,33 @@ theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
   rw [neg_eq']
   exact Eq.to_iff rfl
 
+@[simp]
 lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} :
     AugmentedForm.EndLike (g + h) p ↔ (AugmentedForm.EndLike g p ∧ AugmentedForm.EndLike h p) := by
   simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
   tauto
 
-theorem ofGameForm_IsEnd {g : GameForm} {p : Player} :
-    Form.IsEnd p g ↔ EndLike (ofGameForm g) p := by
+@[simp]
+lemma not_EndLike {g : AugmentedForm} {p : Player}
+    : ¬EndLike g p ↔ ¬hasTombstone p g ∧ ¬IsEnd p g := by
+  unfold EndLike
+  simp only [not_or]
+
+theorem IsEnd.EndLike {g : AugmentedForm} {p : Player} (h1 : IsEnd p g) : EndLike g p := Or.inr h1
+
+theorem EndLike_ofGameForm_iff {g : GameForm} {p : Player} :
+    EndLike (ofGameForm g) p ↔ Form.IsEnd p g := by
   constructor <;> intro h1
-  · unfold ofGameForm EndLike Moves.IsEnd
-    apply Or.inr
-    rw [moves_ofSetsWithTombs]
-    simp
-    exact h1
   · unfold ofGameForm EndLike Moves.IsEnd at h1
     apply Or.elim h1 <;> intro h1
     · simp only [hasTombstone_ofSetsWithTombs] at h1
     · simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort] at h1
       exact h1
+  · unfold ofGameForm EndLike Moves.IsEnd
+    apply Or.inr
+    rw [moves_ofSetsWithTombs]
+    simp
+    exact h1
 
 theorem mem_ofGameForm_exists_mem {g : GameForm} {gp : AugmentedForm} {p : Player}
   (h1 : AugmentedForm.TombstoneFree gp)

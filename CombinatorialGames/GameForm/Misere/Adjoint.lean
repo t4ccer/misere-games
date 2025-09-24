@@ -21,26 +21,23 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
   intro p
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
-    rw [WinsGoingFirst_def]
-    simp [Form.moves_add, Set.mem_union, Set.mem_image, exists_prop, not_or, not_and, not_exists,
-          not_not, IsEnd.add_iff]
+    rw [not_WinsGoingFirst]
+    simp only [IsEnd.add_iff, not_and, moves_add, Set.mem_union, Set.mem_image]
     apply And.intro (fun _ => adjoint_not_end g p)
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
     · have h3 : gr + gr° ∈ moves (-p) (gr + g°) :=
         add_left_mem_moves_add (mem_adjoint_mem_opposite h2) gr
-      rw [WinsGoingFirst']
-      apply Or.inr
+      apply WinsGoingFirst_of_moves
       use gr + gr°
       use h3
       exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gr)
-    · rw [WinsGoingFirst']
-      by_cases h3 : IsEnd (-p) g
-      · apply Or.inl
+    · by_cases h3 : IsEnd (-p) g
+      · apply WinsGoingFirst_of_End
         have h4 : gr = 0 := mem_adjoint_end_opposite h2 h3
         rw [h4, add_zero]
         exact h3
-      · apply Or.inr
+      · apply WinsGoingFirst_of_moves
         have ⟨gl, h3, h4⟩ := mem_adjoint_exists_opposite h2 h3
         rw [h4]
         use gl + gl°

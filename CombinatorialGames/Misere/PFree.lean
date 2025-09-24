@@ -52,7 +52,7 @@ private def IsSpecial (g : G) : Prop :=
 private lemma special_implies_not_right_wins { g : GameForm } (h1: IsSpecial g) :
     ¬WinsGoingFirst .right g := by
   intro h2
-  rw [GameForm.Misere.Outcome.WinsGoingFirst_def] at h2
+  rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h2
   cases h2 with
   | inl h_end =>
     unfold IsSpecial at h1
@@ -65,10 +65,8 @@ private lemma special_implies_not_right_wins { g : GameForm } (h1: IsSpecial g) 
     | inr h_left_special =>
       obtain ⟨grl, hgrl_mem, hgrl_special⟩ := h_left_special
       have h4 := special_implies_not_right_wins hgrl_special
-      have h_left_wins_gr : WinsGoingFirst .left gr := by
-        rw [GameForm.Misere.Outcome.WinsGoingFirst_def]
-        right
-        exact ⟨grl, hgrl_mem, h4⟩
+      have h_left_wins_gr : WinsGoingFirst .left gr :=
+        GameForm.Misere.Outcome.WinsGoingFirst_of_moves ⟨grl, hgrl_mem, h4⟩
       exact hgr_win h_left_wins_gr
       termination_by g
       decreasing_by form_wf
@@ -105,7 +103,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     -- cannot be a Right end
   · -- 1. Since g+1 is not a Right end, g cannot be a Right end
     have h_g_plus_one_not_right_end : ¬IsEnd Player.right (g + 1) :=
-      fun h_end => h2 (GameForm.Misere.Outcome.End_WinsGoingFirst h_end)
+      fun h_end => h2 (GameForm.Misere.Outcome.WinsGoingFirst_of_End h_end)
 
     -- If g were a Right end, then g+1 would also be a Right end (since 1 is a
     -- Right end)
@@ -132,8 +130,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     have h_left_wins_gr_plus_one : WinsGoingFirst .left (gr + 1) := by
       by_contra h_left_not_wins
       apply h2
-      rw [GameForm.Misere.Outcome.WinsGoingFirst_def]
-      right
+      apply GameForm.Misere.Outcome.WinsGoingFirst_of_moves
       use gr + 1, h_gr_plus_one_mem
       simp only [Player.neg_right]
       exact h_left_not_wins
@@ -142,7 +139,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     -- exist some winning move for Left from gr+1
     -- 6. This winning move is either to gr (by playing on 1), or to some
     -- grl+1, where grl is a Left move of gr
-    rw [GameForm.Misere.Outcome.WinsGoingFirst_def] at h_left_wins_gr_plus_one
+    rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h_left_wins_gr_plus_one
     cases h_left_wins_gr_plus_one with
     | inl h_gr1_left_end =>
       have h_gr_is_left_move : gr ∈ moves .left (gr + 1) := by
@@ -253,8 +250,7 @@ theorem add_one_outcome_ne_P {g : GameForm} (h1 : IsPFree g) : MisereOutcome (g 
 
   -- 6. Since Right doesn't win g going first, Left wins g+1 going first
   have h_left_wins_g_plus_one : WinsGoingFirst .left (g + 1) := by
-    rw [GameForm.Misere.Outcome.WinsGoingFirst_def]
-    right
+    apply GameForm.Misere.Outcome.WinsGoingFirst_of_moves
     use g, h_g_is_left_move, h_right_not_wins_g
 
   -- 7. But we assumed that g+1 had outcome P, which means Left does not win
@@ -313,12 +309,10 @@ private def IsSpecial_aug (g : AugmentedForm) : Prop :=
 private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSpecial_aug g) :
     ¬WinsGoingFirst .right g := by
   unfold IsSpecial_aug at h1
-  obtain ⟨h1, h2⟩ := h1
-  simp only [WinsGoingFirst]
-  unfold AugmentedForm.WinsGoingFirst'
-  simp only [Player.neg_right, exists_prop, not_or, not_exists, not_and, not_not]
+  obtain ⟨h_not_right_EndLike, h2⟩ := h1
   -- 0. g is not Right end-like, so Right does not win immediately going first
-  apply And.intro h1
+  rw [AugmentedForm.not_WinsGoingFirst]
+  apply And.intro h_not_right_EndLike
   -- 1. consider any right move gr of g
   intro gr h_gr_mem_right
   -- 2. since g is special, we have two cases:
@@ -331,8 +325,8 @@ private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSp
     -- 6. by induction, right does not win going first on grl, so Left wins
     have h_not_right_grl : ¬WinsGoingFirst .right grl :=
       special_implies_not_right_wins_aug h_grl_special
-    unfold AugmentedForm.WinsGoingFirst'
-    exact Or.inr (BEx.intro grl h_grl_mem_left h_not_right_grl)
+    apply AugmentedForm.WinsGoingFirst_of_moves
+    use grl, h_grl_mem_left, h_not_right_grl
 termination_by g
 decreasing_by form_wf
 
