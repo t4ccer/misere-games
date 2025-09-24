@@ -300,7 +300,7 @@ termination_by n.natAbs
 -- augmented form versions
 
 private def IsSpecial_aug (g : AugmentedForm) : Prop :=
-  ¬AugmentedForm.EndLike g Player.right
+  ¬AugmentedForm.EndLike Player.right g
   ∧ ∀ gr ∈ moves .right g,
       (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial_aug grl)
   termination_by g

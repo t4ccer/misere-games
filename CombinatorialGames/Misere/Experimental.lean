@@ -53,7 +53,7 @@ def Strong (U : GameForm → Prop) (g : GameForm) (p : Player) : Prop :=
   ∀ x, U x → IsEnd p x → MisereForm.WinsGoingFirst p (g + x)
 
 def Augmented_strong (U : GameForm → Prop) (g : AugmentedForm) (p : Player) : Prop :=
-  ∀ x, U x → AugmentedForm.EndLike x p → MisereForm.WinsGoingFirst p (g + (x : AugmentedForm))
+  ∀ x, U x → AugmentedForm.EndLike p x → MisereForm.WinsGoingFirst p (g + (x : AugmentedForm))
 
 def AugmentedMisereGe (U : GameForm → Prop) (g h : AugmentedForm) : Prop :=
   ∀ x, (U x → MisereForm.MisereOutcome (g + (x : AugmentedForm)) ≥ MisereForm.MisereOutcome (h + (x : AugmentedForm)))
@@ -83,7 +83,7 @@ def Proviso (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
   IsEnd p g → Strong U h p
 
 def Augmented_proviso (U : GameForm → Prop) (g h : AugmentedForm) (p : Player) : Prop :=
-  AugmentedForm.EndLike g p →  Augmented_strong U h p
+  AugmentedForm.EndLike p g →  Augmented_strong U h p
 
 lemma ofGameForm_preserves_short (g : GameForm) [Form.Short g] :
     Form.Short (AugmentedForm.ofGameForm g) := by
@@ -122,7 +122,7 @@ lemma moves_empty_coercion_compat (g : GameForm) (p : Player) :
     exact h (gp : AugmentedForm) this
 
 lemma isEnd_coercion_compat (g : GameForm) (p : Player) :
-    IsEnd p g ↔ AugmentedForm.EndLike (g : AugmentedForm) p := by
+    IsEnd p g ↔ AugmentedForm.EndLike p (g : AugmentedForm) := by
   simp only [IsEnd, AugmentedForm.EndLike]
   constructor
   · intro h
@@ -148,7 +148,7 @@ lemma strong_coercion_compat {U : GameForm → Prop} (g : GameForm) (p : Player)
     convert (winsGoingFirst_coercion_compat (g + x) p).mp h1 using 1
     rw [AugmentedForm.ofGameForm_add]
   · intro h x hx h_end
-    have h_end' : AugmentedForm.EndLike (x : AugmentedForm) p := (isEnd_coercion_compat x p).mp h_end
+    have h_end' : AugmentedForm.EndLike p (x : AugmentedForm) := (isEnd_coercion_compat x p).mp h_end
     have h1 := h x hx h_end'
     have h2 : MisereForm.WinsGoingFirst p (AugmentedForm.ofGameForm (g + x)) := by
       convert h1 using 1

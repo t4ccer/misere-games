@@ -7,7 +7,7 @@ open Form
 open MisereForm
 
 private def WinsGoingFirst' (p : Player) (g : AugmentedForm) : Prop :=
-  EndLike g p ∨ (∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g')
+  EndLike p g ∨ (∃ g', ∃ (_ : g' ∈ Form.moves p g), ¬WinsGoingFirst' (-p) g')
 termination_by g
 decreasing_by form_wf
 
@@ -16,7 +16,7 @@ private theorem hasTombstone_WinsGoingFirst' {g : AugmentedForm} {p : Player} (h
   rw [WinsGoingFirst', EndLike]
   exact Or.inl (Or.inl h1)
 
-private theorem EndLike_WinsGoingFirst' {g : AugmentedForm} {p : Player} (h1 : EndLike g p)
+private theorem EndLike_WinsGoingFirst' {g : AugmentedForm} {p : Player} (h1 : EndLike p g)
     : WinsGoingFirst' p g := by
   rw [WinsGoingFirst']
   exact Or.inl h1
@@ -76,7 +76,7 @@ private theorem WinsGoingFirst_def {g : AugmentedForm} {p : Player}
   simp only [WinsGoingFirst]
 
 theorem WinsGoingFirst_iff {g : AugmentedForm} {p : Player}
-    : WinsGoingFirst p g ↔ (EndLike g p) ∨ (∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g') := by
+    : WinsGoingFirst p g ↔ (EndLike p g) ∨ (∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g') := by
   nth_rw 1 [WinsGoingFirst, instMisereForm]
   dsimp only [instForm.eq_1]
   unfold WinsGoingFirst'
@@ -85,7 +85,7 @@ theorem WinsGoingFirst_iff {g : AugmentedForm} {p : Player}
 theorem WinsGoingFirst_of_hasTombstone {g : AugmentedForm} {p : Player} (h1 : hasTombstone p g)
     : WinsGoingFirst p g := hasTombstone_WinsGoingFirst' h1
 
-theorem WinsGoingFirst_of_EndLike {g : AugmentedForm} {p : Player} (h1 : EndLike g p)
+theorem WinsGoingFirst_of_EndLike {g : AugmentedForm} {p : Player} (h1 : EndLike p g)
     : WinsGoingFirst p g := EndLike_WinsGoingFirst' h1
 
 theorem WinsGoingFirst_of_End {g : AugmentedForm} {p : Player} (h1 : IsEnd p g)
@@ -100,7 +100,7 @@ theorem WinsGoingFirst_of_moves {g : AugmentedForm} {p : Player}
   exact bex_def.mpr h1
 
 theorem not_WinsGoingFirst {g : AugmentedForm} {p : Player}
-    : ¬WinsGoingFirst p g ↔ (¬EndLike g p ∧ (∀ g' ∈ moves p g, WinsGoingFirst (-p) g')) := by
+    : ¬WinsGoingFirst p g ↔ (¬EndLike p g ∧ (∀ g' ∈ moves p g, WinsGoingFirst (-p) g')) := by
   rw [WinsGoingFirst_iff]
   simp only [not_or, not_EndLike, not_exists, not_and, not_not]
 
