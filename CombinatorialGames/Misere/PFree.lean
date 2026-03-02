@@ -39,8 +39,8 @@ class PFree {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
 class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) extends HasOne A where
   has_nat (n : ℕ) : A (n : G)
 
-class ClosedUnderAdd {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  has_add {g h : G} (h1 : A g) (h2 : A h) : A (g + h)
+class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
+  has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
 
 variable {G : Type (u + 1)} [Form G] [g_form : MisereForm G]
 
@@ -538,7 +538,7 @@ theorem OutcomeStable.zero_ge_one {A : GameForm → Prop}
     rw [h3]
 
 theorem ge_one_add_self {A : GameForm → Prop}
-    [OutcomeStable A] [PFree A] [ClosedUnderAdd A] [HasNat A]
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasNat A]
     (n : ℕ) : n ≥m A (((1 : ℕ) + n) : ℕ) := by
   by_cases h1 : n > 0
   · rw [GameForm.Misere.Outcome.MisereGe]
@@ -549,8 +549,11 @@ theorem ge_one_add_self {A : GameForm → Prop}
     cases h3 : MisereOutcome x
     · cases h4 : MisereOutcome (↑n + x)
       · simp only [ge_iff_le, Outcome.L_ge]
-      · have h5 := OutcomeStable.outcome_RN_add (A := A)
-          has_one (ClosedUnderAdd.has_add (HasNat.has_nat n) h2)
+      · have h4' : A (n + x) := by
+          have := (ClosedUnderAddNat.has_add h2 n)
+          rwa [add_comm] at this
+        have h5 := OutcomeStable.outcome_RN_add (A := A)
+          has_one h4'
           GameForm.Misere.Outcome.one_MisereOutcome_R h4
         rw [add_comm]
         apply Or.elim h5 <;> intro h5 <;> simp only [ge_iff_le, Outcome.ge_R, le_refl, h5]
@@ -563,8 +566,11 @@ theorem ge_one_add_self {A : GameForm → Prop}
         (HasNat.has_nat n) h2
         (GameForm.Misere.Outcome.pos_nat_MisereOutcome_R h1) h3
       apply Or.elim h4 <;> intro h4
-      · have h5 := OutcomeStable.outcome_RN_add
-          has_one (ClosedUnderAdd.has_add (HasNat.has_nat n) h2)
+      · have h4' : A (n + x) := by
+          have := (ClosedUnderAddNat.has_add h2 n)
+          rwa [add_comm] at this
+        have h5 := OutcomeStable.outcome_RN_add
+          has_one h4'
           (GameForm.Misere.Outcome.one_MisereOutcome_R) h4
         nth_rw 2 [add_comm]
         aesop
@@ -582,8 +588,8 @@ theorem ge_one_add_self {A : GameForm → Prop}
   · simp only [gt_iff_lt, not_lt, nonpos_iff_eq_zero] at h1
     simp only [h1, Nat.cast_zero, add_zero, Nat.cast_one, OutcomeStable.zero_ge_one]
 
-theorem MisereGe_of_nat_le {A : GameForm → Prop}
-    [OutcomeStable A] [PFree A] [ClosedUnderAdd A] [HasNat A]
+theorem MisereGe_of_nat_le (A : GameForm → Prop)
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasNat A]
     (n m : ℕ) (h1 : n ≤ m) : n ≥m A m := by
   let k := m - n
   have h0 : m = n + k := by omega
