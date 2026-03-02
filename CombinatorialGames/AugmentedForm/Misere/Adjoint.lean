@@ -1,11 +1,15 @@
-import CombinatorialGames.AugmentedForm.Adjoint
-import CombinatorialGames.AugmentedForm.Misere.Outcome
+module
+
+public import CombinatorialGames.AugmentedForm.Adjoint
+public import CombinatorialGames.AugmentedForm.Misere.Outcome
 
 open GameForm.Adjoint
 open Form.Misere.Outcome
 open Form
 open MisereForm
 open AugmentedForm.Adjoint
+
+public section
 
 namespace AugmentedForm.Misere.Adjoint
 

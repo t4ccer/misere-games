@@ -3,8 +3,12 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
-import CombinatorialGames.Player
+public import CombinatorialGames.Player
+public import Mathlib.Order.Defs.PartialOrder
+
+public section
 
 inductive Outcome where
   /-- Left wins -/
@@ -35,7 +39,7 @@ instance : LT Outcome where
     (lhs = Outcome.R ∧ rhs = Outcome.N) ∨
     (lhs = Outcome.R ∧ rhs = Outcome.P)
 
-instance : LE Outcome where
+instance instLE : LE Outcome where
   le lhs rhs := (lhs = rhs) ∨ (lhs < rhs)
 
 instance : Preorder Outcome where
@@ -82,7 +86,7 @@ theorem ge_P_ge_N_eq_L {o : Outcome} (hp : o ≥ Outcome.P) (hn : o ≥ Outcome.
   cases o
   all_goals simp [LE.le, LT.lt, LE.le] at *
 
-def Conjugate : Outcome → Outcome
+@[expose] def Conjugate : Outcome → Outcome
   | .L => .R
   | .R => .L
   | .P => .P
@@ -103,20 +107,20 @@ theorem outcome_ge_conjugate_le {x y : Outcome} (h1 : x ≥ y) :
     <;> simp only [LE.le, LT.lt, and_false, and_self, and_true, ne_eq, not_false_eq_true,
                    not_true_eq_false, or_self, reduceCtorEq]
 
-def ofPlayers : Player → Player → Outcome
+@[expose] def ofPlayers : Player → Player → Outcome
   | .left, .left => Outcome.L
   | .right, .right => Outcome.R
   | .right, .left => Outcome.P
   | .left, .right => Outcome.N
 
-def ofPlayer : Player → Outcome
+@[expose] def ofPlayer : Player → Outcome
   | .left => Outcome.L
   | .right => Outcome.R
 
 @[simp]
-theorem ofPlayer_left : ofPlayer .left = .L := rfl
+theorem ofPlayer_left : ofPlayer .left = .L := by rfl
 
 @[simp]
-theorem ofPlayer_right : ofPlayer .right = .R := rfl
+theorem ofPlayer_right : ofPlayer .right = .R := by rfl
 
 end Outcome

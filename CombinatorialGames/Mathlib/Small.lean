@@ -1,3 +1,6 @@
+module
+
+public import Mathlib.Logic.Small.Defs
 import Mathlib.Logic.Small.Set
 import Mathlib.Logic.Relation
 import Mathlib.Order.SetNotation
@@ -24,6 +27,8 @@ private theorem small_sUnion_level (x : α) : Small.{u} (⋃₀ range (level r x
   refine @small_sUnion _ _ ?_ ?_
   · exact small_range ..
   · simp [small_level]
+
+public section
 
 instance small_transGen (x : α) : Small.{u} {y // Relation.TransGen r x y} := by
   refine @small_subset _ _ _ (fun y hy ↦ ?_) (small_sUnion_level r x)

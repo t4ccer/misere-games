@@ -3,9 +3,12 @@ Copyright (c) 2025 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
+module
 
-import CombinatorialGames.Player
-import Mathlib.Logic.Small.Defs
+public import CombinatorialGames.Player
+public import Mathlib.Logic.Small.Defs
+
+public section
 
 universe u
 
@@ -47,7 +50,7 @@ recommended_spelling "ofSets" for "!{s | t}" in [ofSets, «term!{_|_}»]
 
 open Lean PrettyPrinter Delaborator SubExpr in
 @[app_delab OfSets.ofSets]
-def delabOfSets : Delab := do
+meta def delabOfSets : Delab := do
   let e ← getExpr
   guard <| e.isAppOfArity' ``OfSets.ofSets 7
   withNaryArg 3 do

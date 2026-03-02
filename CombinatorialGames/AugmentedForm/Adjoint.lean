@@ -1,5 +1,9 @@
-import CombinatorialGames.AugmentedForm
-import CombinatorialGames.GameForm.Adjoint
+module
+
+public import CombinatorialGames.AugmentedForm
+public import CombinatorialGames.GameForm.Adjoint
+
+public section
 
 namespace AugmentedForm.Adjoint
 

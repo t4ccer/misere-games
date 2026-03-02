@@ -3,8 +3,10 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios, Tristan Figueroa Reid
 -/
+module
 
-import CombinatorialGames.Form.Short
+public import CombinatorialGames.Form.Short
+public import CombinatorialGames.Form
 
 /-!
 # Special games
@@ -17,7 +19,7 @@ This file defines some simple yet notable combinatorial games:
 * `↓ = {⋆ | 0}`
 -/
 
-noncomputable section
+public noncomputable section
 
 universe u
 
@@ -28,7 +30,7 @@ open Form (Short short_def)
 /-! ### Star -/
 
 /-- The game `⋆ = {0 | 0}`, which is fuzzy with zero. -/
-def star : GameForm :=
+@[expose] def star : GameForm :=
   !{fun _ ↦ {0}}
 
 @[inherit_doc] notation "⋆" => star

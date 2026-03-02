@@ -1,6 +1,8 @@
-import CombinatorialGames.AugmentedForm.Misere.Outcome
-import CombinatorialGames.GameForm.Misere.Outcome
-import CombinatorialGames.Form.Short
+module
+
+public import CombinatorialGames.AugmentedForm.Misere.Outcome
+public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Short
 
 open Form
 open Form.Misere.Outcome
@@ -8,18 +10,20 @@ open MisereForm
 
 universe u
 
+public section
+
 class HasOne {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_one' : A 1
 
 @[simp]
 theorem has_one {G : Type (u + 1)} [Form G] {A : G → Prop} [HasOne A] : A 1 := HasOne.has_one'
 
-def IsPFree {G : Type (u + 1)} [MisereForm G] (g : G) : Prop :=
+def IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
 
-class OutcomeStable {G : Type (u + 1)} [MisereForm G] (A : G → Prop) where
+class OutcomeStable {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop) where
   outcome_LL_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
     MisereOutcome (g + h) = .L
   outcome_RR_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
@@ -29,7 +33,7 @@ class OutcomeStable {G : Type (u + 1)} [MisereForm G] (A : G → Prop) where
   player_outcome_RN_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .right = .right
 
-class PFree {G : Type (u + 1)} [MisereForm G] (A : G → Prop)  where
+class PFree {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
   pfree {g : G} (h1 : A g) : IsPFree g
 
 class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) extends HasOne A where
@@ -38,7 +42,7 @@ class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) extends HasOne A where
 class ClosedUnderAdd {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_add {g h : G} (h1 : A g) (h2 : A h) : A (g + h)
 
-variable {G : Type (u + 1)} [g_form : MisereForm G]
+variable {G : Type (u + 1)} [Form G] [g_form : MisereForm G]
 
 theorem IsPFree.MisereOutcome_ne_P {g : G} (h1 : IsPFree g) : MisereOutcome g ≠ .P := by
   unfold IsPFree at h1
@@ -111,7 +115,7 @@ private lemma special_implies_not_right_wins { g : GameForm } (h1: IsSpecial g) 
       termination_by g
       decreasing_by form_wf
 
-lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2 :
+private lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2 :
     ¬WinsGoingFirst .right (g + 1)) : IsSpecial g := by
       /- proof strategy:
         0. Right does not win going first on g+1 (by h2), which means g+1
@@ -149,11 +153,10 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
     -- Right end)
     intro h_g_right_end
     apply h_g_plus_one_not_right_end
-    unfold IsEnd at h_g_right_end ⊢
+    rw [IsEnd_def] at h_g_right_end ⊢
     rw [moves_add, GameForm.rightMoves_one, Set.image_empty, Set.union_empty]
     simp only [Set.image_eq_empty]
-    rw [h_g_right_end]
-
+    exact h_g_right_end
   · -- for each right move gr of g, show either gr has outcome L or ∃ special
     -- left move
     intro gr h_gr_mem
@@ -185,7 +188,7 @@ lemma add_one_not_right_wins_implies_special {g : GameForm} (h1 : IsPFree g) (h2
       have h_gr_is_left_move : gr ∈ moves .left (gr + 1) := by
         rw [moves_add, GameForm.leftMoves_one]
         right; simp
-      simp only [IsEnd] at h_gr1_left_end
+      simp only [IsEnd_def] at h_gr1_left_end
       rw [h_gr1_left_end] at h_gr_is_left_move
       exfalso
       exact h_gr_is_left_move
@@ -358,7 +361,7 @@ theorem not_WinsGoingFirst_left_add_one {g : GameForm} (h0 : IsPFree g) (h1 : ¬
   rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h2
   obtain h2 | ⟨gl, h2, h3⟩ := h2
   · have h3 := (IsEnd.add_iff.mp h2).right
-    simp [IsEnd] at h3
+    simp [IsEnd_def] at h3
   · rw [Player.neg_left] at h3
     simp at h2
     obtain h2 | ⟨gll, h2, h4⟩ := h2
@@ -381,7 +384,7 @@ theorem WinsGoingFirst_right_add_one {g : GameForm} (h0 : IsPFree g) (h1 : WinsG
   rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
   · refine GameForm.Misere.Outcome.add_end_WinsGoingFirst h1 ?_
-    simp [IsEnd]
+    simp [IsEnd_def]
   · refine GameForm.Misere.Outcome.WinsGoingFirst_of_moves ?_
     use (gr + 1)
     constructor
@@ -420,7 +423,7 @@ theorem not_WinsGoingFirst_right_sub_one {g : GameForm} (h0 : IsPFree g) (h1 : �
   rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h2
   obtain h2 | ⟨gl, h2, h3⟩ := h2
   · have h3 := (IsEnd.add_iff.mp h2).right
-    simp [IsEnd] at h3
+    simp [IsEnd_def] at h3
   · rw [Player.neg_right] at h3
     simp at h2
     obtain h2 | ⟨gll, h2, h4⟩ := h2
@@ -443,7 +446,7 @@ theorem WinsGoingFirst_left_sub_one {g : GameForm} (h0 : IsPFree g) (h1 : WinsGo
   rw [GameForm.Misere.Outcome.WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
   · refine GameForm.Misere.Outcome.add_end_WinsGoingFirst h1 ?_
-    simp [IsEnd]
+    simp [IsEnd_def]
   · refine GameForm.Misere.Outcome.WinsGoingFirst_of_moves ?_
     use (gr + (-1))
     constructor
@@ -474,7 +477,7 @@ theorem MisereOutcome_sub_nat_L {g : GameForm} (n : ℕ) (h0 : IsPFree g) (h1 : 
     rw [<-IsPFree.neg_iff, neg_add_rev, neg_neg, add_comm]
     exact add_nat_IsPFree (IsPFree.neg_iff.mpr h0) k
 
-theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [MisereForm G] {A : G → Prop} [OutcomeStable A]
+theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
     (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
   have h5 := player_outcome_LN_add g h h1 h2 h3 h4
@@ -482,7 +485,7 @@ theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [MisereForm G] {A : G �
   cases MiserePlayerOutcome (g + h) Player.right
   <;> simp only [reduceCtorEq, or_true, or_false]
 
-theorem OutcomeStable.outcome_RN_add {G : Type (u + 1)} [MisereForm G] {A : G → Prop} [OutcomeStable A]
+theorem OutcomeStable.outcome_RN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
     {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .R := by
   have h5 := player_outcome_RN_add g h h1 h2 h3 h4
@@ -490,7 +493,7 @@ theorem OutcomeStable.outcome_RN_add {G : Type (u + 1)} [MisereForm G] {A : G �
   cases MiserePlayerOutcome (g + h) Player.left
   <;> simp only [reduceCtorEq, or_true, or_false]
 
-theorem PFree.IsPFree {G : Type (u + 1)} [MisereForm G] {A : G → Prop} [PFree A] {g : G} (h1 : A g)
+theorem PFree.IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [PFree A] {g : G} (h1 : A g)
     : IsPFree g := PFree.pfree h1
 
 @[simp]
@@ -667,7 +670,7 @@ private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSp
 termination_by g
 decreasing_by form_wf
 
-lemma add_one_not_right_wins_implies_special_aug {g : AugmentedForm} (h1 : IsPFree g) (h2 :
+private lemma add_one_not_right_wins_implies_special_aug {g : AugmentedForm} (h1 : IsPFree g) (h2 :
     ¬WinsGoingFirst .right (g + (1 : GameForm))) : IsSpecial_aug g := by
       /- proof strategy:
         0. Right does not win going first on g+1 (by h2), which means g+1

@@ -3,6 +3,7 @@ Copyright (c) 2025 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
+module
 
 import Mathlib.Data.Nat.Lattice
 import Mathlib.SetTheory.Ordinal.Family
@@ -21,21 +22,22 @@ open Lean
 /-! ### Auxiliary defs -/
 
 /-- Doc-comment allowing antiquotation. -/
-def mkDocComment (s : String) : TSyntax `Lean.Parser.Command.docComment :=
+meta def mkDocComment (s : String) : TSyntax `Lean.Parser.Command.docComment :=
   .mk <| mkNode ``Parser.Command.docComment #[mkAtom "/--", mkAtom (s ++ "-/")]
 
 /-- `Alias.of` -/
-def mkOf (Alias : TSyntax `ident) : TSyntax `ident :=
+meta def mkOf (Alias : TSyntax `ident) : TSyntax `ident :=
   .mk <| mkIdent (Alias.getId ++ `of)
 
 /-- `Alias.val` -/
-def mkVal (Alias : TSyntax `ident) : TSyntax `ident :=
+meta def mkVal (Alias : TSyntax `ident) : TSyntax `ident :=
   .mk <| mkIdent (Alias.getId ++ `val)
 
 /-! ### Macros -/
 
 /-- Declare a type alias of either `Ordinal` or `Nat`, preserving the order structure. -/
 macro "alias!" doc:docComment Alias:ident Source:ident : command => `(
+@[expose] public section
 
 $doc:docComment
 def $Alias : Type _ :=

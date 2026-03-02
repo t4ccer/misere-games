@@ -3,9 +3,13 @@ Copyright (c) 2025 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
+module
 
+public import Mathlib.Data.Fintype.Defs
 import Mathlib.Tactic.DeriveFintype
-import Mathlib.Algebra.Group.Defs
+public import Mathlib.Algebra.Group.Defs
+
+public section
 
 /-- Either the Left or Right player. -/
 @[aesop safe cases]

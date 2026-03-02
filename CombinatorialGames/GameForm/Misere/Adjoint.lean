@@ -3,16 +3,18 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
-import CombinatorialGames.GameForm.Adjoint
-import CombinatorialGames.GameForm.Misere.Outcome
-import CombinatorialGames.AugmentedForm.Misere.Outcome
+public import CombinatorialGames.GameForm.Adjoint
+public import CombinatorialGames.GameForm.Misere.Outcome
 
 open GameForm.Adjoint
 open Form.Misere.Outcome
 open GameForm.Misere.Outcome
 open Form
 open MisereForm
+
+public section
 
 namespace GameForm.Misere.Adjoint
 

@@ -3,14 +3,20 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
-import CombinatorialGames.GameForm.Misere.Adjoint
-import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.GameForm.Adjoint
+public import CombinatorialGames.GameForm.Misere.Adjoint
+public import CombinatorialGames.GameForm.Misere.Outcome
+import Mathlib.Data.Set.Finite.Range
 
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
+
+public section
 
 def AnyGame (_ : GameForm) := True
 
@@ -68,7 +74,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     rw [WinsGoingFirst_iff]
     simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff]
     apply And.intro (fun h3 => by
-      simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd])
+      simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd_def])
     simp only [Player.neg_right, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
@@ -81,7 +87,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       -- since (by the assumption on H) both components are Left ends
       apply add_end_WinsGoingFirst h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, IsEnd]
+      simp only [h3, GameForm.leftMoves_ofSets, IsEnd_def]
   -- Next consider G + T
   have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
@@ -92,9 +98,10 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     · refine add_left_mem_moves_add ?_ g
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
     · rw [not_WinsGoingFirst]
-      simp only [IsEnd, Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
+      simp only [IsEnd_def, Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
                  Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
                  Player.neg_left, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
+      rw [IsEnd_def] at h2
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
@@ -127,7 +134,6 @@ alias theorem6_6 := leftEnd_not_leftEnd_not_ge
 theorem ClosedUnderNeg.rightEnd_not_rightEnd_not_ge {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
     (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
-  unfold IsEnd at h1 h2
   have h3 : IsEnd .left (-h) := IsEnd_neg_iff_neg.mpr h1
   have h4 : ¬(IsEnd .left (-g)) := IsEnd_neg_iff_neg.not.mpr h2
   have h5 : ¬((-g) ≥m A (-h)) := leftEnd_not_leftEnd_not_ge h0 h3 h4

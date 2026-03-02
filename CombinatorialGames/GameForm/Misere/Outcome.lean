@@ -3,13 +3,14 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
-import CombinatorialGames.Outcome
-import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.Form.Short
-import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Outcome
+public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.Form.Short
+public import CombinatorialGames.Form.Misere.Outcome
 
-noncomputable section
+public noncomputable section
 
 namespace GameForm.Misere.Outcome
 
@@ -61,7 +62,7 @@ decreasing_by
   · rw [Form.birthday_neg gp]
     exact Form.birthday_lt_of_mem_moves h1
 
-instance : MisereForm GameForm where
+@[no_expose] instance : MisereForm GameForm where
   WinsGoingFirst := WinsGoingFirst'
   WinsGoingFirst_neg_iff' := WinsGoingFirst_neg_iff'
   WinsGoingFirst_of_IsEnd' _ _ := End_WinsGoingFirst'
@@ -70,7 +71,7 @@ private theorem WinsGoingFirst_def (g : GameForm) (p : Player)
   : WinsGoingFirst p g ↔ WinsGoingFirst' p g := by rfl
 
 theorem WinsGoingFirst_iff (g : GameForm) (p : Player)
-    : WinsGoingFirst p g ↔ Form.IsEnd p g ∨ (∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g') := by
+    : WinsGoingFirst p g ↔ IsEnd p g ∨ (∃ g' ∈ moves p g, ¬WinsGoingFirst (-p) g') := by
   nth_rw 1 [MisereForm.WinsGoingFirst, instMisereForm]
   dsimp only [instForm.eq_1]
   unfold WinsGoingFirst'
@@ -92,7 +93,7 @@ theorem not_WinsGoingFirst {g : GameForm} {p : Player}
   rw [WinsGoingFirst_iff]
   simp only [not_or, not_exists, not_and, not_not]
 
-def MisereEq (A : GameForm → Prop) (g h : GameForm) : Prop :=
+@[expose] def MisereEq (A : GameForm → Prop) (g h : GameForm) : Prop :=
   ∀ (x : GameForm), A x → MisereOutcome (g + x) = MisereOutcome (h + x)
 
 /-- `G =m A H` means that G =_A H -/
@@ -103,7 +104,7 @@ theorem MisereEq_symm {A : GameForm → Prop} {g h : GameForm} (h1 : g =m A h) :
   have h3 := h1 x h2
   exact Eq.symm h3
 
-def MisereGe (A : GameForm → Prop) (g h : GameForm) : Prop :=
+@[expose] def MisereGe (A : GameForm → Prop) (g h : GameForm) : Prop :=
   ∀ x, (A x → MisereOutcome (g + x) ≥ MisereOutcome (h + x))
 
 /-- `G ≥m A H` means that G ≥_A H -/
@@ -183,9 +184,9 @@ theorem one_MisereOutcome_R : MisereOutcome (1 : GameForm) = .R := by
   simp only [MisereOutcome_eq_R_iff]
   constructor
   · refine GameForm.Misere.Outcome.WinsGoingFirst_of_End ?_
-    simp only [IsEnd, GameForm.one_def, GameForm.moves_ofSets, Player.cases]
+    simp only [IsEnd_def, GameForm.one_def, GameForm.moves_ofSets, Player.cases]
   · rw [GameForm.Misere.Outcome.not_WinsGoingFirst]
-    simp only [IsEnd, leftMoves_one, Set.singleton_ne_empty, not_false_eq_true,
+    simp only [IsEnd_def, leftMoves_one, Set.singleton_ne_empty, not_false_eq_true,
                Set.mem_singleton_iff, Player.neg_left, forall_eq, moves_zero,
                WinsGoingFirst_of_IsEnd, and_self]
 
@@ -193,7 +194,7 @@ theorem one_MisereOutcome_R : MisereOutcome (1 : GameForm) = .R := by
 theorem nat_IsEnd_right (n : ℕ) : IsEnd .right (n : GameForm) := by
   induction n with
   | zero => simp only [Nat.cast_zero, IsEnd_zero]
-  | succ k ih => simp only [IsEnd, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
+  | succ k ih => simp only [IsEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
                             Set.image_empty, rightMoves_one, Set.union_self]
 
 @[simp]
@@ -205,7 +206,7 @@ theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : Game
     constructor
     · exact WinsGoingFirst_of_End (nat_IsEnd_right (k + 1))
     · rw [GameForm.Misere.Outcome.not_WinsGoingFirst]
-      simp only [IsEnd, leftMoves_natCast_succ, Set.singleton_ne_empty, not_false_eq_true,
+      simp only [IsEnd_def, leftMoves_natCast_succ, Set.singleton_ne_empty, not_false_eq_true,
                  Set.mem_singleton_iff, Player.neg_left, forall_eq, rightMoves_natCast,
                  WinsGoingFirst_of_IsEnd, and_self]
 

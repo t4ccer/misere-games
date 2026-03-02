@@ -1,5 +1,9 @@
-import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.AugmentedForm
+module
+
+public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.AugmentedForm
+
+public section
 
 namespace AugmentedForm
 
@@ -62,7 +66,7 @@ decreasing_by
   · rw [Form.birthday_neg gp]
     exact Form.birthday_lt_of_mem_moves h1
 
-noncomputable instance : MisereForm AugmentedForm where
+@[no_expose] noncomputable instance : MisereForm AugmentedForm where
   WinsGoingFirst := WinsGoingFirst'
   WinsGoingFirst_neg_iff' := WinsGoingFirst_neg_iff'
   WinsGoingFirst_of_IsEnd' g p h1 := by

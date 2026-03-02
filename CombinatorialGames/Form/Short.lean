@@ -3,11 +3,11 @@ Copyright (c) 2025 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios, Kim Morrison
 -/
+module
 
-import CombinatorialGames.GameForm
-import CombinatorialGames.GameForm.Birthday
-import Mathlib.Algebra.Order.SuccPred
-import Mathlib.Data.Finite.Prod
+public import CombinatorialGames.Form
+public import CombinatorialGames.GameForm
+public import CombinatorialGames.GameForm.Birthday
 import Mathlib.Data.Fintype.Order
 import Mathlib.Data.Set.Finite.Lattice
 
@@ -22,6 +22,8 @@ on combinatorial games. This functionality is now implemented through the `game_
 -/
 
 universe u
+
+public section
 
 namespace Form
 

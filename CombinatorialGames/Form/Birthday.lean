@@ -3,9 +3,10 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
+module
 
-import CombinatorialGames.Form
-import CombinatorialGames.Mathlib.NatOrdinal
+public import CombinatorialGames.Form
+public import CombinatorialGames.Mathlib.NatOrdinal
 
 /-!
 # Birthdays of games
@@ -21,6 +22,8 @@ open NatOrdinal Order Set
 
 universe u
 
+public section
+
 namespace Form
 
 open Form
@@ -29,7 +32,7 @@ variable {G : Type (u + 1)} [g_form : Form G]
 
 /-- The birthday of a form is inductively defined as the least strict upper bound of the
 birthdays of its options. It may be thought as the "step" in which a certain game is constructed. -/
-noncomputable def birthday (x : G) : NatOrdinal.{u + 1} :=
+@[expose] noncomputable def birthday (x : G) : NatOrdinal.{u + 1} :=
   ⨆ y : {y // IsOption y x}, Order.succ (birthday y)
 termination_by x
 decreasing_by form_wf

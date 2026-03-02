@@ -3,14 +3,18 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
+module
 
-import CombinatorialGames.Form.Birthday
-import CombinatorialGames.GameForm
-import CombinatorialGames.Mathlib.NatOrdinal
+public import CombinatorialGames.Form.Birthday
+public import CombinatorialGames.GameForm
+public import CombinatorialGames.Mathlib.NatOrdinal
+public import Mathlib.Data.Set.Defs
 
 open NatOrdinal Order Set
 
 universe u
+
+public section
 
 namespace GameForm
 
@@ -43,7 +47,7 @@ theorem mem_birthdayFinset_succ {x : GameForm} {n : ℕ} : x ∈ birthdayFinset 
   simp [birthdayFinset]
 
 @[simp]
-theorem birthdayFinset_zero : birthdayFinset 0 = {0} := rfl
+theorem birthdayFinset_zero : birthdayFinset 0 = {0} := by rfl
 
 @[simp]
 theorem mem_birthdayFinset {x : GameForm} {n : ℕ} : x ∈ birthdayFinset n ↔ birthday x ≤ n := by

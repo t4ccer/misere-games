@@ -3,21 +3,24 @@ Copyright (c) 2025 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios, Reid Barton, Mario Carneiro, Isabel Longbottom, Kim Morrison, Yuyang Zhao
 -/
+module
 
-import CombinatorialGames.Mathlib.Neg
-import CombinatorialGames.Mathlib.Small
-import CombinatorialGames.OfSets
-import CombinatorialGames.Form
-import Mathlib.Algebra.Order.Group.Nat
-import Mathlib.Algebra.Order.Group.Unbundled.Basic
-import Mathlib.Algebra.Ring.Int.Defs
-import Mathlib.Data.QPF.Univariate.Basic
-
-noncomputable section
+public import CombinatorialGames.Mathlib.Small
+public import CombinatorialGames.OfSets
+public import CombinatorialGames.Form
+public import Mathlib.Algebra.Group.Pointwise.Set.Small
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Algebra.Order.Group.Unbundled.Basic
+public import Mathlib.Algebra.Ring.Int.Defs
+public import Mathlib.Data.QPF.Univariate.Basic
+public import Mathlib.Logic.Small.Defs
+public import Mathlib.Logic.Small.Set
 
 universe u
 
 open Form
+
+@[expose] public noncomputable section
 
 def GameFunctor (α : Type (u + 1)) : Type (u + 1) :=
   {s : Player → Set α // ∀ p, Small.{u} (s p)}
@@ -29,15 +32,15 @@ namespace GameFunctor
 instance {α : Type (u + 1)} (x : GameFunctor α) (p : Player) : Small.{u} (x.1 p) := x.2 p
 
 instance : Functor GameFunctor where
-  map f s := ⟨(f '' s.1 ·), fun _ => inferInstance⟩
+  map f s := ⟨(f '' s.1 ·), fun _ => by infer_instance⟩
 
 theorem map_def {α β} (f : α → β) (s : GameFunctor α) :
-    f <$> s = ⟨(f '' s.1 ·), fun _ => inferInstance⟩ :=
+    f <$> s = ⟨(f '' s.1 ·), fun _ => by infer_instance⟩ :=
   rfl
 
 instance : QPF GameFunctor where
   P := ⟨Player → Type u, fun x ↦ Σ p, PLift (x p)⟩
-  abs x := ⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ inferInstance⟩
+  abs x := ⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ by infer_instance⟩
   repr x := ⟨fun p ↦ Shrink (x.1 p), Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
   abs_repr x := by
     cases x with | mk s hs =>
@@ -66,7 +69,7 @@ instance : OfSets GameForm fun _ ↦ True where
 /-- The set of moves of the game. -/
 private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
 
-instance : Moves GameForm where
+@[no_expose] instance : Moves GameForm where
   moves := moves'
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
@@ -85,7 +88,7 @@ scoped notation:max x:max "ᴸ" => moves Player.left x
 /-- The set of right moves of the game. -/
 scoped notation:max x:max "ᴿ" => moves Player.right x
 
-instance (p : Player) (x : GameForm.{u}) : Small.{u} (moves p x) := x.dest.2 p
+instance instSmallElemMoves (p : Player) (x : GameForm.{u}) : Small.{u} (moves p x) := x.dest.2 p
 
 @[simp]
 theorem moves_ofSets (p) (st : Player → Set GameForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
@@ -211,7 +214,7 @@ termination_by x
 decreasing_by form_wf
 
 /-- The negative of a game is defined by `-!{s | t} = !{-t | -s}`. -/
-instance : Neg GameForm where
+@[no_expose] instance : Neg GameForm where
   neg := neg'
 
 private theorem neg_ofSets'' (s t : Set GameForm) [Small s] [Small t] :
@@ -262,7 +265,7 @@ termination_by (x, y)
 decreasing_by form_wf
 
 /-- The sum of `x = !{s₁ | t₁}` and `y = !{s₂ | t₂}` is `!{s₁ + y, x + s₂ | t₁ + y, x + t₂}`. -/
-instance : Add GameForm where
+@[no_expose] instance : Add GameForm where
   add := add'
 
 theorem add_eq (x y : GameForm) : x + y =
@@ -304,7 +307,7 @@ theorem isOption_neg_neg {x y : GameForm} : IsOption (-x) (-y) ↔ IsOption x y 
 
 theorem forall_moves_neg {P : GameForm → Prop} {p : Player} {x : GameForm} :
     (∀ y ∈ moves p (-x), P y) ↔ (∀ y ∈ moves (-p) x, P (-y)) := by
-  simp only [moves_neg', Set.mem_neg, Set.forall_mem_neg]
+  simp only [moves_neg', Set.mem_neg, Set.forall_neg_mem]
 
 theorem IsOption.add_left {x y z : GameForm} (h : IsOption x y) : IsOption (z + x) (z + y) := by
   aesop (add simp [moves_add'])
@@ -350,10 +353,10 @@ termination_by (x, y, z)
 decreasing_by form_wf
 
 instance : AddCommMonoid GameForm where
-  add_zero := add_zero'
-  zero_add _ := add_comm' .. ▸ add_zero' _
-  add_comm := add_comm'
-  add_assoc := add_assoc'
+  add_zero := private add_zero'
+  zero_add _ := private add_comm' .. ▸ add_zero' _
+  add_comm := private add_comm'
+  add_assoc := private add_assoc'
   nsmul := nsmulRec
 
 /-- The subtraction of `x` and `y` is defined as `x + (-y)`. -/
@@ -367,9 +370,9 @@ For that, use `NatOrdinal.toGameForm`. -/
 instance : AddCommMonoidWithOne GameForm where
 
 instance : Form GameForm where
-  moves_neg' := moves_neg'
-  moves_add' := moves_add'
-  moves_zero' := moves_zero'
+  moves_neg' := private moves_neg'
+  moves_add' := private moves_add'
+  moves_zero' := private moves_zero'
   moves_small' := instSmallElemMoves
 
 @[simp]
@@ -392,7 +395,7 @@ theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p
 private theorem neg_add' (x y : GameForm) : -(x + y) = -x + -y := by
   ext
   simp only [moves_neg', moves_add', Set.union_neg, Set.mem_union, Set.mem_neg, Set.mem_image,
-             Set.exists_mem_neg]
+             Set.exists_neg_mem]
   congr! 3 <;>
   · refine and_congr_right_iff.2 fun _ ↦ ?_
     rw [← neg_inj, neg_add', neg_neg]
@@ -496,7 +499,7 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : GameForm} (hx : x �
 
 theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : IsEnd .left g) (h2 : IsEnd .right g) :
     g = 0 := by
-  unfold IsEnd at h1 h2
+  rw [IsEnd_def] at h1 h2
   rw [zero_def]
   ext p
   cases p
@@ -517,7 +520,7 @@ theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   exact h1 (leftEnd_rightEnd_eq_zero (h2 .left) (h2 .right))
 
 theorem zero_end {p : Player} : IsEnd p (0 : GameForm) := by
-  simp only [IsEnd, zero_def, moves_ofSets]
+  simp only [IsEnd_def, zero_def, moves_ofSets]
 
 theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd p g) :
     ¬IsEnd (-p) g :=

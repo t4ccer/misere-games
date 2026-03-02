@@ -1,8 +1,11 @@
-import CombinatorialGames.Form.Misere.Outcome
-import CombinatorialGames.Misere.DeadEnding
-import CombinatorialGames.Form
-import CombinatorialGames.AugmentedForm
-import CombinatorialGames.AugmentedForm.Misere.Outcome
+module
+
+public import CombinatorialGames.AugmentedForm
+public import CombinatorialGames.AugmentedForm.Misere.Outcome
+public import CombinatorialGames.Form
+public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Misere.DeadEnding
 
 universe u
 
@@ -10,6 +13,8 @@ variable {G : Type (u + 1)} [Form G]
 
 open Form
 open GameForm.Misere.Outcome
+
+public section
 
 namespace GameForm
 
@@ -123,7 +128,7 @@ lemma moves_empty_coercion_compat (g : GameForm) (p : Player) :
 
 lemma isEnd_coercion_compat (g : GameForm) (p : Player) :
     IsEnd p g ↔ AugmentedForm.EndLike p (g : AugmentedForm) := by
-  simp only [IsEnd, AugmentedForm.EndLike]
+  simp only [IsEnd_def, AugmentedForm.EndLike]
   constructor
   · intro h
     right

@@ -1,4 +1,8 @@
-import CombinatorialGames.GameForm.Misere.Outcome
+module
+
+public import CombinatorialGames.GameForm.Misere.Outcome
+
+public section
 
 namespace Form
 

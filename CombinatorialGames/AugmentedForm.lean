@@ -1,8 +1,10 @@
-import CombinatorialGames.Form
-import CombinatorialGames.GameForm
-import CombinatorialGames.Form.Misere.Outcome
+module
 
-noncomputable section
+public import CombinatorialGames.Form
+public import CombinatorialGames.GameForm
+public import CombinatorialGames.Form.Misere.Outcome
+
+@[expose] public noncomputable section
 
 universe u
 
@@ -54,7 +56,7 @@ open Form
 private def moves' (p : Player) (x : AugmentedForm.{u}) : Set AugmentedForm.{u} :=
   x.dest.1.1 p
 
-instance : Moves AugmentedForm where
+@[no_expose] instance : Moves AugmentedForm where
   moves := moves'
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
@@ -151,7 +153,7 @@ private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   termination_by (x, y)
   decreasing_by form_wf
 
-noncomputable instance : Add AugmentedForm where
+@[no_expose] noncomputable instance : Add AugmentedForm where
   add := add'
 
 def ofGameForm (g : GameForm) : AugmentedForm :=
@@ -331,7 +333,7 @@ theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone 
 
 @[simp]
 theorem EndLike_zero (p : Player) : EndLike p (0 : AugmentedForm) := by
-  simp only [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd]
+  simp [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd_def]
 
 theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
@@ -391,13 +393,13 @@ decreasing_by form_wf
 private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
     hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
   simp only [hasTombstone_add]
-  unfold EndLike Form.IsEnd
+  unfold EndLike
   by_cases h1 : hasTombstone p x
   <;> by_cases h2 : hasTombstone p y
   <;> by_cases h3 : hasTombstone p z
   <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, and_self, and_true,
                  false_and, false_or, iff_or_self, or_false, or_iff_left_iff_imp, or_self,
-                 or_self_left, true_and, true_or, Form.IsEnd]
+                 or_self_left, true_and, true_or, IsEnd_def]
   <;> by_cases h4 : moves p x = ∅
   <;> by_cases h5 : moves p y = ∅
   <;> by_cases h6 : moves p z = ∅
@@ -415,10 +417,10 @@ termination_by (x, y, z)
 decreasing_by form_wf
 
 noncomputable instance : AddCommMonoid AugmentedForm where
-  add_zero := add_zero'
-  zero_add x := add_comm' .. ▸ add_zero' x
-  add_comm := add_comm'
-  add_assoc := add_assoc'
+  add_zero := private add_zero'
+  zero_add x := private add_comm' .. ▸ add_zero' x
+  add_comm := private add_comm'
+  add_assoc := private add_assoc'
   nsmul := nsmulRec
 
 instance : AddMonoidWithOne AugmentedForm where
@@ -516,7 +518,7 @@ private def neg' (x : AugmentedForm) : AugmentedForm :=
 termination_by x
 decreasing_by form_wf
 
-instance : Neg AugmentedForm where
+@[no_expose] instance : Neg AugmentedForm where
   neg := neg'
 
 theorem neg_eq (x : AugmentedForm)
@@ -560,16 +562,15 @@ termination_by x
 decreasing_by form_wf
 
 instance : InvolutiveNeg AugmentedForm where
-  neg_neg := neg_neg'
+  neg_neg := private neg_neg'
 
-@[simp]
 noncomputable instance : Form AugmentedForm where
   moves_neg' := by
     intro p x
     simp only [neg_eq']
     simp only [←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
-  moves_add' := moves_add'
+  moves_add' := private moves_add'
   moves_zero' p := by simp only [moves_zero]
   moves_small' := instSmallElemMoves
 
@@ -599,15 +600,17 @@ theorem IsEnd.EndLike {g : AugmentedForm} {p : Player} (h1 : IsEnd p g) : EndLik
 theorem EndLike_ofGameForm_iff {g : GameForm} {p : Player} :
     EndLike p (ofGameForm g) ↔ Form.IsEnd p g := by
   constructor <;> intro h1
-  · unfold ofGameForm EndLike Moves.IsEnd at h1
+  · unfold ofGameForm EndLike at h1
     apply Or.elim h1 <;> intro h1
     · simp only [hasTombstone_ofSetsWithTombs] at h1
-    · simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort] at h1
+    · simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort, IsEnd_def] at h1
+      rw [IsEnd_def]
       exact h1
-  · unfold ofGameForm EndLike Moves.IsEnd
+  · unfold ofGameForm EndLike
     apply Or.inr
-    rw [moves_ofSetsWithTombs]
-    simp
+    rw [IsEnd_def, moves_ofSetsWithTombs]
+    simp only [Set.range_eq_empty_iff, Set.isEmpty_coe_sort]
+    rw [<-IsEnd_def]
     exact h1
 
 theorem mem_ofGameForm_exists_mem {g : GameForm} {gp : AugmentedForm} {p : Player}

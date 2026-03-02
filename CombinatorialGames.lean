@@ -1,25 +1,26 @@
-import CombinatorialGames.AugmentedForm
-import CombinatorialGames.AugmentedForm.Adjoint
-import CombinatorialGames.AugmentedForm.Misere.Adjoint
-import CombinatorialGames.AugmentedForm.Misere.Outcome
-import CombinatorialGames.Form
-import CombinatorialGames.Form.Birthday
-import CombinatorialGames.Form.Misere.Outcome
-import CombinatorialGames.Form.Short
-import CombinatorialGames.GameForm
-import CombinatorialGames.GameForm.Adjoint
-import CombinatorialGames.GameForm.Birthday
-import CombinatorialGames.GameForm.Misere.Adjoint
-import CombinatorialGames.GameForm.Misere.Outcome
-import CombinatorialGames.GameForm.Special
-import CombinatorialGames.Mathlib.NatOrdinal
-import CombinatorialGames.Mathlib.Neg
-import CombinatorialGames.Mathlib.OrdinalAlias
-import CombinatorialGames.Mathlib.Small
-import CombinatorialGames.Misere.DeadEnding
-import CombinatorialGames.Misere.Experimental
-import CombinatorialGames.Misere.NonInvertible
-import CombinatorialGames.Misere.PFree
-import CombinatorialGames.OfSets
-import CombinatorialGames.Outcome
-import CombinatorialGames.Player
+module
+
+public import CombinatorialGames.AugmentedForm
+public import CombinatorialGames.AugmentedForm.Adjoint
+public import CombinatorialGames.AugmentedForm.Misere.Adjoint
+public import CombinatorialGames.AugmentedForm.Misere.Outcome
+public import CombinatorialGames.Form
+public import CombinatorialGames.Form.Birthday
+public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Form.Short
+public import CombinatorialGames.GameForm
+public import CombinatorialGames.GameForm.Adjoint
+public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.Misere.Adjoint
+public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.GameForm.Special
+public import CombinatorialGames.Mathlib.NatOrdinal
+public import CombinatorialGames.Mathlib.OrdinalAlias
+public import CombinatorialGames.Mathlib.Small
+public import CombinatorialGames.Misere.DeadEnding
+public import CombinatorialGames.Misere.Experimental
+public import CombinatorialGames.Misere.NonInvertible
+public import CombinatorialGames.Misere.PFree
+public import CombinatorialGames.OfSets
+public import CombinatorialGames.Outcome
+public import CombinatorialGames.Player

@@ -1,14 +1,19 @@
-import CombinatorialGames.Mathlib.Neg
-import CombinatorialGames.Mathlib.Small
-import CombinatorialGames.Player
-import CombinatorialGames.Outcome
-import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Data.Nat.Cast.Defs
+module
+
+public import CombinatorialGames.Mathlib.Small
+public import CombinatorialGames.Outcome
+public import CombinatorialGames.Player
+public import Mathlib.Algebra.Group.Pointwise.Set.Basic
+public import Mathlib.Data.Nat.Cast.Defs
+public import Mathlib.Logic.Small.Defs
+public import Mathlib.Order.SetNotation
 
 universe u v
 
+public section
+
 -- Implementation detail
-def Moves.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
+@[expose] def Moves.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
    x ∈ ⋃ p, moves p y
 
 class Moves (G : Type v) where
@@ -26,7 +31,7 @@ namespace Moves
 variable {G : Type (u + 1)} [g_moves : Moves G]
 
 /-- `IsOption x y` means that `x` is either a left or a right move for `y`. -/
-def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
+@[expose] def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
 
 -- /-- The set of left moves of the game. -/
 -- scoped notation:max g:max "ᴸ" => Form.moves Player.left g
@@ -55,7 +60,7 @@ theorem self_notMem_moves (p : Player) (x : G) : x ∉ moves p x :=
   fun hx ↦ IsOption.irrefl x (.of_mem_moves hx)
 
 /-- A (proper) subposition is any game in the transitive closure of `IsOption`. -/
-def Subposition : G → G → Prop :=
+@[expose] def Subposition : G → G → Prop :=
   Relation.TransGen IsOption
 
 @[aesop unsafe apply 50%]
@@ -78,13 +83,15 @@ macro "form_wf" : tactic =>
     [Prod.Lex.left, Prod.Lex.right, PSigma.Lex.left, PSigma.Lex.right,
     Subposition.of_mem_moves, Subposition.trans, Subtype.prop] )
 
-def IsEnd (p : Player) (g : G) := moves p g = ∅
-
 end Moves
 
 namespace Form
 
-export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves IsEnd)
+export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition moves)
+
+def IsEnd {G : Type (u + 1)} [Moves G] (p : Player) (g : G) := moves p g = ∅
+
+theorem IsEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : IsEnd p g = (moves p g = ∅) := by rfl
 
 variable {G : Type (u + 1)} [g_form : Form G]
 
@@ -106,7 +113,7 @@ theorem moves_small (p : Player) (x : G) : Small.{u} (moves p x) :=
 
 theorem exists_moves_neg {P : G → Prop} {p : Player} {x : G} :
     (∃ y ∈ Moves.moves p (-x), P y) ↔ (∃ y ∈ Moves.moves (-p) x, P (-y)) := by
-  simp only [Form.moves_neg, Set.mem_neg, Set.exists_mem_neg]
+  simp only [moves_neg, Set.mem_neg, Set.exists_neg_mem]
 
 @[simp]
 theorem IsEnd.add_iff {g h : G} {p : Player} :
@@ -162,14 +169,14 @@ lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y �
 
 end Form
 
-class MisereForm (G : Type (v + 1)) extends Form G where
+class MisereForm (G : Type (v + 1)) [Form G] where
   WinsGoingFirst (p : Player) (g : G) : Prop
   WinsGoingFirst_neg_iff' (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
   WinsGoingFirst_of_IsEnd' (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g
 
 namespace MisereForm
 
-variable {G : Type (u + 1)} [g_form : MisereForm G]
+variable {G : Type (u + 1)} [Form G] [g_form : MisereForm G]
 
 @[simp]
 theorem WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g) :=
@@ -184,11 +191,11 @@ theorem WinsGoingFirst_of_zero (p : Player) : WinsGoingFirst p (0 : G) := by
   simp only [Form.IsEnd_zero, WinsGoingFirst_of_IsEnd]
 
 open scoped Classical in
-noncomputable def MiserePlayerOutcome : G → Player → Player :=
+@[expose] noncomputable def MiserePlayerOutcome : G → Player → Player :=
   fun g p => if WinsGoingFirst p g then p else -p
 
 open scoped Classical in
-noncomputable def MisereOutcome : G → Outcome :=
+@[expose] noncomputable def MisereOutcome : G → Outcome :=
   fun g => Outcome.ofPlayers (MiserePlayerOutcome g .left) (MiserePlayerOutcome g .right)
 
 end MisereForm

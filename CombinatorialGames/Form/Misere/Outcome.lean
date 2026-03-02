@@ -3,9 +3,11 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
+public import CombinatorialGames.Form
 
-import CombinatorialGames.Form
+public section
 
 namespace Form.Misere.Outcome
 
@@ -14,7 +16,7 @@ open MisereForm
 
 universe u
 
-variable {G : Type (u + 1)} [g_misere : MisereForm G]
+variable {G : Type (u + 1)} [Form G] [g_misere : MisereForm G]
 
 private theorem conjugate_of_conjugates (g : G) :
     Outcome.ofPlayers
@@ -92,15 +94,15 @@ theorem MisereOutcome_eq_player_iff (g : G) (p : Player) :
 
 theorem MisereOutcome_eq_L_iff {g : G} :
     (MisereOutcome g = .L) ↔ (WinsGoingFirst .left g ∧ ¬WinsGoingFirst .right g) := by
-  have h1 : Outcome.L = Outcome.ofPlayer .left := rfl
+  have h1 : Outcome.L = Outcome.ofPlayer .left := by rfl
   have h2 : Player.right = -Player.left := rfl
   rw [h1, h2]
   exact MisereOutcome_eq_player_iff g Player.left
 
 theorem MisereOutcome_eq_R_iff {g : G} :
     (MisereOutcome g = .R) ↔ (WinsGoingFirst .right g ∧ ¬WinsGoingFirst .left g) := by
-  have h1 : Outcome.R = Outcome.ofPlayer .right := rfl
-  have h2 : Player.left = -Player.right := rfl
+  have h1 : Outcome.R = Outcome.ofPlayer .right := by rfl
+  have h2 : Player.left = -Player.right := by rfl
   rw [h1, h2]
   exact MisereOutcome_eq_player_iff g Player.right
 

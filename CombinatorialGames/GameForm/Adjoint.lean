@@ -3,9 +3,14 @@ Copyright (c) 2025 Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomasz Maciosowski
 -/
+module
 
-import CombinatorialGames.GameForm.Special
+public import CombinatorialGames.GameForm
+public import CombinatorialGames.GameForm.Special
 import Mathlib.Data.Countable.Small
+import Mathlib.Data.Set.Finite.Range
+
+public section
 
 namespace GameForm
 
@@ -16,7 +21,7 @@ universe u
 variable {G : Type (u + 1)} [g_form : Form G]
 
 open Classical in
-noncomputable def Adjoint (g : G) : GameForm.{u} :=
+@[expose] noncomputable def Adjoint (g : G) : GameForm.{u} :=
   have := moves_small.{u} .left g
   have := moves_small.{u} .right g
   if IsEnd .left g ∧ IsEnd .right g then ⋆
@@ -37,17 +42,18 @@ theorem adjont_zero_eq_star : (0 : G)° = ⋆ := by
   simp only [IsEnd_zero, and_self, ↓reduceIte]
 
 theorem adjoint_not_end (g : G) (p : Player) : ¬(IsEnd p (g°)) := by
-  unfold Adjoint IsEnd
-  by_cases h1 : moves .left g = ∅ ∧ moves .right g = ∅ <;> simp [h1]
+  unfold Adjoint
+  simp only [IsEnd_def]
+  by_cases h1 : moves .left g = ∅ ∧ moves .right g = ∅ <;> simp [h1, IsEnd_def]
   all_goals by_cases h2 : moves .left g = ∅ <;> cases p
-  all_goals by_cases h3 : moves .right g = ∅ <;> simp [h2, h3]
+  all_goals by_cases h3 : moves .right g = ∅ <;> simp [h2, h3, IsEnd_def]
   rw [not_and] at h1
   exact h1 h2 h3
 
 -- TODO: Combine
 private theorem mem_leftMoves_mem_adjoint_rightMoves {g gl : G} (h1 : gl ∈ moves .left g) :
     gl° ∈ moves .right (g°) := by
-  rw [Adjoint, IsEnd, IsEnd]
+  rw [Adjoint, IsEnd_def, IsEnd_def]
   have h2 : g ≠ 0 := mem_moves_ne_zero h1
   by_cases h3 : moves .left g = ∅ <;> by_cases h4 : moves .right g = ∅ <;> simp [*]
   · simp [h3] at h1
@@ -57,7 +63,7 @@ private theorem mem_leftMoves_mem_adjoint_rightMoves {g gl : G} (h1 : gl ∈ mov
 
 private theorem mem_rightMoves_mem_adjoint_leftMoves {g gr : G} (h1 : gr ∈ moves .right g) :
     gr° ∈ moves .left (g°) := by
-  rw [Adjoint, IsEnd, IsEnd]
+  rw [Adjoint, IsEnd_def, IsEnd_def]
   have h2 : g ≠ 0 := mem_moves_ne_zero h1
   by_cases h3 : moves .left g = ∅ <;> by_cases h4 : moves .right g = ∅ <;> simp [*]
   · simp [h4] at h1
