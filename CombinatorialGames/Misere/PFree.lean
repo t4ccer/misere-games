@@ -18,7 +18,7 @@ class HasOne {G : Type (u + 1)} [Form G] (A : G → Prop) where
 @[simp]
 theorem has_one {G : Type (u + 1)} [Form G] {A : G → Prop} [HasOne A] : A 1 := HasOne.has_one'
 
-def IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] (g : G) : Prop :=
+@[expose] def IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
@@ -106,6 +106,11 @@ theorem IsPFree.int (k : ℤ) : IsPFree (k : GameForm) := by
   | .negSucc n =>
     rw [Int.negSucc_eq, GameForm.intCast_neg, IsPFree.neg_iff]
     exact IsPFree.nat (n + 1)
+
+@[simp]
+theorem IsPFree.one : IsPFree (1 : GameForm) := by
+  rw [<-GameForm.intCast_one]
+  exact IsPFree.int 1
 
 private def IsSpecial (g : G) : Prop :=
   ¬IsEnd Player.right g

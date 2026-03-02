@@ -198,4 +198,36 @@ open scoped Classical in
 @[expose] noncomputable def MisereOutcome : G → Outcome :=
   fun g => Outcome.ofPlayers (MiserePlayerOutcome g .left) (MiserePlayerOutcome g .right)
 
+@[simp]
+theorem MiserePlayerOutcome_eq_WinsGoingFirst {g : G} {p : Player}
+    (h1 : MiserePlayerOutcome g p = p) : WinsGoingFirst p g := by
+  simp only [MiserePlayerOutcome] at h1
+  by_cases h2 : WinsGoingFirst p g
+  · exact h2
+  · simp [h2] at h1
+    cases p <;> simp at h1
+
+private theorem MisereOutcome_eq_WinsGoingFirst {g : G} {p : Player}
+    (h1 : MisereOutcome g = Outcome.ofPlayers p p) : WinsGoingFirst p g := by
+  refine MiserePlayerOutcome_eq_WinsGoingFirst ?_
+  cases p
+  <;> cases h2 : MiserePlayerOutcome g Player.left
+  <;> cases h3 : MiserePlayerOutcome g Player.right
+  <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3] at h1
+  <;> rfl
+
+@[simp]
+theorem MisereOutcome_R_eq_WinsGoingFirst {g : G}
+    (h1 : MisereOutcome g = .R) : WinsGoingFirst .right g := by
+  have h2 : .R = Outcome.ofPlayers .right .right := rfl
+  rw [h2] at h1
+  exact MisereOutcome_eq_WinsGoingFirst h1
+
+@[simp]
+theorem MisereOutcome_L_eq_WinsGoingFirst {g : G}
+    (h1 : MisereOutcome g = .L) : WinsGoingFirst .left g := by
+  have h2 : .L = Outcome.ofPlayers .left .left := rfl
+  rw [h2] at h1
+  exact MisereOutcome_eq_WinsGoingFirst h1
+
 end MisereForm

@@ -86,6 +86,12 @@ theorem ge_P_ge_N_eq_L {o : Outcome} (hp : o ≥ Outcome.P) (hn : o ≥ Outcome.
   cases o
   all_goals simp [LE.le, LT.lt, LE.le] at *
 
+@[simp]
+theorem le_N_eq_N_or_R  {o : Outcome} (hp : o ≤ Outcome.N)
+    : o = Outcome.N ∨ o = Outcome.R := by
+  cases o
+  all_goals simp [LE.le, LT.lt, LE.le] at *
+
 @[expose] def Conjugate : Outcome → Outcome
   | .L => .R
   | .R => .L

@@ -21,6 +21,7 @@ public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Experimental
 public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.PFree
+public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.ShortUniverse
 public import CombinatorialGames.OfSets
 public import CombinatorialGames.Outcome

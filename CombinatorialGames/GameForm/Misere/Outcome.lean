@@ -104,6 +104,12 @@ theorem MisereEq_symm {A : GameForm → Prop} {g h : GameForm} (h1 : g =m A h) :
   have h3 := h1 x h2
   exact Eq.symm h3
 
+theorem MisereEq_trans {A : GameForm → Prop} {g h k : GameForm} (h1 : g =m A h) (h2 : h =m A k) :
+    g =m A k := by
+  unfold MisereEq at *
+  intro x h3
+  exact cast (congrArg (Eq (MisereOutcome (g + x))) (h2 x h3)) (h1 x h3)
+
 @[expose] def MisereGe (A : GameForm → Prop) (g h : GameForm) : Prop :=
   ∀ x, (A x → MisereOutcome (g + x) ≥ MisereOutcome (h + x))
 
@@ -120,6 +126,20 @@ theorem MisereGe_trans {A : GameForm → Prop} {g h k : GameForm} (h1 : g ≥m A
   intro x h3
   exact le_trans (h2 x h3) (h1 x h3)
 
+theorem MisereGe_rw_right {A : GameForm → Prop} {a b c : GameForm} (h2 : b =m A c) (h1 : a ≥m A c) : a ≥m A b := by
+  unfold MisereGe at h1 ⊢
+  unfold MisereEq at h2
+  intro x hx
+  rw [h2 x hx]
+  exact h1 x hx
+
+theorem MisereGe_of_subset (U : GameForm → Prop) {V : GameForm → Prop}
+    (h_v_subset_u : ∀g, V g → U g) (g h : GameForm) (h2 : g ≥m U h) : g ≥m V h := by
+  unfold MisereGe at h2 ⊢
+  intro x hv
+  exact h2 x (h_v_subset_u x hv)
+
+@[simp]
 theorem MisereGe_refl {A : GameForm → Prop} (g : GameForm) : g ≥m A g := by
   unfold MisereGe
   intro x h3

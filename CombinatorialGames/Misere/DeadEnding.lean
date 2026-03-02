@@ -1,6 +1,7 @@
 module
 
 public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Misere.ShortUniverse
 
 public section
 
@@ -84,7 +85,7 @@ theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k 
   norm_cast
   exact IsDeadEnd.right_nonneg_int (-k) (by omega)
 
-def IsDeadEnding (g : G) : Prop :=
+@[expose] def IsDeadEnding (g : G) : Prop :=
   (∀ p, IsEnd p g → IsDeadEnd p g) ∧ (∀ p, ∀gp ∈ moves p g, IsDeadEnding gp)
 termination_by g
 decreasing_by form_wf
@@ -100,6 +101,16 @@ theorem IsDeadEnding.moves {g h : G} {p : Player} (h1 : IsDeadEnding g) (h2 : h 
     IsDeadEnding h := by
   unfold IsDeadEnding at h1
   exact h1.right p h h2
+
+instance : ShortUniverse IsDeadEnding where
+  closed_sum := sorry
+  closed_follower := sorry
+  neg_of := sorry
+  closed_dicotic_short := sorry
+  short_only := sorry
+
+class DeadEnding {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
+  dead_ending {g : G} (h1 : A g) : IsDeadEnding g
 
 end Form
 
@@ -185,5 +196,10 @@ theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
     rw [Int.negSucc_eq, GameForm.intCast_neg, IsDeadEnding.neg_iff]
     norm_cast
     exact IsDeadEnding.nat (n + 1)
+
+@[simp]
+theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
+  rw [<-GameForm.intCast_one]
+  exact IsDeadEnding.int 1
 
 end GameForm

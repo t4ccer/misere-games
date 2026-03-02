@@ -44,6 +44,38 @@ namespace GameForm
       (∃ gl ∈ moves .left g, gl ≥m U hl) ∨
       (∃ hlr ∈ moves .right hl, g ≥m U hlr)
 
+theorem Maintenance_of_subset (U : GameForm → Prop) (pfU : GameForm → Prop)
+    (h_subset : ∀g, pfU g → U g) (g h : GameForm) {p : Player}
+    (h_maintenance_u : Maintenance U g h p) : Maintenance pfU g h p := by
+  unfold Maintenance at h_maintenance_u ⊢
+  cases p
+  · simp at h_maintenance_u ⊢
+    intro hl h_hl_mem
+    apply Or.elim (h_maintenance_u hl h_hl_mem)
+    · intro ⟨gl, h_gl, h_gl_ge_hl⟩
+      apply Or.inl
+      use gl
+      apply And.intro h_gl
+      exact MisereGe_of_subset U h_subset gl hl h_gl_ge_hl
+    · intro ⟨hlr, h_hlr, h_g_ge_hlr⟩
+      apply Or.inr
+      use hlr
+      apply And.intro h_hlr
+      exact MisereGe_of_subset U h_subset g hlr h_g_ge_hlr
+  · simp at h_maintenance_u ⊢
+    intro hl h_hl_mem
+    apply Or.elim (h_maintenance_u hl h_hl_mem)
+    · intro ⟨hr, h_hr, h_hl_ge_hr⟩
+      apply Or.inl
+      use hr
+      apply And.intro h_hr
+      exact MisereGe_of_subset U h_subset hl hr h_hl_ge_hr
+    · intro ⟨grl, h_grl, h_grl_ge_h⟩
+      apply Or.inr
+      use grl
+      apply And.intro h_grl
+      exact MisereGe_of_subset U h_subset grl h h_grl_ge_h
+
 @[expose] def Proviso (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
   IsEnd p g → Strong U h p
 
