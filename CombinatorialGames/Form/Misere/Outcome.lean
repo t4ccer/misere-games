@@ -123,4 +123,26 @@ theorem MisereOutcome_eq_P_iff {g : G} :
   rw [<-Player.neg_right]
   exact MisereOutcome_eq_P_iff'
 
+@[simp]
+theorem zero_MiserePlayerOutcome (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
+  unfold MiserePlayerOutcome
+  simp only [IsEnd_zero, WinsGoingFirst_of_IsEnd, ↓reduceIte]
+
+@[simp]
+theorem zero_MisereOutcome_N : MisereOutcome (0 : G) = .N := by
+  unfold MisereOutcome Outcome.ofPlayers
+  simp only [zero_MiserePlayerOutcome]
+
+@[simp]
+theorem neg_MisereOutcome_R_iff {g : G} : (MisereOutcome (-g) = Outcome.R) ↔ (MisereOutcome g = Outcome.L) := by
+  unfold MisereOutcome Outcome.ofPlayers
+  simp only [outcome_eq_neg_player_conjugate, Player.neg_left, Player.neg_right]
+  cases MiserePlayerOutcome g Player.right
+  <;> cases MiserePlayerOutcome g Player.left
+  <;> simp
+
+@[simp]
+theorem neg_MisereOutcome_L_iff {g : G} : (MisereOutcome (-g) = Outcome.L) ↔ (MisereOutcome g = Outcome.R) := by
+  rw [<-neg_neg g, neg_MisereOutcome_R_iff, neg_neg]
+
 end Form.Misere.Outcome

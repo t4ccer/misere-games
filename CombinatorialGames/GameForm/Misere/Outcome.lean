@@ -210,4 +210,18 @@ theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : Game
                  Set.mem_singleton_iff, Player.neg_left, forall_eq, rightMoves_natCast,
                  WinsGoingFirst_of_IsEnd, and_self]
 
+@[simp]
+theorem pos_int_MisereOutcome_R {n : ℤ} (h1 : n > 0) : MisereOutcome (n : GameForm) = .R := by
+  rw [<-Int.toNat_of_nonneg (Int.le_of_lt h1)]
+  exact pos_nat_MisereOutcome_R (Int.pos_iff_toNat_pos.mp h1)
+
+@[simp]
+theorem neg_int_MisereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : GameForm) = .L := by
+  have h2 := pos_int_MisereOutcome_R.{u_1} (Int.neg_pos.mpr h1)
+  rwa [intCast_neg, neg_MisereOutcome_R_iff] at h2
+
+@[simp]
+theorem zero_int_MisereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : GameForm) = .N := by
+  rw [h1, intCast_ofNat, Nat.cast_zero, zero_MisereOutcome_N]
+
 end GameForm.Misere.Outcome

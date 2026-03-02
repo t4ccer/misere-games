@@ -84,6 +84,29 @@ theorem IsPFree_moves {g h : G} {p : Player} (h1 : IsPFree g) (h2 : h ∈ moves 
   unfold IsPFree at h1
   exact h1.right p h h2
 
+@[simp]
+theorem IsPFree.zero : IsPFree (0 : GameForm) := by
+  unfold IsPFree
+  apply And.intro (by simp)
+  simp only [moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true]
+
+@[simp]
+theorem IsPFree.nat (n : ℕ) : IsPFree (n : GameForm) := by
+  match n with
+  | .zero => exact IsPFree.zero
+  | .succ k =>
+    unfold IsPFree
+    have h2 : MisereOutcome ((k.succ : ℤ) : GameForm) ≠ Outcome.P := by simp
+    exact And.intro h2 (GameForm.nat_forall_moves (IsPFree.nat k))
+
+@[simp]
+theorem IsPFree.int (k : ℤ) : IsPFree (k : GameForm) := by
+  match k with
+  | .ofNat n => simp only [Int.ofNat_eq_natCast, GameForm.intCast_nat, IsPFree.nat]
+  | .negSucc n =>
+    rw [Int.negSucc_eq, GameForm.intCast_neg, IsPFree.neg_iff]
+    exact IsPFree.nat (n + 1)
+
 private def IsSpecial (g : G) : Prop :=
   ¬IsEnd Player.right g
   ∧ ∀ gr ∈ moves .right g,

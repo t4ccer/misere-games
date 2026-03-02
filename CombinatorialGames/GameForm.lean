@@ -436,6 +436,10 @@ theorem leftMoves_ofNat (n : ℕ) [n.AtLeastTwo] : ofNat(n)ᴸ = {((n - 1 : ℕ)
 theorem rightMoves_ofNat (n : ℕ) [n.AtLeastTwo] : (ofNat(n) : GameForm)ᴿ = ∅ :=
   rightMoves_natCast n
 
+@[simp]
+theorem not_mem_right_nat (gr : GameForm) (n : ℕ) : ¬(gr ∈ moves Player.right (n : GameForm)) := by
+  simp only [GameForm.rightMoves_natCast, Set.mem_empty_iff_false, not_false_eq_true]
+
 theorem natCast_succ_eq (n : ℕ) : (n + 1 : GameForm) = !{{(n : GameForm)} | ∅} := by
   ext p; cases p <;> simp [moves_add]
 
@@ -525,5 +529,17 @@ theorem zero_end {p : Player} : IsEnd p (0 : GameForm) := by
 theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd p g) :
     ¬IsEnd (-p) g :=
   fun h3 => h1 (both_ends_eq_zero h2 h3)
+
+/-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
+theorem nat_forall_moves {n : ℕ} {P : GameForm → Prop} (h1 : P n)
+    : ∀ (p : Player), ∀ gp ∈ moves p (n.succ : GameForm), P gp := by
+  intro p; cases p
+  · intro gl h_mem
+    rw [<-intCast_nat] at h_mem
+    rwa [eq_sub_one_of_mem_leftMoves_intCast h_mem, Nat.succ_eq_add_one, Nat.cast_add,
+         Nat.cast_one, add_sub_cancel_right, GameForm.intCast_nat]
+  · intro gr h_mem
+    by_contra
+    exact GameForm.not_mem_right_nat gr n.succ h_mem
 
 end GameForm
