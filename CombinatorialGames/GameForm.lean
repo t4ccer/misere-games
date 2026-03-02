@@ -523,12 +523,21 @@ theorem ne_zero_not_end {g : GameForm} (h1 : g ≠ 0) : ∃ p, ¬IsEnd p g := by
   intro h2
   exact h1 (leftEnd_rightEnd_eq_zero (h2 .left) (h2 .right))
 
+theorem succ_nat_end_right {p : Player} {n : ℕ} : IsEnd p (n.succ : GameForm) ↔ p = .right := by
+  cases p <;> simp [IsEnd_def]
+
+@[simp]
 theorem zero_end {p : Player} : IsEnd p (0 : GameForm) := by
   simp only [IsEnd_def, zero_def, moves_ofSets]
 
+@[simp]
 theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd p g) :
     ¬IsEnd (-p) g :=
   fun h3 => h1 (both_ends_eq_zero h2 h3)
+
+@[simp]
+theorem one_right_end : IsEnd .right (1 : GameForm) := by
+  simp only [IsEnd_def, rightMoves_one]
 
 /-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
 theorem nat_forall_moves {n : ℕ} {P : GameForm → Prop} (h1 : P n)

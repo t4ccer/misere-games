@@ -38,6 +38,52 @@ theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEn
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
+private theorem IsDeadEnd.neg {g : G} {p : Player} (h1 : IsDeadEnd p (-g)) : IsDeadEnd (-p) g := by
+  have h0 := h1
+  unfold IsDeadEnd at h1 ⊢
+  have ⟨h3, h2⟩ := h1
+  apply And.intro (IsEnd_neg_iff_neg.mp h3)
+  rw [neg_neg]
+  intro gp h4
+  have h5 : IsDeadEnd p (-gp) := by
+    rw [<-neg_neg g, moves_neg] at h4
+    exact h2 (-gp) (Set.mem_neg.mp h4)
+  exact IsDeadEnd.neg h5
+termination_by g
+decreasing_by form_wf
+
+@[simp]
+theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ IsDeadEnd (-p) g := by
+  constructor <;> intro h1
+  · exact IsDeadEnd.neg h1
+  · rw [<-neg_neg g] at h1
+    rw [<-neg_neg p]
+    exact IsDeadEnd.neg h1
+
+@[simp]
+theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : GameForm) := by
+  unfold IsDeadEnd
+  simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
+             and_self]
+
+@[simp]
+theorem IsDeadEnd.right_nat (n : ℕ) : IsDeadEnd .right (n : GameForm) := by
+  match n with
+  | .zero => exact IsDeadEnd.zero
+  | .succ k => unfold IsDeadEnd; simp [IsDeadEnd.right_nat k]
+
+@[simp]
+theorem IsDeadEnd.right_nonneg_int (k : ℤ) (h1 : k ≥ 0) : IsDeadEnd .right (k : GameForm) := by
+  rw [<-Int.toNat_of_nonneg h1]
+  norm_cast
+  simp only [IsDeadEnd.right_nat]
+
+@[simp]
+theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k : GameForm) := by
+  rw [<-Player.neg_right, <-IsDeadEnd.neg_iff]
+  norm_cast
+  exact IsDeadEnd.right_nonneg_int (-k) (by omega)
+
 def IsDeadEnding (g : G) : Prop :=
   (∀ p, IsEnd p g → IsDeadEnd p g) ∧ (∀ p, ∀gp ∈ moves p g, IsDeadEnding gp)
 termination_by g
@@ -93,5 +139,51 @@ theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEndi
     · exact IsDeadEnding.add h1 (IsDeadEnding.moves h2 h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
+
+private theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g)) : IsDeadEnding g := by
+  unfold IsDeadEnding at h1 ⊢
+  obtain ⟨h1, h2⟩ := h1
+  apply And.intro
+  · intro p h3
+    rw [<-neg_neg p, <-IsEnd_neg_iff_neg] at h3
+    have h4 := IsDeadEnd.neg_iff.mp (h1 (-p) h3)
+    rwa [neg_neg] at h4
+  · intro p gp h3
+    have h4 := h2 (-p) (-gp) (by simp [h3])
+    exact IsDeadEnding.neg h4
+termination_by g
+decreasing_by form_wf
+
+@[simp]
+theorem IsDeadEnding.neg_iff {g : GameForm} : IsDeadEnding (-g) ↔ IsDeadEnding g := by
+  constructor <;> intro h1
+  · exact IsDeadEnding.neg h1
+  · rw [<-neg_neg g] at h1
+    exact IsDeadEnding.neg h1
+
+@[simp]
+theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
+  unfold IsDeadEnding IsDeadEnd
+  simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
+            and_self]
+
+@[simp]
+theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
+  match n with
+  | .zero => exact IsDeadEnding.zero
+  | .succ k =>
+    unfold IsDeadEnding
+    refine And.intro ?_ (GameForm.nat_forall_moves (IsDeadEnding.nat k))
+    intro p h
+    simp only [GameForm.succ_nat_end_right.mp h, IsDeadEnd.right_nat k.succ]
+
+@[simp]
+theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
+  match k with
+  | .ofNat n => exact IsDeadEnding.nat n
+  | .negSucc n =>
+    rw [Int.negSucc_eq, GameForm.intCast_neg, IsDeadEnding.neg_iff]
+    norm_cast
+    exact IsDeadEnding.nat (n + 1)
 
 end GameForm
