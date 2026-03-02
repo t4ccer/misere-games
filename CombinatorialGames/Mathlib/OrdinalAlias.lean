@@ -168,11 +168,11 @@ theorem $(mkIdent `Iio_one_default_eq) : (default : Set.Iio (1 : $Alias)) = ⟨0
 theorem $(mkIdent `bddAbove_iff_small) {s : Set $Alias.{u}} : BddAbove s ↔ Small.{u} s :=
   Ordinal.bddAbove_iff_small
 
-theorem $(mkIdent `bddAbove_of_small) (s : Set $Alias.{u}) [Small.{u} s] : BddAbove s :=
-  Ordinal.bddAbove_of_small s
+theorem $(mkIdent `bddAbove_of_small) (s : Set $Alias.{u}) [h : Small.{u} s] : BddAbove s :=
+  @Ordinal.bddAbove_of_small s h
 
-theorem $(mkIdent `not_bddAbove_compl_of_small) (s : Set $Alias.{u}) [Small.{u} s] : ¬ BddAbove sᶜ :=
-  Ordinal.not_bddAbove_compl_of_small s
+theorem $(mkIdent `not_bddAbove_compl_of_small) (s : Set $Alias.{u}) [h : Small.{u} s] : ¬ BddAbove sᶜ :=
+  @Ordinal.not_bddAbove_compl_of_small s h
 
 theorem $(mkIdent `le_iSup) {ι : Type*} (f : ι → $Alias.{u}) [Small.{u} ι] (i : ι) : f i ≤ iSup f :=
   Ordinal.le_iSup f i

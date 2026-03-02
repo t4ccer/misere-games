@@ -42,7 +42,7 @@ private theorem WinsGoingFirst_neg_iff' (g : GameForm) (p : Player) :
     simp only [exists_prop]
     apply Or.inr
     use -gp
-    simp only [Form.moves_neg, instForm, Set.mem_neg] at h1
+    simp only [Form.moves_neg, Set.mem_neg] at h1
     exact And.intro h1 ((WinsGoingFirst_neg_iff' gp p).not.mpr h2)
   · exact End_WinsGoingFirst' (IsEnd_neg_iff_neg.mpr h1)
   · obtain ⟨gp, h1, h2⟩ := h1

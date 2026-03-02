@@ -24,7 +24,8 @@ theorem birthday_ofSets (s t : Set GameForm.{u}) [Small.{u} s] [Small.{u} t] :
 
 theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
     birthday !{fun _ ↦ s} = sSup (succ ∘ birthday '' s) := by
-  rw [ofSets_eq_ofSets_cases, birthday_ofSets, max_self]
+  rw [ofSets_eq_ofSets_cases, birthday_ofSets]
+  exact max_eq_left le_rfl
 
 @[simp]
 theorem birthday_eq_zero {x : GameForm} : birthday x = 0 ↔ x = 0 := by
@@ -47,15 +48,16 @@ theorem birthdayFinset_zero : birthdayFinset 0 = {0} := rfl
 @[simp]
 theorem mem_birthdayFinset {x : GameForm} {n : ℕ} : x ∈ birthdayFinset n ↔ birthday x ≤ n := by
   induction n generalizing x with
-  | zero => simp
+  | zero =>
+    simp [birthdayFinset_zero, birthday_eq_zero]
   | succ n IH =>
     simp_rw [mem_birthdayFinset_succ, birthday_le_iff, Finset.subset_iff, Nat.cast_add_one,
       ← succ_eq_add_one, lt_succ_iff, IH]
     constructor
     · aesop
     · rintro ⟨hl, hr⟩
-      have hxl : xᴸ ⊆ birthdayFinset n := by intro y; simp_all
-      have hxr : xᴿ ⊆ birthdayFinset n := by intro y; simp_all
+      have hxl : xᴸ ⊆ birthdayFinset n := fun y hy => (IH (x := y)).2 (hl y hy)
+      have hxr : xᴿ ⊆ birthdayFinset n := fun y hy => (IH (x := y)).2 (hr y hy)
       classical
       have := Set.fintypeSubset _ hxl
       have := Set.fintypeSubset _ hxr

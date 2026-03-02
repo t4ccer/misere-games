@@ -5,6 +5,7 @@ Authors: Yuyang Zhao
 -/
 
 import Mathlib.Tactic.DeriveFintype
+import Mathlib.Algebra.Group.Defs
 
 /-- Either the Left or Right player. -/
 @[aesop safe cases]

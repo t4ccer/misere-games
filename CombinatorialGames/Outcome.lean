@@ -66,8 +66,7 @@ theorem ge_R (o : Outcome) : o ≥ Outcome.R := by
 @[simp]
 theorem le_R_iff (o : Outcome) : o ≤ Outcome.R ↔ o = .R := by
   constructor <;> intro h1
-  · cases o <;> simp [instLE, LT.lt] at h1
-    rfl
+  · exact le_antisymm h1 (ge_R o)
   · rw [h1]
 
 @[simp]

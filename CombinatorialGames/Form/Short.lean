@@ -169,7 +169,7 @@ theorem short_iff_birthday_finite {g : GameForm} :
   · rw [NatOrdinal.lt_omega0, Form.Short.short_iff_finite_setOf_subposition]
     intro ⟨n, hn⟩
     apply (birthdayFinset n).finite_toSet.subset fun y hy ↦ ?_
-    simpa using (birthday_lt_of_subposition hy).le.trans_eq hn
+    exact (mem_birthdayFinset (x := y) (n := n)).2 ((birthday_lt_of_subposition hy).le.trans_eq hn)
 termination_by g
 decreasing_by form_wf
 

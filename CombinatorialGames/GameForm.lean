@@ -39,7 +39,14 @@ instance : QPF GameFunctor where
   P := ⟨Player → Type u, fun x ↦ Σ p, PLift (x p)⟩
   abs x := ⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ inferInstance⟩
   repr x := ⟨fun p ↦ Shrink (x.1 p), Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
-  abs_repr x := by ext; simp [← (equivShrink _).exists_congr_right]
+  abs_repr x := by
+    cases x with | mk s hs =>
+    apply Subtype.ext
+    funext p; ext z; constructor
+    · rintro ⟨y, rfl⟩; exact ((equivShrink ↑(s p)).symm y).2
+    · intro hz
+      exact ⟨equivShrink ↑(s p) ⟨z, hz⟩,
+        congrArg Subtype.val ((equivShrink ↑(s p)).left_inv ⟨z, hz⟩)⟩
   abs_map f := by intro ⟨x, f⟩; ext; simp [PFunctor.map, map_def]
 
 end GameFunctor
@@ -51,7 +58,10 @@ namespace GameForm
 
 /-- Construct an `GameForm` from its left and right sets. -/
 instance : OfSets GameForm fun _ ↦ True where
-  ofSets st _ := QPF.Fix.mk ⟨st, fun | .left => inferInstance | .right => inferInstance⟩
+  ofSets (st : Player → Set GameForm) _ := QPF.Fix.mk ⟨st, by
+    intro p; cases p
+    · exact (inferInstance : Small.{u} (st .left))
+    · exact (inferInstance : Small.{u} (st .right))⟩
 
 /-- The set of moves of the game. -/
 private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
@@ -365,7 +375,7 @@ instance : Form GameForm where
 @[simp]
 theorem moves_sub (p : Player) (x y : GameForm) :
     moves p (x - y) = (· - y) '' moves p x ∪ (x + ·) '' (-moves (-p) y) := by
-  simp only [sub_eq_add_neg, moves_add, moves_neg, Set.involutiveNeg]
+  simp only [sub_eq_add_neg, moves_add, moves_neg]
 
 theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
     z - x ∈ moves (-p) (z - y) := by

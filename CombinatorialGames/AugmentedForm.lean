@@ -32,7 +32,11 @@ instance : QPF AugmentedFunctor where
   repr x := ⟨⟨fun p ↦ Shrink (x.1.1 p), x.2⟩, Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
   abs_repr x := by
     cases x with | mk s b =>
-    ext; simp [← (equivShrink _).exists_congr_right]; simp
+    refine AugmentedFunctor.ext ?_ rfl
+    apply Subtype.ext; funext p; ext y; constructor
+    · rintro ⟨x, hx⟩; exact hx ▸ ((equivShrink ↑(s.1 p)).symm x).2
+    · intro hy; exact ⟨equivShrink ↑(s.1 p) ⟨y, hy⟩,
+        congrArg Subtype.val ((equivShrink ↑(s.1 p)).left_inv ⟨y, hy⟩)⟩
   abs_map f := by
     intro ⟨⟨x, b⟩, g⟩
     ext; simp [PFunctor.map, map_def]
@@ -68,7 +72,10 @@ def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
 
 def ofSetsWithTombs (st : Player → Set AugmentedForm) (tomb : Player → Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] : AugmentedForm :=
-  QPF.Fix.mk ⟨⟨st, fun | .left => inferInstance | .right => inferInstance⟩, tomb⟩
+  QPF.Fix.mk ⟨⟨st, by
+    intro p; cases p
+    · exact (inferInstance : Small.{u} (st .left))
+    · exact (inferInstance : Small.{u} (st .right))⟩, tomb⟩
 
 instance : OfSets AugmentedForm fun _ ↦ True where
   ofSets st _ := ofSetsWithTombs st (fun _ => False)
@@ -500,8 +507,7 @@ def ofGameFormHom : GameForm →+ AugmentedForm where
 
 theorem ofGameFormHom_injective : Function.Injective ofGameFormHom := by
   intro g h eq
-  rw [← toGameForm_ofGameForm g, ← toGameForm_ofGameForm h]
-  congr 1
+  exact ofGameForm_Injective (by simpa using congrArg (fun f => f) eq)
 
 private def neg' (x : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
