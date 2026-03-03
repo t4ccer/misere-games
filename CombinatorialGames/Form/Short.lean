@@ -120,6 +120,9 @@ protected instance add (x y : G) [Short x] [Short y] : Short (x + y) := by
 termination_by (x, y)
 decreasing_by form_wf
 
+protected theorem add' {x y : G} (h1 : Short x) (h2 : Short y) : Short (x + y) := by
+  infer_instance
+
 protected instance neg (x : G) [Short x] : Short (-x) := by
   rw [short_def]; intro p; constructor
   · change (moves p (-x)).Finite; rw [moves_neg]

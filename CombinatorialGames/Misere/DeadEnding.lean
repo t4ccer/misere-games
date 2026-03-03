@@ -18,28 +18,28 @@ def IsDeadEnd (p : Player) (g : G) : Prop :=
 termination_by g
 decreasing_by form_wf
 
-def IsDeadEnd_IsEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
+def IsDeadEnd.IsEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
   unfold IsDeadEnd at h1
   exact h1.left
 
-def IsDeadEnd_moves {g : G} {p : Player} (h1 : IsDeadEnd p g) :
+def IsDeadEnd.hereditary {g : G} {p : Player} (h1 : IsDeadEnd p g) :
     ∀ gp ∈ moves (-p) g, IsDeadEnd p gp := by
   unfold IsDeadEnd at h1
   exact h1.right
 
-theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEnd p h) :
+protected theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEnd p h) :
     IsDeadEnd p (g + h) := by
   unfold IsDeadEnd
   simp only [moves_add, Set.mem_union, Set.mem_image]
-  apply And.intro (IsEnd.add_iff.mpr ⟨IsDeadEnd_IsEnd h1, IsDeadEnd_IsEnd h2⟩)
+  apply And.intro (IsEnd.add_iff.mpr ⟨IsDeadEnd.IsEnd h1, IsDeadEnd.IsEnd h2⟩)
   intro gp h3
   apply Or.elim h3 <;> intro ⟨gpp, h3, h4⟩ <;> rw [<-h4]
-  · exact IsDeadEnd.add (IsDeadEnd_moves h1 gpp h3) h2
-  · exact IsDeadEnd.add h1 (IsDeadEnd_moves h2 gpp h3)
+  · exact IsDeadEnd.add (IsDeadEnd.hereditary h1 gpp h3) h2
+  · exact IsDeadEnd.add h1 (IsDeadEnd.hereditary h2 gpp h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
-private theorem IsDeadEnd.neg {g : G} {p : Player} (h1 : IsDeadEnd p (-g)) : IsDeadEnd (-p) g := by
+private protected theorem IsDeadEnd.neg {g : G} {p : Player} (h1 : IsDeadEnd p (-g)) : IsDeadEnd (-p) g := by
   have h0 := h1
   unfold IsDeadEnd at h1 ⊢
   have ⟨h3, h2⟩ := h1
@@ -54,7 +54,7 @@ termination_by g
 decreasing_by form_wf
 
 @[simp]
-theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ IsDeadEnd (-p) g := by
+protected theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ IsDeadEnd (-p) g := by
   constructor <;> intro h1
   · exact IsDeadEnd.neg h1
   · rw [<-neg_neg g] at h1
@@ -62,7 +62,7 @@ theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ IsDeadEnd 
     exact IsDeadEnd.neg h1
 
 @[simp]
-theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : GameForm) := by
+protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : GameForm) := by
   unfold IsDeadEnd
   simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
              and_self]
@@ -97,20 +97,16 @@ theorem IsDeadEnding.IsDeadEnd {g : G} {p : Player} (h1 : IsDeadEnding g) (h2 : 
   exact h1.left p h2
 
 @[simp]
-theorem IsDeadEnding.moves {g h : G} {p : Player} (h1 : IsDeadEnding g) (h2 : h ∈ moves p g) :
+theorem IsDeadEnding.hereditary {g h : G} {p : Player} (h1 : IsDeadEnding g) (h2 : h ∈ moves p g) :
     IsDeadEnding h := by
   unfold IsDeadEnding at h1
   exact h1.right p h h2
 
-instance : ShortUniverse IsDeadEnding where
-  closed_sum := sorry
-  closed_follower := sorry
-  neg_of := sorry
-  closed_dicotic_short := sorry
-  short_only := sorry
-
-class DeadEnding {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
-  dead_ending {g : G} (h1 : A g) : IsDeadEnding g
+@[simp]
+theorem IsDeadEnding.IsOption {g g' : G} (h1 : IsDeadEnding g) (h2 : Moves.IsOption g' g)
+    : IsDeadEnding g' := by
+  rw [isOption_iff_mem_union, Set.mem_union] at h2
+  apply Or.elim h2 <;> exact fun h2 => hereditary h1 h2
 
 end Form
 
@@ -123,11 +119,11 @@ open Form.Misere.Outcome
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereForm.MisereOutcome g = Outcome.ofPlayer p := by
   rw [MisereOutcome_eq_player_iff]
-  apply And.intro (WinsGoingFirst_of_End (IsDeadEnd_IsEnd h2))
+  apply And.intro (WinsGoingFirst_of_End (IsDeadEnd.IsEnd h2))
   simp only [not_WinsGoingFirst, neg_neg]
-  apply And.intro (zero_not_both_end h1 (IsDeadEnd_IsEnd h2))
+  apply And.intro (zero_not_both_end h1 (IsDeadEnd.IsEnd h2))
   intro gr h4
-  exact WinsGoingFirst_of_End (IsDeadEnd_IsEnd (IsDeadEnd_moves h2 gr h4))
+  exact WinsGoingFirst_of_End (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 gr h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2
@@ -146,12 +142,12 @@ theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEndi
     exact IsDeadEnd.add (IsDeadEnding.IsDeadEnd h1 h4) (IsDeadEnding.IsDeadEnd h2 h5)
   · intro gp h3
     apply Or.elim h3 <;> intro ⟨g', h3, h4⟩ <;> rw [<-h4]
-    · exact IsDeadEnding.add (IsDeadEnding.moves h1 h3) h2
-    · exact IsDeadEnding.add h1 (IsDeadEnding.moves h2 h3)
+    · exact IsDeadEnding.add (IsDeadEnding.hereditary h1 h3) h2
+    · exact IsDeadEnding.add h1 (IsDeadEnding.hereditary h2 h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
-private theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g)) : IsDeadEnding g := by
+private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g)) : IsDeadEnding g := by
   unfold IsDeadEnding at h1 ⊢
   obtain ⟨h1, h2⟩ := h1
   apply And.intro
@@ -166,20 +162,20 @@ termination_by g
 decreasing_by form_wf
 
 @[simp]
-theorem IsDeadEnding.neg_iff {g : GameForm} : IsDeadEnding (-g) ↔ IsDeadEnding g := by
+protected theorem IsDeadEnding.neg_iff {g : GameForm} : IsDeadEnding (-g) ↔ IsDeadEnding g := by
   constructor <;> intro h1
   · exact IsDeadEnding.neg h1
   · rw [<-neg_neg g] at h1
     exact IsDeadEnding.neg h1
 
 @[simp]
-theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
+protected theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
   unfold IsDeadEnding IsDeadEnd
   simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
             and_self]
 
 @[simp]
-theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
+protected theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
   match n with
   | .zero => exact IsDeadEnding.zero
   | .succ k =>
@@ -189,7 +185,7 @@ theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
     simp only [GameForm.succ_nat_end_right.mp h, IsDeadEnd.right_nat k.succ]
 
 @[simp]
-theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
+protected theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
   match k with
   | .ofNat n => exact IsDeadEnding.nat n
   | .negSucc n =>
@@ -198,8 +194,48 @@ theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
     exact IsDeadEnding.nat (n + 1)
 
 @[simp]
-theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
+protected theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
   rw [<-GameForm.intCast_one]
   exact IsDeadEnding.int 1
+
+structure ShortDeadEnding (g : GameForm) : Prop where
+  short : Short g
+  dead_ending : IsDeadEnding g
+
+instance : ShortUniverse ShortDeadEnding where
+  closed_sum _ _ h_g h_h :=
+  { short := Short.add' h_g.short h_h.short
+  , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
+  }
+  closed_follower g h1 g' h2 :=
+  { short := by
+      have := h1.short
+      exact Short.isOption h2
+  , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
+  }
+  neg_of _ h :=
+  { short := Short.neg_iff.mpr h.short
+  , dead_ending := IsDeadEnding.neg_iff.mpr h.dead_ending
+  }
+  closed_dicotic_short B C b c hb hb' hc hc' _ _ :=
+  { short := by
+      rw [short_def]
+      intro p
+      apply And.intro (by cases p <;> simp only [moves_ofSets, Player.cases, hb, hc])
+      intro y
+      cases p <;> simp only [moves_ofSets, Player.cases] <;> intro hy
+      · exact (b y hy).short
+      · exact (c y hy).short
+  , dead_ending := by
+      unfold IsDeadEnding
+      apply And.intro <;> intro p
+      · cases p <;> intro h1 <;> simp only [IsEnd_def, moves_ofSets, Player.cases] at h1
+        · simp only [h1, Set.not_nonempty_empty] at hb'
+        · simp only [h1, Set.not_nonempty_empty] at hc'
+      · cases p <;> simp only [moves_ofSets, Player.cases] <;> intro gp hgp
+        · exact (b gp hgp).dead_ending
+        · exact (c gp hgp).dead_ending
+  }
+  short_only _ h  := h.short
 
 end GameForm
