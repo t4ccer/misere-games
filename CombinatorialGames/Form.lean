@@ -199,17 +199,19 @@ open scoped Classical in
   fun g => Outcome.ofPlayers (MiserePlayerOutcome g .left) (MiserePlayerOutcome g .right)
 
 @[simp]
-theorem MiserePlayerOutcome_eq_WinsGoingFirst {g : G} {p : Player}
-    (h1 : MiserePlayerOutcome g p = p) : WinsGoingFirst p g := by
-  simp only [MiserePlayerOutcome] at h1
-  by_cases h2 : WinsGoingFirst p g
-  · exact h2
-  · simp [h2] at h1
-    cases p <;> simp at h1
+theorem MiserePlayerOutcome_eq_iff_WinsGoingFirst {g : G} {p : Player}
+    : (MiserePlayerOutcome g p = p) ↔ WinsGoingFirst p g := by
+  apply Iff.intro <;> intro h1
+  · simp only [MiserePlayerOutcome] at h1
+    by_cases h2 : WinsGoingFirst p g
+    · exact h2
+    · simp [h2] at h1
+      cases p <;> simp at h1
+  · simp only [MiserePlayerOutcome, h1, ↓reduceIte]
 
 private theorem MisereOutcome_eq_WinsGoingFirst {g : G} {p : Player}
     (h1 : MisereOutcome g = Outcome.ofPlayers p p) : WinsGoingFirst p g := by
-  refine MiserePlayerOutcome_eq_WinsGoingFirst ?_
+  rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
   cases p
   <;> cases h2 : MiserePlayerOutcome g Player.left
   <;> cases h3 : MiserePlayerOutcome g Player.right

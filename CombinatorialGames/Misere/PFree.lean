@@ -85,6 +85,12 @@ theorem IsPFree_moves {g h : G} {p : Player} (h1 : IsPFree g) (h2 : h ∈ moves 
   exact h1.right p h h2
 
 @[simp]
+theorem IsPFree.IsOption {g g' : G} (h1 : IsPFree g) (h2 : Moves.IsOption g' g)
+    : IsPFree g' := by
+  rw [isOption_iff_mem_union, Set.mem_union] at h2
+  apply Or.elim h2 <;> exact fun h2 => IsPFree_moves h1 h2
+
+@[simp]
 theorem IsPFree.zero : IsPFree (0 : GameForm) := by
   unfold IsPFree
   apply And.intro (by simp)

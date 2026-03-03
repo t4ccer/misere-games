@@ -1,6 +1,7 @@
 module
 
 public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Misere.Hereditary
 
 universe u
 
@@ -33,18 +34,6 @@ class ShortUniverse (A : GameForm → Prop) extends
 
 namespace GameForm
 
-@[expose] def Strong (U : GameForm → Prop) (g : GameForm) (p : Player) : Prop :=
-  ∀ x, U x → IsEnd p x → MisereForm.WinsGoingFirst p (g + x)
-
-@[expose] def Maintenance (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
-  match p with
-  | .right => ∀ gr ∈ moves .right g,
-      (∃ hr ∈ moves .right h, gr ≥m U hr) ∨
-      (∃ grl ∈ moves .left gr, grl ≥m U h)
-  | .left => ∀ hl ∈ moves .left h,
-      (∃ gl ∈ moves .left g, gl ≥m U hl) ∨
-      (∃ hlr ∈ moves .right hl, g ≥m U hlr)
-
 theorem Maintenance_of_subset (U : GameForm → Prop) (pfU : GameForm → Prop)
     (h_subset : ∀g, pfU g → U g) (g h : GameForm) {p : Player}
     (h_maintenance_u : Maintenance U g h p) : Maintenance pfU g h p := by
@@ -76,9 +65,6 @@ theorem Maintenance_of_subset (U : GameForm → Prop) (pfU : GameForm → Prop)
       use grl
       apply And.intro h_grl
       exact MisereGe_of_subset U h_subset grl h h_grl_ge_h
-
-@[expose] def Proviso (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
-  IsEnd p g → Strong U h p
 
 theorem misere_ge_iff_maintenance_and_proviso {U : GameForm → Prop} [ShortUniverse U]
     (g h : GameForm) :

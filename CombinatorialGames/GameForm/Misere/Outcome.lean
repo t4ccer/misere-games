@@ -259,4 +259,26 @@ theorem neg_int_MisereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : Game
 theorem zero_int_MisereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : GameForm) = .N := by
   rw [h1, intCast_ofNat, Nat.cast_zero, zero_MisereOutcome_N]
 
+theorem MiserePlayerOutcome_moves_left {g gl : GameForm} (h1 : gl ∈ moves .left g)
+    (h2 : MiserePlayerOutcome gl .right = .left) : MiserePlayerOutcome g .left = .left := by
+  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
+  apply Or.inr
+  use gl
+  apply And.intro h1
+  simp only [Player.neg_left, Player.right_le, Player.le_right_eq]
+  unfold MiserePlayerOutcome at h2
+  simp only [Player.le_left, Player.neg_right, Player.le_left_eq, ite_eq_right_iff,
+             reduceCtorEq, imp_false] at h2
+  exact h2
+
+theorem MiserePlayerOutcome_moves_right {g gr : GameForm} (h1 : gr ∈ moves .right g)
+    (h2 : MiserePlayerOutcome gr .left = .right) : MiserePlayerOutcome g .right = .right := by
+  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
+  refine Or.inr ⟨gr, h1, ?_⟩
+  intro h3
+  have h4 : MiserePlayerOutcome gr .left = .left := by
+    rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+  rw [h4] at h2
+  cases h2
+
 end GameForm.Misere.Outcome

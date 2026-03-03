@@ -145,4 +145,46 @@ theorem neg_MisereOutcome_R_iff {g : G} : (MisereOutcome (-g) = Outcome.R) ↔ (
 theorem neg_MisereOutcome_L_iff {g : G} : (MisereOutcome (-g) = Outcome.L) ↔ (MisereOutcome g = Outcome.R) := by
   rw [<-neg_neg g, neg_MisereOutcome_R_iff, neg_neg]
 
+-- TODO: Golf
+theorem MisereOutcome_ge_iff_MiserePlayerOutcome_ge {g h : G}
+    : MisereOutcome g ≥ MisereOutcome h ↔ (∀ p, MiserePlayerOutcome g p ≥ MiserePlayerOutcome h p) := by
+  apply Iff.intro <;> intro h1
+  · intro p; cases p
+    · simp [MisereOutcome, Outcome.ofPlayers] at h1
+      cases h4 : MiserePlayerOutcome g Player.left
+      <;> cases h5 : MiserePlayerOutcome g Player.right
+      <;> cases h6 : MiserePlayerOutcome h Player.left
+      <;> cases h7 : MiserePlayerOutcome h Player.right
+      <;> simp [h4, h5, h6, h7] at h1
+      <;> try decide
+      · absurd h1
+        decide
+      · absurd h1
+        decide
+    · simp [MisereOutcome, Outcome.ofPlayers] at h1
+      cases h4 : MiserePlayerOutcome g Player.left
+      <;> cases h5 : MiserePlayerOutcome g Player.right
+      <;> cases h6 : MiserePlayerOutcome h Player.left
+      <;> cases h7 : MiserePlayerOutcome h Player.right
+      <;> simp [h4, h5, h6, h7] at h1
+      <;> try decide
+      · absurd h1
+        decide
+      · absurd h1
+        decide
+  · have h2 := h1 .left
+    have h3 := h1 .right
+    cases h4 : MiserePlayerOutcome g Player.left
+    <;> cases h5 : MiserePlayerOutcome g Player.right
+    <;> cases h6 : MiserePlayerOutcome h Player.left
+    <;> cases h7 : MiserePlayerOutcome h Player.right
+    <;> simp [MisereOutcome, Outcome.ofPlayers, h4, h5, h6, h7] at ⊢ h2 h3
+    · exact (Player.left_le_right h3).elim
+    · exact (Player.left_le_right h3).elim
+    · exact (Player.left_le_right h2).elim
+    · exact (Player.left_le_right h2).elim
+    · exact (Player.left_le_right h2).elim
+    · exact (Player.left_le_right h2).elim
+    · exact (Player.left_le_right h3).elim
+
 end Form.Misere.Outcome
