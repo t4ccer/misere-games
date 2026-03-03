@@ -19,6 +19,7 @@ inductive Outcome where
   | P
   /-- Right wins -/
   | R
+deriving DecidableEq
 
 namespace Outcome
 
@@ -39,8 +40,16 @@ instance : LT Outcome where
     (lhs = Outcome.R ∧ rhs = Outcome.N) ∨
     (lhs = Outcome.R ∧ rhs = Outcome.P)
 
+instance : DecidableLT Outcome := by
+  simp only [DecidableLT, DecidableRel, LT.lt]
+  infer_instance
+
 instance instLE : LE Outcome where
   le lhs rhs := (lhs = rhs) ∨ (lhs < rhs)
+
+instance : DecidableLE Outcome := by
+  simp only [DecidableLE, DecidableRel, LE.le]
+  infer_instance
 
 instance : Preorder Outcome where
   le_refl _ := Or.inl rfl
