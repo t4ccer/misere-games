@@ -23,7 +23,8 @@ class ClosedUnderDicotic (A : GameForm → Prop) where
 
 class ClosedUnderDicoticShort (A : GameForm → Prop) where
   closed_dicotic_short (B C : Set GameForm) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
-    (hBfin : B.Finite) (hCfin : C.Finite) [Small B] [Small C] : A !{B | C}
+    (hBfin : B.Finite) (HBnonempty : B.Nonempty)
+    (hCfin : C.Finite) (HCnonempty : C.Nonempty) [Small B] [Small C] : A !{B | C}
 
 class ShortUniverse (A : GameForm → Prop) extends
   ClosedUnderSum A, ClosedUnderFollower A,
