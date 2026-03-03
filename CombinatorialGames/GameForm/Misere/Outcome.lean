@@ -96,8 +96,15 @@ theorem not_WinsGoingFirst {g : GameForm} {p : Player}
 @[expose] def MisereEq (A : GameForm → Prop) (g h : GameForm) : Prop :=
   ∀ (x : GameForm), A x → MisereOutcome (g + x) = MisereOutcome (h + x)
 
-/-- `G =m A H` means that G =_A H -/
-macro_rules | `($x =m $u $y) => `(MisereEq $u $x $y)
+macro x:term:51 " =m " u:term:max y:term:51 : term => `(MisereEq $u $x $y)
+
+open Lean PrettyPrinter Delaborator SubExpr in
+@[app_delab MisereEq]
+meta def delabMisereEq : Delab := do
+  let y ← withAppArg delab
+  let x ← withAppFn do withAppArg delab
+  let u ← withAppFn do withAppFn do withAppArg delab
+  `($x =m $u $y)
 
 theorem MisereEq_symm {A : GameForm → Prop} {g h : GameForm} (h1 : g =m A h) : h =m A g := by
   intro x h2
@@ -114,7 +121,15 @@ theorem MisereEq_trans {A : GameForm → Prop} {g h k : GameForm} (h1 : g =m A h
   ∀ x, (A x → MisereOutcome (g + x) ≥ MisereOutcome (h + x))
 
 /-- `G ≥m A H` means that G ≥_A H -/
-macro_rules | `($x ≥m $u $y) => `(MisereGe $u $x $y)
+macro x:term:51 " ≥m " u:term:max y:term:51 : term => `(MisereGe $u $x $y)
+
+open Lean PrettyPrinter Delaborator SubExpr in
+@[app_delab MisereGe]
+meta def delabMisereGe : Delab := do
+  let y ← withAppArg delab
+  let x ← withAppFn do withAppArg delab
+  let u ← withAppFn do withAppFn do withAppArg delab
+  `($x ≥m $u $y)
 
 theorem MisereGe_antisymm {A : GameForm → Prop} {g h : GameForm} (h1 : g ≥m A h) (h2 : h ≥m A g) :
     g =m A h := fun x h3 =>

@@ -161,12 +161,12 @@ theorem misere_ge_iff_maintenance_and_proviso' {U : GameForm → Prop} [ShortUni
       proviso_coercion_compat, proviso_coercion_compat]
 
 def invertible (U : GameForm → Prop) (g : GameForm) : Prop :=
-  ∃ h, U h ∧ g + h =m U 0
+  ∃ h, U h ∧ (g + h) =m U 0
 
 -- Conjugate property
 theorem self_sub_eq_zero_iff_invertible {U : GameForm → Prop} [ShortUniverse U]
     (g : GameForm) (hg : U g) :
-    g - g =m U 0 ↔ invertible U g := by
+    (g - g) =m U 0 ↔ invertible U g := by
   sorry
 
 class NoP (A : GameForm → Prop) where
@@ -177,7 +177,7 @@ class DeadEnding (A : GameForm → Prop) where
 
 theorem theorem4 {A : GameForm → Prop} [ClosedUnderNeg A] [ClosedUnderSum A]
     [ClosedUnderFollower A] [DeadEnding A] [NoP A] (g : GameForm) (h1 : A g) :
-    g + (-g) =m A 0 := by
+    (g + (-g)) =m A 0 := by
   sorry
 
 end GameForm
