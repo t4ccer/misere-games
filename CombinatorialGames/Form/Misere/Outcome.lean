@@ -123,6 +123,13 @@ theorem MisereOutcome_eq_P_iff {g : G} :
   rw [<-Player.neg_right]
   exact MisereOutcome_eq_P_iff'
 
+theorem MisereOutcome_eq_N_iff {g : G} :
+    (MisereOutcome g = .N) ↔ (WinsGoingFirst .left g ∧ WinsGoingFirst .right g) := by
+  simp only [← MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+  cases h_left : MiserePlayerOutcome g .left
+  <;> cases h_right : MiserePlayerOutcome g .right
+  <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
+
 @[simp]
 theorem zero_MiserePlayerOutcome (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
   unfold MiserePlayerOutcome
@@ -144,6 +151,11 @@ theorem neg_MisereOutcome_R_iff {g : G} : (MisereOutcome (-g) = Outcome.R) ↔ (
 @[simp]
 theorem neg_MisereOutcome_L_iff {g : G} : (MisereOutcome (-g) = Outcome.L) ↔ (MisereOutcome g = Outcome.R) := by
   rw [<-neg_neg g, neg_MisereOutcome_R_iff, neg_neg]
+
+@[simp]
+theorem neg_MisereOutcome_N_iff {g : G} : (MisereOutcome (-g) = .N) ↔ (MisereOutcome g = .N) := by
+  rw [← outcome_conjugate_eq_outcome_neg]
+  cases MisereOutcome g <;> simp [Outcome.Conjugate]
 
 -- TODO: Golf
 theorem MisereOutcome_ge_iff_MiserePlayerOutcome_ge {g h : G}
