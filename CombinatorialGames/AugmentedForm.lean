@@ -74,10 +74,9 @@ def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
 
 def ofSetsWithTombs (st : Player → Set AugmentedForm) (tomb : Player → Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] : AugmentedForm :=
-  QPF.Fix.mk ⟨⟨st, by
-    intro p; cases p
-    · exact (inferInstance : Small.{u} (st .left))
-    · exact (inferInstance : Small.{u} (st .right))⟩, tomb⟩
+  QPF.Fix.mk ⟨⟨st, fun
+    | .left => (inferInstance : Small.{u} (st .left))
+    | .right => (inferInstance : Small.{u} (st .right))⟩, tomb⟩
 
 instance : OfSets AugmentedForm fun _ ↦ True where
   ofSets st _ := ofSetsWithTombs st (fun _ => False)

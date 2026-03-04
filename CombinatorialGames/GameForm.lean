@@ -61,10 +61,9 @@ namespace GameForm
 
 /-- Construct an `GameForm` from its left and right sets. -/
 instance : OfSets GameForm fun _ ↦ True where
-  ofSets (st : Player → Set GameForm) _ := QPF.Fix.mk ⟨st, by
-    intro p; cases p
-    · exact (inferInstance : Small.{u} (st .left))
-    · exact (inferInstance : Small.{u} (st .right))⟩
+  ofSets (st : Player → Set GameForm) _ := QPF.Fix.mk ⟨st, fun
+    | .left => (inferInstance : Small.{u} (st .left))
+    | .right => (inferInstance : Small.{u} (st .right))⟩
 
 /-- The set of moves of the game. -/
 private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
