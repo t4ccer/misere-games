@@ -620,7 +620,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
   rw [GameForm.Misere.Outcome.not_WinsGoingFirst]
   constructor
   · intro h2
-    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [IsEnd]
+    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [IsEnd_def]
     exact h4 (by simpa [hk] using (IsEnd.add_iff.mp h2).right)
   · intro gl h2
     rw [moves_add] at h2
@@ -720,8 +720,7 @@ private theorem exists_add_nat_N_of_not_R (g : GameForm) [Short g] (h1 : MisereO
 def NTippingPoint.aux (g : GameForm) [h1 : Short g] :
     ∃ (n : ℕ), MisereOutcome (g + n) = .N ∨ MisereOutcome (g + (-n)) = .N := by
   by_cases h2 : MisereOutcome g = .R
-  · have h3 : MisereOutcome (-g) = .L := by
-      simpa [h2] using (outcome_conjugate_eq_outcome_neg g).symm
+  · have h3 : MisereOutcome (-g) = .L := by simp [h2]
     obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R (-g) (by simp [h3])
     refine ⟨n, Or.inr ?_⟩
     have h4 : (MisereOutcome (-g + n)).Conjugate = .N := by
