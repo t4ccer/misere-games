@@ -60,11 +60,7 @@ private theorem WinsGoingFirst_neg_iff' (g : AugmentedForm) (p : Player) :
     rw [neg_neg] at h2 h3
     exact h3 h2
 termination_by Form.birthday g
-decreasing_by
-  · rw [<-Form.birthday_neg g]
-    exact Form.birthday_lt_of_mem_moves h1
-  · rw [Form.birthday_neg gp]
-    exact Form.birthday_lt_of_mem_moves h1
+decreasing_by all_goals gameform_birthday
 
 @[no_expose] noncomputable instance : MisereForm AugmentedForm where
   WinsGoingFirst := WinsGoingFirst'

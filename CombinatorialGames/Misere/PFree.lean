@@ -68,9 +68,7 @@ private def IsPFree.neg {g : G} (h1 : IsPFree g) : IsPFree (-g) := by
     rw [neg_neg] at h4
     exact h4
 termination_by birthday g
-decreasing_by
-  rw [Form.birthday_neg, <-Form.birthday_neg g]
-  exact Form.birthday_lt_of_mem_moves h3
+decreasing_by gameform_birthday
 
 @[simp]
 theorem IsPFree.neg_iff {g : G} : IsPFree (-g) ↔ IsPFree g := by
