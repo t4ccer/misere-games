@@ -89,4 +89,23 @@ theorem birthday_neg (x : G) : birthday (-x) = birthday x := by
 termination_by x
 decreasing_by form_wf
 
+@[simp]
+theorem birthday_add (g h : G) : birthday (g + h) = birthday g + birthday h := by
+  refine eq_of_forall_lt_iff fun o ↦ ?_
+  simp only [lt_birthday_iff, moves_add, mem_union, mem_image, or_and_right,
+             exists_or, ↓existsAndEq, and_true, lt_add_iff, or_or_or_comm]
+  congr! 2
+  all_goals
+    constructor
+    · rintro ⟨z, hz, hz'⟩
+      refine ⟨_, ⟨z, hz, le_rfl⟩, ?_⟩
+      rwa [← birthday_add]
+    · rintro ⟨a, ⟨⟨z, hz, hz'⟩, ha⟩⟩
+      use z, hz
+      rw [birthday_add]
+      apply ha.trans
+      first | exact add_le_add_left hz' _ | exact add_le_add_right hz' _
+termination_by (g, h)
+decreasing_by form_wf
+
 end Form
