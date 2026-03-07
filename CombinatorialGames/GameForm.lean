@@ -319,11 +319,6 @@ theorem forall_moves_add {p : Player} {P : GameForm → Prop} {x y : GameForm} :
       (∀ a ∈ moves p x, P (a + y)) ∧ (∀ b ∈ moves p y, P (x + b)) := by
   aesop (add simp [moves_add'])
 
-theorem exists_moves_add {p : Player} {P : GameForm → Prop} {x y : GameForm} :
-    (∃ a ∈ moves p (x + y), P a) ↔
-      (∃ a ∈ moves p x, P (a + y)) ∨ (∃ b ∈ moves p y, P (x + b)) := by
-  aesop (add simp [moves_add'])
-
 @[simp]
 theorem add_eq_zero_iff {x y : GameForm} : x + y = 0 ↔ x = 0 ∧ y = 0 := by
   constructor <;> simp_all [GameForm.ext_iff, moves_add', moves_zero']

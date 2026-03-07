@@ -163,6 +163,11 @@ theorem add_right_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z 
     x + z ∈ moves p (y + z) := by
   rw [moves_add]; left; use x
 
+theorem exists_moves_add {p : Player} {P : G → Prop} {x y : G} :
+    (∃ a ∈ moves p (x + y), P a) ↔
+      (∃ a ∈ moves p x, P (a + y)) ∨ (∃ b ∈ moves p y, P (x + b)) := by
+  aesop
+
 @[aesop simp]
 lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y ∪ moves .right y := by
   simp [IsOption, Moves.IsOption', Player.exists]
