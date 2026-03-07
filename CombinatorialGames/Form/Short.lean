@@ -153,12 +153,6 @@ open Form
 
 variable {x y : GameForm}
 
-private theorem NatOrdinal.lt_omega0 {o : NatOrdinal} : o < NatOrdinal.of Ordinal.omega0 ↔ ∃ n : ℕ, o = n :=
-  Ordinal.lt_omega0
-
-private theorem NatOrdinal.nat_lt_omega0 (n : ℕ) : n < NatOrdinal.of Ordinal.omega0 :=
-  Ordinal.nat_lt_omega0 n
-
 theorem short_iff_birthday_finite {g : GameForm} :
     Short g ↔ birthday g < NatOrdinal.of Ordinal.omega0 := by
   refine ⟨fun h ↦ ?_, ?_⟩

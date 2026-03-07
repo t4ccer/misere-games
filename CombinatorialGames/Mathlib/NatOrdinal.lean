@@ -5,7 +5,8 @@ Authors: Violeta Hernández Palacios
 -/
 module
 
-public import CombinatorialGames.Mathlib.OrdinalAlias
+public import Mathlib.Data.Nat.Lattice
+public import Mathlib.SetTheory.Ordinal.Family
 public import Mathlib.SetTheory.Ordinal.Family
 import Mathlib.Tactic.Abel
 
@@ -37,16 +38,240 @@ than `Ordinal` (except when `Nimber` would make more sense).
 
 universe u v
 
-open Order Set
+open Order Set Lean
 
-public noncomputable section
+@[expose] public noncomputable section
 
-/-! ### Basic casts between `Ordinal` and `NatOrdinal` -/
-
-ordinal_alias!
-  /-- A type synonym for ordinals with natural addition and multiplication. -/ NatOrdinal
+def NatOrdinal : Type _ :=
+  Ordinal deriving Nontrivial, Inhabited
 
 namespace NatOrdinal
+
+instance : PartialOrder NatOrdinal where
+  le a b :=
+    Quotient.liftOn₂ a b (fun ⟨_, r, _⟩ ⟨_, s, _⟩ => Nonempty (InitialSeg r s))
+      fun _ _ _ _ ⟨f⟩ ⟨g⟩ => propext
+        ⟨fun ⟨h⟩ => ⟨f.symm.toInitialSeg.trans <| h.trans g.toInitialSeg⟩, fun ⟨h⟩ =>
+          ⟨f.toInitialSeg.trans <| h.trans g.symm.toInitialSeg⟩⟩
+  lt a b :=
+    Quotient.liftOn₂ a b (fun ⟨_, r, _⟩ ⟨_, s, _⟩ => Nonempty (PrincipalSeg r s))
+      fun _ _ _ _ ⟨f⟩ ⟨g⟩ => propext
+        ⟨fun ⟨h⟩ => ⟨PrincipalSeg.relIsoTrans f.symm <| h.transRelIso g⟩,
+          fun ⟨h⟩ => ⟨PrincipalSeg.relIsoTrans f <| h.transRelIso g.symm⟩⟩
+  le_refl := Quot.ind fun ⟨_, _, _⟩ => ⟨InitialSeg.refl _⟩
+  le_trans a b c :=
+    Quotient.inductionOn₃ a b c fun _ _ _ ⟨f⟩ ⟨g⟩ => ⟨f.trans g⟩
+  lt_iff_le_not_ge a b :=
+    Quotient.inductionOn₂ a b fun _ _ =>
+      ⟨fun ⟨f⟩ => ⟨⟨f⟩, fun ⟨g⟩ => (f.transInitial g).irrefl⟩, fun ⟨⟨f⟩, h⟩ =>
+        f.principalSumRelIso.recOn (fun g => ⟨g⟩) fun g => (h ⟨g.symm.toInitialSeg⟩).elim⟩
+  le_antisymm a b :=
+    Quotient.inductionOn₂ a b fun _ _ ⟨h₁⟩ ⟨h₂⟩ =>
+      Quot.sound ⟨InitialSeg.antisymm h₁ h₂⟩
+
+def type {α : Type u} (r : α → α → Prop) [wo : IsWellOrder α r] : NatOrdinal :=
+  ⟦⟨α, r, wo⟩⟧
+
+theorem _root_.PrincipalSeg.nat_ordinal_type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
+    [IsWellOrder α r] [IsWellOrder β s] (h : PrincipalSeg r s) : type r < type s :=
+  ⟨h⟩
+
+@[elab_as_elim]
+theorem inductionOn {C : NatOrdinal → Prop} (o : NatOrdinal)
+    (H : ∀ (α r) [IsWellOrder α r], C (type r)) : C o :=
+  Quot.inductionOn o fun ⟨α, r, wo⟩ => @H α r wo
+
+def typein {α : Type u} (r : α → α → Prop) [IsWellOrder α r] : @PrincipalSeg α NatOrdinal.{u} r (· < ·) := by
+  refine ⟨RelEmbedding.ofMonotone _ fun a b ha ↦
+    ((PrincipalSeg.ofElement r a).codRestrict _ ?_ ?_).nat_ordinal_type_lt, type r, fun a ↦ ⟨?_, ?_⟩⟩
+  · rintro ⟨c, hc⟩
+    exact trans hc ha
+  · exact ha
+  · rintro ⟨b, rfl⟩
+    exact (PrincipalSeg.ofElement _ _).nat_ordinal_type_lt
+  · refine inductionOn a ?_
+    rintro β s wo ⟨g⟩
+    exact ⟨_, g.subrelIso.ordinal_type_eq⟩
+
+@[simps! symm_apply_coe]
+def enum {α : Type u} (r : α → α → Prop) [IsWellOrder α r] : (· < · : Iio (type r) → Iio (type r) → Prop) ≃r r :=
+  (typein r).subrelIso
+
+theorem lt_wf : @WellFounded NatOrdinal (· < ·) :=
+  wellFounded_iff_wellFounded_subrel.mpr (·.induction_on fun ⟨_, _, wo⟩ ↦
+    RelHomClass.wellFounded (enum _) wo.wf)
+
+instance : WellFoundedLT NatOrdinal := ⟨lt_wf⟩
+
+instance wellFoundedRelation : WellFoundedRelation NatOrdinal :=
+  ⟨(· < ·), lt_wf⟩
+
+instance zero : Zero NatOrdinal :=
+  ⟨type <| @emptyRelation PEmpty⟩
+
+instance one : One NatOrdinal :=
+  ⟨type <| @emptyRelation PUnit⟩
+
+instance : OrderBot NatOrdinal where
+  bot := 0
+  bot_le o := inductionOn o fun _ r _ => (InitialSeg.ofIsEmpty _ r).ordinal_type_le
+
+instance : NoMaxOrder NatOrdinal := inferInstanceAs (NoMaxOrder Ordinal)
+instance : ZeroLEOneClass NatOrdinal := inferInstanceAs (ZeroLEOneClass Ordinal)
+
+theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop} [IsWellOrder α r] [IsWellOrder β s] :
+    type r = type s ↔ Nonempty (r ≃r s) :=
+  Quotient.eq'
+
+theorem _root_.RelIso.nat_ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop} [IsWellOrder α r]
+    [IsWellOrder β s] (h : r ≃r s) : type r = type s :=
+  type_eq.2 ⟨h⟩
+
+theorem type_eq_zero_of_empty {α} (r) [IsWellOrder α r] [IsEmpty α] : type r = 0 :=
+  (RelIso.relIsoOfIsEmpty r _).ordinal_type_eq
+
+@[simp]
+theorem type_eq_zero_iff_isEmpty {α : Type u} {r : α → α → Prop} [IsWellOrder α r] : type r = 0 ↔ IsEmpty α :=
+  ⟨fun h =>
+    let ⟨s⟩ := type_eq.1 h
+    s.toEquiv.isEmpty,
+    @type_eq_zero_of_empty α r _⟩
+
+theorem type_ne_zero_iff_nonempty {α : Type u} {r : α → α → Prop} [IsWellOrder α r] : type r ≠ 0 ↔ Nonempty α := by
+  simp [ne_eq, type_eq_zero_iff_isEmpty, not_isEmpty_iff]
+
+theorem type_ne_zero_of_nonempty {α : Type u} (r) [IsWellOrder α r] [h : Nonempty α] : type r ≠ 0 :=
+  type_ne_zero_iff_nonempty.2 h
+
+instance : NeZero (1 : NatOrdinal) := inferInstanceAs (NeZero (1 : Ordinal))
+
+@[match_pattern]
+def of : Ordinal ≃o NatOrdinal := .refl _
+
+@[match_pattern]
+def val : NatOrdinal ≃o Ordinal := .refl _
+
+@[simp] theorem of_symm : .symm of = val := rfl
+@[simp] theorem val_symm : .symm val = of := rfl
+
+@[simp] theorem of_val (a) : of (val a) = a := rfl
+@[simp] theorem val_of (a) : val (of a) = a := rfl
+
+theorem val_le_iff {a b} : val a ≤ b ↔ a ≤ of b := .rfl
+theorem val_lt_iff {a b} : val a < b ↔ a < of b := .rfl
+theorem val_eq_iff {a b} : val a = b ↔ a = of b := .rfl
+
+theorem of_le_iff {a b} : of a ≤ b ↔ a ≤ val b := .rfl
+theorem of_lt_iff {a b} : of a < b ↔ a < val b := .rfl
+theorem of_eq_iff {a b} : of a = b ↔ a = val b := .rfl
+
+@[simp]
+theorem of_image_Iio (a) : of '' Set.Iio a = Set.Iio (of a) :=
+  Set.image_id _
+
+@[simp]
+theorem val_image_Iio (a) : val '' Set.Iio a = Set.Iio (val a) :=
+  Set.image_id _
+
+@[simp] theorem bot_eq_zero : (⊥ : NatOrdinal) = 0 := rfl
+
+@[simp] theorem of_zero : of 0 = 0 := rfl
+@[simp] theorem val_zero : val 0 = 0 := rfl
+
+@[simp] theorem of_one : of 1 = 1 := rfl
+@[simp] theorem val_one : val 1 = 1 := rfl
+
+@[simp] theorem of_eq_zero {a} : of a = 0 ↔ a = 0 := .rfl
+@[simp] theorem val_eq_zero {a} : val a = 0 ↔ a = 0 := .rfl
+
+@[simp] theorem of_eq_one {a} : of a = 1 ↔ a = 1 := .rfl
+@[simp] theorem val_eq_one {a} : val a = 1 ↔ a = 1 := .rfl
+
+instance : SuccOrder NatOrdinal := inferInstanceAs (SuccOrder Ordinal)
+
+theorem succ_def (a : NatOrdinal) : Order.succ a = of (val a + 1) :=
+  rfl
+
+@[simp]
+theorem succ_of (a : Ordinal) : Order.succ (of a) = of (a + 1) :=
+  rfl
+
+@[simp] theorem succ_ne_zero (a : NatOrdinal) : Order.succ a ≠ 0 := Order.succ_ne_bot a
+@[simp] theorem succ_zero : Order.succ (0 : NatOrdinal) = 1 := by
+  change Order.succ (0 : Ordinal) = 1
+  simp
+
+@[elab_as_elim, cases_eliminator, induction_eliminator]
+protected def ind {motive : NatOrdinal → Sort*}
+    (mk : ∀ a, motive (of a)) (a) : motive a :=
+  mk (val a)
+
+theorem induction {p : NatOrdinal → Prop} : ∀ i (_ : ∀ j, (∀ k, k < j → p k) → p j), p i :=
+  WellFoundedLT.induction
+
+@[simp] theorem zero_le (a : NatOrdinal) : 0 ≤ a := bot_le
+@[simp] theorem le_zero {a : NatOrdinal} : a ≤ 0 ↔ a = 0 := le_bot_iff
+@[simp] theorem not_lt_zero (a : NatOrdinal) : ¬ a < 0 := not_lt_bot
+theorem pos_iff_ne_zero {a : NatOrdinal} : 0 < a ↔ a ≠ 0 := bot_lt_iff_ne_bot
+theorem eq_zero_or_pos (a : NatOrdinal) : a = 0 ∨ 0 < a := eq_bot_or_bot_lt a
+
+noncomputable instance : LinearOrder NatOrdinal :=
+  { inferInstanceAs (PartialOrder NatOrdinal) with
+    le_total := fun a b => Quotient.inductionOn₂ a b fun ⟨_, r, _⟩ ⟨_, s, _⟩ =>
+      (InitialSeg.total r s).recOn (fun f => Or.inl ⟨f⟩) fun f => Or.inr ⟨f⟩
+    toDecidableLE := Classical.decRel _ }
+
+noncomputable instance : ConditionallyCompleteLinearOrderBot NatOrdinal :=
+  WellFoundedLT.conditionallyCompleteLinearOrderBot _
+
+instance : Uncountable NatOrdinal := Ordinal.uncountable
+
+@[simp] theorem lt_one_iff_zero {a : NatOrdinal} : a < 1 ↔ a = 0 := Ordinal.lt_one_iff_zero
+@[simp] theorem one_le_iff_ne_zero {a : NatOrdinal} : 1 ≤ a ↔ a ≠ 0 := Ordinal.one_le_iff_ne_zero
+theorem le_one_iff {a : NatOrdinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 := Ordinal.le_one_iff
+
+-- TODO: upstream to Mathlib for Ordinal
+theorem eq_natCast_of_le_natCast {a : NatOrdinal} {b : ℕ} (h : a ≤ of b) :
+    ∃ c : ℕ, a = of c :=
+  Ordinal.lt_omega0.1 (h.trans_lt (Ordinal.nat_lt_omega0 b))
+
+instance (a : NatOrdinal.{u}) : Small.{u} (Set.Iio a) := Ordinal.small_Iio a
+instance (a : NatOrdinal.{u}) : Small.{u} (Set.Iic a) := Ordinal.small_Iic a
+instance (a b : NatOrdinal.{u}) : Small.{u} (Set.Ico a b) := Ordinal.small_Ico a b
+instance (a b : NatOrdinal.{u}) : Small.{u} (Set.Icc a b) := Ordinal.small_Icc a b
+instance (a b : NatOrdinal.{u}) : Small.{u} (Set.Ioo a b) := Ordinal.small_Ioo a b
+instance (a b : NatOrdinal.{u}) : Small.{u} (Set.Ioc a b) := Ordinal.small_Ioc a b
+
+instance : IsEmpty (Set.Iio (0 : NatOrdinal)) := Ordinal.instIsEmptyIioZero
+instance : Unique (Set.Iio (1 : NatOrdinal)) := Ordinal.uniqueIioOne
+
+@[simp]
+theorem Iio_one_default_eq : (default : Set.Iio (1 : NatOrdinal)) = ⟨0, zero_lt_one' NatOrdinal⟩ :=
+  rfl
+
+theorem bddAbove_iff_small {s : Set NatOrdinal.{u}} : BddAbove s ↔ Small.{u} s :=
+  Ordinal.bddAbove_iff_small
+
+theorem bddAbove_of_small (s : Set NatOrdinal.{u}) [h : Small.{u} s] : BddAbove s :=
+  @Ordinal.bddAbove_of_small s h
+
+theorem not_bddAbove_compl_of_small (s : Set NatOrdinal.{u}) [h : Small.{u} s] : ¬ BddAbove sᶜ :=
+  @Ordinal.not_bddAbove_compl_of_small s h
+
+theorem le_iSup {ι : Type*} (f : ι → NatOrdinal.{u}) [Small.{u} ι] (i : ι) : f i ≤ iSup f :=
+  Ordinal.le_iSup f i
+
+theorem iSup_le_iff {ι : Type*} {f : ι → NatOrdinal.{u}} {a : NatOrdinal.{u}} [Small.{u} ι] :
+    ⨆ i, f i ≤ a ↔ ∀ i, f i ≤ a :=
+  Ordinal.iSup_le_iff
+
+theorem lt_iSup_iff {ι : Type*} [Small.{u} ι] (f : ι → NatOrdinal.{u}) {x} :
+    x < ⨆ i, f i ↔ ∃ i, x < f i :=
+  Ordinal.lt_iSup_iff
+
+theorem iSup_eq_zero_iff {ι : Type*} [Small.{u} ι] {f : ι → NatOrdinal.{u}} :
+    ⨆ i, f i = 0 ↔ ∀ i, f i = 0 :=
+  Ordinal.iSup_eq_zero_iff
 
 variable {a b c d a' b' c' : NatOrdinal.{u}}
 
@@ -232,207 +457,18 @@ theorem oadd_le_add' (a b : Ordinal) : a + b ≤ val (of a + of b) := by
 theorem oadd_le_add (a b : NatOrdinal) : a +ₒ b ≤ a + b :=
   oadd_le_add' ..
 
-/-! ### Natural multiplication -/
+theorem lt_omega0' {o : NatOrdinal} : o < NatOrdinal.of Ordinal.omega0 ↔ ∃ n : ℕ, o = n :=
+  Ordinal.lt_omega0
 
-private def mul (a b : NatOrdinal.{u}) : NatOrdinal.{u} :=
-  sInf {c | ∀ a' < a, ∀ b' < b, mul a' b + mul a b' < c + mul a' b'}
-termination_by (a, b)
+theorem nat_lt_omega0' (n : ℕ) : n < NatOrdinal.of Ordinal.omega0 :=
+  Ordinal.nat_lt_omega0 n
 
-/-- Natural multiplication on ordinals `a * b`, also known as the Hessenberg product, is recursively
-defined as the least ordinal such that `a * b + a' * b'` is greater than `a' * b + a * b'` for all
-`a' < a` and `b < b'`. In contrast to normal ordinal multiplication, it is commutative and
-distributive (over natural addition).
+@[simp]
+theorem add_lt_add_iff_left_right {a b c : NatOrdinal} :
+    a + b < c + a ↔ b < c := by rw [add_comm]; exact add_lt_add_iff_right a
 
-Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
-the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. Addition of exponents is
-done via natural addition. -/
-@[no_expose] instance : Mul NatOrdinal := ⟨mul⟩
-
-/-- Multiply two `NatOrdinal`s as ordinal numbers. -/
-scoped notation:70 x:70 "*ₒ" y:71 => of (val x * val y)
-
-theorem mul_def (a b : NatOrdinal) :
-    a * b = sInf {c | ∀ a' < a, ∀ b' < b, a' * b + a * b' < c + a' * b'} := by
-  change mul .. = _
-  rw [mul]
-  rfl
-
-/-- The set in the definition of `mul` is nonempty. -/
-private theorem mul_nonempty (a b : NatOrdinal.{u}) :
-    {c : NatOrdinal.{u} | ∀ a' < a, ∀ b' < b, a' * b + a * b' < c + a' * b'}.Nonempty := by
-  obtain ⟨c, hc⟩ : BddAbove ((fun x ↦ x.1 * b + a * x.2) '' Set.Iio a ×ˢ Set.Iio b) :=
-    bddAbove_of_small _
-  exact ⟨_, fun x hx y hy ↦
-    (lt_succ_of_le <| hc <| Set.mem_image_of_mem _ <| Set.mk_mem_prod hx hy).trans_le le_add_right⟩
-
-theorem mul_add_lt (ha : a' < a) (hb : b' < b) : a' * b + a * b' < a * b + a' * b' := by
-  rw [mul_def a b]
-  exact csInf_mem (mul_nonempty a b) a' ha b' hb
-
-theorem mul_add_le (ha : a' ≤ a) (hb : b' ≤ b) : a' * b + a * b' ≤ a * b + a' * b' := by
-  obtain rfl | ha := ha.eq_or_lt; · rfl
-  obtain rfl | hb := hb.eq_or_lt; · rw [add_comm]
-  exact (mul_add_lt ha hb).le
-
-theorem lt_mul_iff : c < a * b ↔ ∃ a' < a, ∃ b' < b, c + a' * b' ≤ a' * b + a * b' := by
-  refine ⟨fun h ↦ ?_, fun ⟨a', ha, b', hb, h⟩ ↦ ?_⟩
-  · rw [mul_def] at h
-    simpa using notMem_of_lt_csInf h ⟨0, fun _ _ => bot_le⟩
-  · rw [← add_lt_add_iff_right]
-    exact h.trans_lt (mul_add_lt ha hb)
-
-theorem mul_le_iff : a * b ≤ c ↔ ∀ a' < a, ∀ b' < b, a' * b + a * b' < c + a' * b' := by
-  simpa using lt_mul_iff.not
-
-private theorem mul_comm' (a b : NatOrdinal) : a * b = b * a := by
-  rw [mul_def, mul_def]
-  congr with x; constructor <;> intro H c hc d hd
-  · rw [add_comm, ← mul_comm', ← mul_comm' a, ← mul_comm' d]
-    exact H _ hd _ hc
-  · rw [add_comm, mul_comm', mul_comm' c, mul_comm' c]
-    exact H _ hd _ hc
-termination_by (a, b)
-
-instance : CommMagma NatOrdinal where
-  mul_comm := private mul_comm'
-
-private theorem mul_zero' (a : NatOrdinal) : a * 0 = 0 := by
-  rw [← NatOrdinal.le_zero, mul_le_iff]
-  simp
-
-instance : MulZeroClass NatOrdinal where
-  mul_zero := private mul_zero'
-  zero_mul a := by rw [mul_comm', mul_zero']
-
-private theorem mul_one' (a : NatOrdinal) : a * 1 = a := by
-  rw [mul_def]
-  convert csInf_Ici
-  ext b
-  refine ⟨fun H ↦ le_of_forall_lt (a := a) fun c hc ↦ ?_, fun ha c hc ↦ ?_⟩
-  · simpa [mul_one' c] using H c hc
-  · simpa [mul_one' c] using hc.trans_le ha
-termination_by a
-
-instance : MulZeroOneClass NatOrdinal where
-  mul_one := private mul_one'
-  one_mul a := by rw [mul_comm', mul_one']
-
-instance : PosMulStrictMono NatOrdinal where
-  mul_lt_mul_of_pos_left a ha b c h := lt_mul_iff.2 ⟨0, ha, b, h, by simp⟩
-
-instance : MulPosStrictMono NatOrdinal where
-  mul_lt_mul_of_pos_right a ha b c h := lt_mul_iff.2 ⟨b, h, 0, ha, by simp⟩
-
-instance : MulLeftMono NatOrdinal where
-  elim a b c h := by
-    obtain rfl | h₁ := h.eq_or_lt; · simp
-    obtain rfl | h₂ := NatOrdinal.eq_zero_or_pos a; · simp
-    exact (mul_lt_mul_of_pos_left h₁ h₂).le
-
-instance : MulRightMono NatOrdinal where
-  elim a b c h := by convert mul_le_mul_right h a using 1 <;> exact mul_comm ..
-
-private theorem mul_add (a b c : NatOrdinal) : a * (b + c) = a * b + a * c := by
-  refine le_antisymm (mul_le_iff.2 fun a' ha d hd => ?_)
-    (add_le_iff.2 ⟨fun d hd => ?_, fun d hd => ?_⟩)
-  · rw [mul_add]
-    rcases lt_add_iff.1 hd with (⟨b', hb, hd⟩ | ⟨c', hc, hd⟩)
-    · have := add_lt_add_of_lt_of_le (mul_add_lt ha hb) (mul_add_le ha.le hd)
-      rw [mul_add, mul_add] at this
-      grind
-    · have := add_lt_add_of_le_of_lt (mul_add_le ha.le hd) (mul_add_lt ha hc)
-      rw [mul_add, mul_add] at this
-      grind
-  · rcases lt_mul_iff.1 hd with ⟨a', ha, b', hb, hd⟩
-    have := add_lt_add_of_le_of_lt hd (mul_add_lt ha (add_lt_add_left hb c))
-    rw [mul_add, mul_add, mul_add a'] at this
-    grind
-  · rcases lt_mul_iff.1 hd with ⟨a', ha, c', hc, hd⟩
-    have := add_lt_add_of_lt_of_le (mul_add_lt ha (add_lt_add_right hc b)) hd
-    rw [mul_add, mul_add, mul_add a'] at this
-    grind
-termination_by (a, b, c)
-
-instance : Distrib NatOrdinal where
-  left_distrib := private mul_add
-  right_distrib a b c := by rw [mul_comm, mul_add, mul_comm, mul_comm c]
-
-theorem mul_add_lt₃ (ha : a' < a) (hb : b' < b) (hc : c' < c) :
-    a' * b * c + a * b' * c + a * b * c' + a' * b' * c' <
-      a * b * c + a' * b' * c + a' * b * c' + a * b' * c' := by
-  simpa only [add_mul, ← add_assoc] using mul_add_lt (mul_add_lt ha hb) hc
-
-theorem mul_add_le₃ {a' b' c' : NatOrdinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
-    a' * b * c + a * b' * c + a * b * c' + a' * b' * c' ≤
-      a * b * c + a' * b' * c + a' * b * c' + a * b' * c' := by
-  simpa only [add_mul, ← add_assoc] using mul_add_le (mul_add_le ha hb) hc
-
-private theorem mul_add_lt₃' {a' b' c' : NatOrdinal} (ha : a' < a) (hb : b' < b) (hc : c' < c) :
-    a' * (b * c) + a * (b' * c) + a * (b * c') + a' * (b' * c') <
-      a * (b * c) + a' * (b' * c) + a' * (b * c') + a * (b' * c') := by
-  simp only [mul_comm _ (_ * _)]
-  convert mul_add_lt₃ hb hc ha using 1 <;> abel_nf
-
-theorem lt_mul_iff₃ : d < a * b * c ↔ ∃ a' < a, ∃ b' < b, ∃ c' < c,
-    d + a' * b' * c + a' * b * c' + a * b' * c' ≤
-      a' * b * c + a * b' * c + a * b * c' + a' * b' * c' := by
-  refine ⟨fun h ↦ ?_, fun ⟨a', ha, b', hb, c', hc, h⟩ ↦ ?_⟩
-  · rcases lt_mul_iff.1 h with ⟨e, he, c', hc, H₁⟩
-    rcases lt_mul_iff.1 he with ⟨a', ha, b', hb, H₂⟩
-    refine ⟨a', ha, b', hb, c', hc, ?_⟩
-    have := add_le_add H₁ (mul_add_le H₂ hc.le)
-    simp only [add_mul, add_assoc] at this
-    rw [add_left_comm, add_left_comm d, add_left_comm, add_le_add_iff_left,
-      add_left_comm (a * b' * c), add_left_comm (a' * b * c), add_left_comm (a * b * c'),
-      add_le_add_iff_left, add_left_comm (a * b * c'), add_left_comm (a * b * c')] at this
-    simpa only [add_assoc]
-  · have := h.trans_lt (mul_add_lt₃ ha hb hc)
-    repeat rw [add_lt_add_iff_right] at this
-    assumption
-
-theorem mul_le_iff₃ : a * b * c ≤ d ↔ ∀ a' < a, ∀ b' < b, ∀ c' < c,
-    a' * b * c + a * b' * c + a * b * c' + a' * b' * c' <
-      d + a' * b' * c + a' * b * c' + a * b' * c' := by
-  simpa using lt_mul_iff₃.not
-
-private theorem mul_le_iff₃' : a * (b * c) ≤ d ↔ ∀ a' < a, ∀ b' < b, ∀ c' < c,
-    a' * (b * c) + a * (b' * c) + a * (b * c') + a' * (b' * c') <
-      d + a' * (b' * c) + a' * (b * c') + a * (b' * c') := by
-  simp only [mul_comm _ (_ * _), mul_le_iff₃]
-  constructor <;> intro h a' ha b' hb c' hc
-  · convert h b' hb c' hc a' ha using 1 <;> abel_nf
-  · convert h c' hc a' ha b' hb using 1 <;> abel_nf
-
-private theorem mul_assoc (a b c : NatOrdinal) : a * b * c = a * (b * c) := by
-  apply le_antisymm
-  · rw [mul_le_iff₃]
-    intro a' ha b' hb c' hc
-    repeat rw [mul_assoc]
-    exact mul_add_lt₃' ha hb hc
-  · rw [mul_le_iff₃']
-    intro a' ha b' hb c' hc
-    repeat rw [← mul_assoc]
-    exact mul_add_lt₃ ha hb hc
-termination_by (a, b, c)
-
-instance : CommSemiring NatOrdinal where
-  mul_assoc := private mul_assoc
-
-instance : IsStrictOrderedRing NatOrdinal where
-
-/-- A version of `omul_le_mul` stated in terms of `Ordinal`. -/
-theorem omul_le_mul' (a b : Ordinal) : a * b ≤ val (of a * of b) := by
-  induction b using Ordinal.limitRecOn with
-  | zero => simp
-  | succ c IH => simpa [mul_add_one] using (add_left_mono IH).trans (oadd_le_add ..)
-  | limit c hc IH =>
-    obtain rfl | ha := eq_zero_or_pos a
-    · exact (zero_mul _).le.trans (zero_le _)
-    · rw [(Ordinal.isNormal_mul_right ha).apply_of_isSuccLimit hc, Ordinal.iSup_le_iff]
-      rintro ⟨i, hi⟩
-      exact (IH i hi).trans (mul_le_mul_right hi.le (of a))
-
-theorem omul_le_mul (a b : NatOrdinal) : a *ₒ b ≤ a * b :=
-  omul_le_mul' ..
+@[simp]
+theorem add_lt_add_iff_right_left {a b c : NatOrdinal} :
+    b + a < a + c ↔ b < c := by rw [add_comm]; exact add_lt_add_iff_left a
 
 end NatOrdinal

@@ -15,7 +15,6 @@ public import CombinatorialGames.GameForm.Misere.Adjoint
 public import CombinatorialGames.GameForm.Misere.Outcome
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.Mathlib.NatOrdinal
-public import CombinatorialGames.Mathlib.OrdinalAlias
 public import CombinatorialGames.Mathlib.Small
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Experimental
