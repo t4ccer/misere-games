@@ -68,8 +68,6 @@ theorem mem_birthdayFinset {x : GameForm} {n : ℕ} : x ∈ birthdayFinset n ↔
       use xᴸ.toFinset, xᴿ.toFinset
       simp_all only [mem_toFinset, implies_true, and_self, coe_toFinset, ofSets_leftMoves_rightMoves]
 
--- FIXME: This does not work for sums of birthdays because in `termination_by`
--- for some reason we get < on Ordinal instad of NatOrdinal
 open Lean Meta Elab Tactic in
 elab "gameform_birthday" : tactic => do
   Lean.Elab.Tactic.withMainContext do
@@ -90,8 +88,8 @@ elab "gameform_birthday" : tactic => do
             return [birthdayProofId]
 
   Lean.Elab.Tactic.withMainContext do
-    evalTactic (← `(tactic| try simp only [Form.birthday_neg] at *))
+    evalTactic (← `(tactic| try simp only [Form.birthday_neg, Form.birthday_add] at *))
+    evalTactic (← `(tactic| try simp))
     evalTactic (← `(tactic| omega))
-
 
 end GameForm

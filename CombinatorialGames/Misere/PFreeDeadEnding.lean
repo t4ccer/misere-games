@@ -90,14 +90,7 @@ private theorem outcome_LL_add_aux (g h : GameForm)
         | P => exact absurd hhr_out hhr_pfde.p_free.MisereOutcome_ne_P
         | R => exact absurd h_left_hr (MisereOutcome_eq_R_iff.mp hhr_out).right
 termination_by Form.birthday g + Form.birthday h
-decreasing_by
-  all_goals (
-    have := Form.birthday_lt_of_mem_moves (by assumption)
-    first
-    | exact add_lt_add_right this _
-    | exact add_lt_add_left this _
-    | simpa [add_comm, add_left_comm, add_assoc] using
-        (add_lt_add_left this (Form.birthday h)))
+decreasing_by all_goals gameform_birthday
 
 private theorem player_outcome_LN_add_aux (g h : GameForm)
     (hg : PFreeDeadEnding g) (hh : PFreeDeadEnding h)
@@ -118,10 +111,7 @@ private theorem player_outcome_LN_add_aux (g h : GameForm)
       exact WinsGoingFirst_of_moves
         ⟨g + hl, add_left_mem_moves_add hhl g, (MisereOutcome_eq_L_iff.mp hsumL).right⟩
 termination_by Form.birthday g + Form.birthday h
-decreasing_by
-  all_goals (
-    have := Form.birthday_lt_of_mem_moves (by assumption)
-    exact add_lt_add_right this _)
+decreasing_by gameform_birthday
 
 end
 
