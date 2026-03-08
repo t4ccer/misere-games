@@ -287,3 +287,49 @@ theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Pla
     exact h1 h2 x h5 h4
   · intro h2 x h3 h4
     exact h1 h2 x h3.dead_ending h4
+
+private theorem reduction_ab_between_int_right.aux {a b : ℕ} (h1 : a + 2 ≤ b)
+    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding !{{((b - 2 : ℕ) : GameForm)}|{1}} := by
+  apply Hereditary.MisereGe PFreeDeadEnding
+  · simp [Maintenance]
+    apply Or.inr
+    use (b - 1 : ℕ)
+    apply And.intro
+    · exact leftMoves_natCast_zero_lt (by omega)
+    · have h2 := reduction_ab_int (b - 2) 1 (NeZero.one_le) (by omega)
+      rw [Nat.cast_one] at h2
+      apply MisereGe_rw_right h2
+      have h3 : b - 2 + 1 = b - 1 := by omega
+      rw [h3]
+      exact MisereGe_refl ↑(b - 1)
+  · simp [Maintenance]
+    apply nat_ordered _ _ (by omega)
+  · simp [Proviso, IsEnd_def]
+  · simp [Proviso, IsEnd_def]
+
+theorem reduction_ab_between_int_right {a b : ℕ} (h1 : a + 2 ≤ b)
+    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding ((b - 1 : ℕ) : GameForm) := by
+  have h2 := reduction_ab_int (b - 2) 1 (by omega) (by omega)
+  have h3 := reduction_ab_between_int_right.aux h1
+  have h4 : b - 2 + 1 = b - 1 := by omega
+  rw [Nat.cast_one, h4] at h2
+  exact MisereGe_rw_right (MisereEq_symm h2) h3
+
+private theorem reduction_ab_between_int_left.aux {a b : ℕ} (h1 : a + 1 ≤ b)
+    : !{{((a : ℕ) : GameForm)}|{1}} ≥m PFreeDeadEnding !{{(a : GameForm)}|{(b : GameForm)}} := by
+  apply Hereditary.MisereGe PFreeDeadEnding
+  · simp [Maintenance]
+    apply Or.inl
+    rw [<-Nat.cast_one]
+    apply nat_ordered _ _ (by omega)
+  · simp [Maintenance]
+  · simp [Proviso, IsEnd_def]
+  · simp [Proviso, IsEnd_def]
+
+theorem reduction_ab_between_int_left {a b : ℕ} (h1 : a + 1 ≤ b)
+    : (a + 1 : GameForm) ≥m PFreeDeadEnding !{{(a : GameForm)}|{(b : GameForm)}} := by
+  have h2 := reduction_ab_int a 1 (by omega) (by omega)
+  norm_cast at h2
+  have h3 := reduction_ab_between_int_left.aux h1
+  have h4 : a + 1 + 1 = a + 2 := by omega
+  exact MisereGe_rw_left (by norm_cast) h3

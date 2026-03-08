@@ -137,6 +137,13 @@ theorem MisereGe_trans {A : GameForm → Prop} {g h k : GameForm} (h1 : g ≥m A
   intro x h3
   exact le_trans (h2 x h3) (h1 x h3)
 
+theorem MisereGe_rw_left {A : GameForm → Prop} {a b c : GameForm} (h2 : b =m A c) (h1 : b ≥m A a) : c ≥m A a := by
+  unfold MisereGe at h1 ⊢
+  unfold MisereEq at h2
+  intro x hx
+  rw [<-h2 x hx]
+  exact h1 x hx
+
 theorem MisereGe_rw_right {A : GameForm → Prop} {a b c : GameForm} (h2 : b =m A c) (h1 : a ≥m A c) : a ≥m A b := by
   unfold MisereGe at h1 ⊢
   unfold MisereEq at h2
