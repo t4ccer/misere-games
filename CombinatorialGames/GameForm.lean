@@ -467,6 +467,34 @@ theorem intCast_neg (n : ℤ) : ((-n : ℤ) : GameForm) = -(n : GameForm) := by
     | succ n => rfl
   | negSucc n => exact (neg_neg _).symm
 
+@[simp]
+theorem leftMoves_eq_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
+    : moves .left (a : GameForm) = {((a - 1 : ℕ) : GameForm)} := by
+  obtain ⟨x, h2⟩ := Nat.exists_add_one_eq.mpr h1
+  rw [<-h2]
+  simp
+
+theorem leftMoves_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
+    : ((a - 1 : ℕ) : GameForm) ∈ moves .left (a : GameForm) := by
+  simp [h1]
+
+@[simp, norm_cast]
+protected theorem natCast_eq_zero_iff {n : ℕ} : (n : GameForm) = 0 ↔ n = 0 := by
+  constructor
+  · cases n with
+    | zero => simp only [Nat.cast_zero, imp_self]
+    | succ n =>
+      intro h
+      exfalso
+      have h1 := GameForm.ext_iff.mp h .left
+      rw [Nat.cast_add, Nat.cast_one, leftMoves_natCast_succ, moves_zero] at h1
+      exact Set.singleton_ne_empty _ h1
+  · intro h1
+    simp only [h1, Nat.cast_zero]
+
+-- TODO
+proof_wanted nat_cast_injective : Function.Injective (@Nat.cast GameForm _)
+
 theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     x = (n - 1 : ℤ) := by
   obtain ⟨n, rfl | rfl⟩ := n.eq_nat_or_neg
@@ -539,6 +567,12 @@ theorem nat_IsEnd_right (n : ℕ) : IsEnd .right (n : GameForm) := by
   | zero => simp only [Nat.cast_zero, IsEnd_zero]
   | succ k ih => simp only [IsEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
                             Set.image_empty, rightMoves_one, Set.union_self]
+
+@[simp]
+theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : GameForm) ↔ n = 0) := by
+  apply Iff.intro <;> intro h1
+  · exact GameForm.natCast_eq_zero_iff.mp (both_ends_eq_zero h1 (nat_IsEnd_right n))
+  · simp [h1, IsEnd_def]
 
 /-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
 theorem nat_forall_moves {n : ℕ} {P : GameForm → Prop} (h1 : P n)
