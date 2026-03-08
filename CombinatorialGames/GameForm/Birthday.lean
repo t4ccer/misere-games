@@ -20,12 +20,14 @@ namespace GameForm
 
 open Form
 
+@[simp]
 theorem birthday_ofSets (s t : Set GameForm.{u}) [Small.{u} s] [Small.{u} t] :
     birthday !{s | t} = max (sSup (succ ∘ birthday '' s)) (sSup (succ ∘ birthday '' t)) := by
   rw [birthday_eq_max]
   rw [leftMoves_ofSets, rightMoves_ofSets]
   simp only [iSup, succ_eq_add_one, Function.comp_apply, image_eq_range]
 
+@[simp]
 theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
     birthday !{fun _ ↦ s} = sSup (succ ∘ birthday '' s) := by
   rw [ofSets_eq_ofSets_cases, birthday_ofSets]
@@ -67,6 +69,17 @@ theorem mem_birthdayFinset {x : GameForm} {n : ℕ} : x ∈ birthdayFinset n ↔
       have := Set.fintypeSubset _ hxr
       use xᴸ.toFinset, xᴿ.toFinset
       simp_all only [mem_toFinset, implies_true, and_self, coe_toFinset, ofSets_leftMoves_rightMoves]
+
+@[simp] theorem birthday_zero : birthday (0 : GameForm) = 0 := by simp
+@[simp] theorem birthday_one : birthday (1 : GameForm) = 1 := by simp [one_def]
+
+@[simp] theorem birthday_natCast (n : ℕ) : birthday (n : GameForm) = n := by
+  match n with
+  | .zero => simp only [Nat.zero_eq, Nat.cast_zero, birthday_zero]
+  | .succ k => simp [birthday_natCast k]
+
+@[simp] theorem birthday_ofNat (n : ℕ) [n.AtLeastTwo] : birthday (ofNat(n) : GameForm) = n := by
+  simp only [OfNat.ofNat, birthday_natCast]
 
 open Lean Meta Elab Tactic in
 elab "gameform_birthday" : tactic => do
