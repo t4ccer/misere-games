@@ -533,6 +533,13 @@ theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd
 theorem one_right_end : IsEnd .right (1 : GameForm) := by
   simp only [IsEnd_def, rightMoves_one]
 
+@[simp]
+theorem nat_IsEnd_right (n : ℕ) : IsEnd .right (n : GameForm) := by
+  induction n with
+  | zero => simp only [Nat.cast_zero, IsEnd_zero]
+  | succ k ih => simp only [IsEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
+                            Set.image_empty, rightMoves_one, Set.union_self]
+
 /-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
 theorem nat_forall_moves {n : ℕ} {P : GameForm → Prop} (h1 : P n)
     : ∀ (p : Player), ∀ gp ∈ moves p (n.succ : GameForm), P gp := by

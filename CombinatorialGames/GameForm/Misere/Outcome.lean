@@ -222,13 +222,6 @@ theorem one_MisereOutcome_R : MisereOutcome (1 : GameForm) = .R := by
                WinsGoingFirst_of_IsEnd, and_self]
 
 @[simp]
-theorem nat_IsEnd_right (n : ℕ) : IsEnd .right (n : GameForm) := by
-  induction n with
-  | zero => simp only [Nat.cast_zero, IsEnd_zero]
-  | succ k ih => simp only [IsEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
-                            Set.image_empty, rightMoves_one, Set.union_self]
-
-@[simp]
 theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : GameForm) = .R := by
   induction n, h1 using Nat.le_induction with
   | base => simp
