@@ -12,6 +12,8 @@ universe u
 variable {G : Type (u + 1)} [g_form : Form G]
 
 open Form
+open MisereForm
+open GameForm.Misere.Outcome
 
 def IsDeadEnd (p : Player) (g : G) : Prop :=
   IsEnd p g ∧ (∀ gp ∈ moves (-p) g, IsDeadEnd p gp)
@@ -22,10 +24,27 @@ def IsDeadEnd.IsEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
   unfold IsDeadEnd at h1
   exact h1.left
 
-def IsDeadEnd.hereditary {g : G} {p : Player} (h1 : IsDeadEnd p g) :
+def IsDeadEnd.hereditary_def {g : G} {p : Player} (h1 : IsDeadEnd p g) :
     ∀ gp ∈ moves (-p) g, IsDeadEnd p gp := by
   unfold IsDeadEnd at h1
   exact h1.right
+
+@[simp]
+theorem IsDeadEnd.not_mem_moves {g gp : G} {p : Player} (h1 : IsDeadEnd p g) : gp ∉ moves p g := by
+  simp [h1.IsEnd]
+
+theorem IsDeadEnd.mem_moves_player_eq_neg {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g)
+    (h2 : gp ∈ moves p2 g) : p2 = -p1 := by
+  by_cases h3 : p2 = p1
+  · rw [h3] at h2
+    absurd h2
+    simp only [h1, IsDeadEnd.not_mem_moves, not_false_eq_true]
+  · exact Player.ne_iff_eq_neg.mp h3
+
+theorem IsDeadEnd.hereditary {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g) (h2 : gp ∈ moves p2 g)
+      : IsDeadEnd p1 gp := by
+  rw [IsDeadEnd.mem_moves_player_eq_neg h1 h2] at h2
+  exact IsDeadEnd.hereditary_def h1 gp h2
 
 protected theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEnd p h) :
     IsDeadEnd p (g + h) := by
@@ -34,8 +53,8 @@ protected theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 
   apply And.intro (IsEnd.add_iff.mpr ⟨IsDeadEnd.IsEnd h1, IsDeadEnd.IsEnd h2⟩)
   intro gp h3
   apply Or.elim h3 <;> intro ⟨gpp, h3, h4⟩ <;> rw [<-h4]
-  · exact IsDeadEnd.add (IsDeadEnd.hereditary h1 gpp h3) h2
-  · exact IsDeadEnd.add h1 (IsDeadEnd.hereditary h2 gpp h3)
+  · exact IsDeadEnd.add (IsDeadEnd.hereditary h1 h3) h2
+  · exact IsDeadEnd.add h1 (IsDeadEnd.hereditary h2 h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
@@ -85,6 +104,18 @@ theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k 
   norm_cast
   exact IsDeadEnd.right_nonneg_int (-k) (by omega)
 
+protected theorem IsDeadEnd.IsPFree {g : GameForm} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
+  unfold IsPFree
+  apply And.intro
+  · have h2 := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (WinsGoingFirst_of_End (IsEnd h1))
+    cases p
+    · cases h3 : MiserePlayerOutcome g .right <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
+    · cases h3 : MiserePlayerOutcome g .left <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
+  · intro p' gp h_gp
+    exact IsDeadEnd.IsPFree (IsDeadEnd.hereditary h1 h_gp)
+termination_by g
+decreasing_by form_wf
+
 @[expose] def IsDeadEnding (g : G) : Prop :=
   (∀ p, IsEnd p g → IsDeadEnd p g) ∧ (∀ p, ∀gp ∈ moves p g, IsDeadEnding gp)
 termination_by g
@@ -123,7 +154,7 @@ private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDe
   simp only [not_WinsGoingFirst, neg_neg]
   apply And.intro (zero_not_both_end h1 (IsDeadEnd.IsEnd h2))
   intro gr h4
-  exact WinsGoingFirst_of_End (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 gr h4))
+  exact WinsGoingFirst_of_End (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2

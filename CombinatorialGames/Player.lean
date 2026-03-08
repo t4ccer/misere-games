@@ -65,6 +65,10 @@ instance : Neg Player where
 instance : InvolutiveNeg Player where
   neg_neg := by decide
 
+@[simp]
+theorem ne_iff_eq_neg {a b : Player} : (a ≠ b ↔ a = -b) := by
+  cases a <;> cases b <;> simp
+
 instance : LE Player where
   le lhs rhs := (lhs = .right) ∨ (lhs = .left ∧ rhs = .left)
 

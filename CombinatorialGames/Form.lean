@@ -155,6 +155,11 @@ theorem not_IsEnd_exists_move {g : G} {p : Player}
   absurd h1
   exact Set.subset_eq_empty h4 rfl
 
+@[simp]
+theorem IsEnd.not_mem_moves {g gp : G} {p : Player} (h1 : IsEnd p g) : gp ∉ moves p g := by
+  rw [IsEnd_def] at h1
+  simp [h1]
+
 theorem add_left_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
     z + x ∈ moves p (z + y) := by
   rw [moves_add]; right; use x
