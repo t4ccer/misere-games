@@ -255,3 +255,15 @@ private theorem reduction_ab_int.aux {a b : ℕ} (h2 : 1 ≤ b) (h3 : b ≤ a + 
 theorem reduction_ab_int (a b : ℕ) (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
     : (!{{(a : GameForm)} | {(b : GameForm)}}) =m PFreeDeadEnding ((a + 1) : ℕ) := by
   exact MisereEq_trans (reduction_ab_int.aux h2 h3) (reduction_a_one_int a)
+
+theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Player}
+    : Proviso PFreeDeadEnding g h p ↔ Proviso IsDeadEnding g h p := by
+  apply Iff.intro <;> intro h1
+  · intro h2 x h3 h4
+    have h5 : PFreeDeadEnding x :=
+      { p_free := IsDeadEnd.IsPFree (IsDeadEnding.IsDeadEnd h3 h4)
+      , dead_ending := h3
+      }
+    exact h1 h2 x h5 h4
+  · intro h2 x h3 h4
+    exact h1 h2 x h3.dead_ending h4
