@@ -510,7 +510,7 @@ theorem MisereOutcome_sub_nat_L {g : GameForm} (n : ℕ) (h0 : IsPFree g) (h1 : 
     exact add_nat_IsPFree (IsPFree.neg_iff.mpr h0) k
 
 theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
-    (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
+    {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
   have h5 := player_outcome_LN_add g h h1 h2 h3 h4
   simp only [MisereOutcome, Outcome.ofPlayers, h5]
@@ -609,6 +609,30 @@ theorem MisereGe_of_nat_le (A : GameForm → Prop)
     apply GameForm.Misere.Outcome.MisereGe_trans ih
     rw [<-add_assoc, add_comm (n + k') 1]
     exact ge_one_add_self (n + k')
+
+theorem IsEnd_MisereOutcome {g : GameForm} {p : Player} (h1 : IsPFree g) (h2 : IsEnd p g)
+    : MisereOutcome g = .N ∨ MisereOutcome g = Outcome.ofPlayers p p := by
+  have h4 :=
+    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (GameForm.Misere.Outcome.WinsGoingFirst_of_End h2)
+  cases h5 : MisereOutcome g
+  · cases p
+    · exact Or.inr rfl
+    · absurd h4
+      simp [(MisereOutcome_L_iff_MiserePlayerOutcome.mp h5).right]
+  · exact Or.inl rfl
+  · absurd h5
+    unfold IsPFree at h1
+    simp [h1]
+  · cases p
+    · absurd h4
+      simp [(MisereOutcome_R_iff_MiserePlayerOutcome.mp h5).left]
+    · exact Or.inr rfl
+
+theorem IsEnd_left_MisereOutcome {g : GameForm} (h1 : IsPFree g) (h2 : IsEnd .left g)
+    : MisereOutcome g = .N ∨ MisereOutcome g = .L := IsEnd_MisereOutcome h1 h2
+
+theorem IsEnd_right_MisereOutcome {g : GameForm} (h1 : IsPFree g) (h2 : IsEnd .right g)
+    : MisereOutcome g = .N ∨ MisereOutcome g = .R := IsEnd_MisereOutcome h1 h2
 
 mutual
 

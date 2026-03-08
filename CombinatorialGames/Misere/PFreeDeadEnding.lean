@@ -256,6 +256,26 @@ theorem reduction_ab_int (a b : ℕ) (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
     : (!{{(a : GameForm)} | {(b : GameForm)}}) =m PFreeDeadEnding ((a + 1) : ℕ) := by
   exact MisereEq_trans (reduction_ab_int.aux h2 h3) (reduction_a_one_int a)
 
+lemma MisereOutcome_L_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
+    (h1 : A g) (h2 : MisereOutcome g = .L) : Strong A g .left := by
+  intro x hx h3
+  apply Or.elim (IsEnd_left_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
+  · apply Or.elim (OutcomeStable.outcome_LN_add h1 hx h2 h5) <;> intro h6
+    · have h7 := (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).left
+      exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h7
+    · exact MisereOutcome_L_eq_WinsGoingFirst h6
+  · exact MisereOutcome_L_eq_WinsGoingFirst (OutcomeStable.outcome_LL_add g x h1 hx h2 h5)
+
+lemma MisereOutcome_R_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
+    (h1 : A g) (h2 : MisereOutcome g = .R) : Strong A g .right := by
+  intro x hx h3
+  apply Or.elim (IsEnd_right_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
+  · apply Or.elim (OutcomeStable.outcome_RN_add h1 hx h2 h5) <;> intro h6
+    · have h7 := (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).right
+      exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h7
+    · exact MisereOutcome_R_eq_WinsGoingFirst h6
+  · exact MisereOutcome_R_eq_WinsGoingFirst (OutcomeStable.outcome_RR_add g x h1 hx h2 h5)
+
 theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Player}
     : Proviso PFreeDeadEnding g h p ↔ Proviso IsDeadEnding g h p := by
   apply Iff.intro <;> intro h1

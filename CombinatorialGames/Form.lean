@@ -242,4 +242,32 @@ theorem MisereOutcome_L_eq_WinsGoingFirst {g : G}
   rw [h2] at h1
   exact MisereOutcome_eq_WinsGoingFirst h1
 
+theorem MisereOutcome_L_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .L) ↔ ((MiserePlayerOutcome g .left = .left) ∧ (MiserePlayerOutcome g .right = .left)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_N_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .N) ↔ ((MiserePlayerOutcome g .left = .left) ∧ (MiserePlayerOutcome g .right = .right)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_P_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .P) ↔ ((MiserePlayerOutcome g .left = .right) ∧ (MiserePlayerOutcome g .right = .left)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_R_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .R) ↔ ((MiserePlayerOutcome g .left = .right) ∧ (MiserePlayerOutcome g .right = .right)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
 end MisereForm
