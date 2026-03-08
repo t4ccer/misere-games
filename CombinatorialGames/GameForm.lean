@@ -492,8 +492,36 @@ protected theorem natCast_eq_zero_iff {n : ℕ} : (n : GameForm) = 0 ↔ n = 0 :
   · intro h1
     simp only [h1, Nat.cast_zero]
 
--- TODO
-proof_wanted nat_cast_injective : Function.Injective (@Nat.cast GameForm _)
+@[simp]
+theorem mem_moves_add_one_iff_mem_moves {g : GameForm} {p : Player} {n : ℕ}
+    : (g + 1 ∈ moves p (n + 1 : GameForm)) ↔ (g ∈ moves p (n : GameForm)) := by
+  cases p
+  · apply Iff.intro <;> intro h1
+    · simp only [leftMoves_natCast_succ, Set.mem_singleton_iff] at h1
+      rw [<-h1]
+      simp
+    · exact add_right_mem_moves_add h1 1
+  · simp
+
+protected theorem natCast_injective : Function.Injective (@Nat.cast GameForm _) := by
+  intro a b h1
+  induction a generalizing b with
+  | zero => exact (GameForm.natCast_eq_zero_iff.mp h1.symm).symm
+  | succ k ih =>
+    match b with
+    | 0 => exact GameForm.natCast_eq_zero_iff.mp h1
+    | m + 1 =>
+      simp only [Nat.cast_succ] at h1
+      apply congr_arg Nat.succ
+      apply ih
+      ext p gp
+      apply Iff.intro <;> intro h2
+      · rwa [<-mem_moves_add_one_iff_mem_moves, <-h1, mem_moves_add_one_iff_mem_moves]
+      · rwa [<-mem_moves_add_one_iff_mem_moves, h1, mem_moves_add_one_iff_mem_moves]
+
+@[simp, norm_cast]
+protected theorem natCast_injective' {n m : ℕ} : ((m : GameForm) = (n : GameForm)) ↔ m = n := by
+  exact Function.Injective.eq_iff GameForm.natCast_injective
 
 theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     x = (n - 1 : ℤ) := by
