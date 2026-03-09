@@ -458,6 +458,9 @@ instance : IntCast GameForm where
 @[norm_cast] theorem intCast_zero : ((0 : ℤ) : GameForm) = 0 := rfl
 @[norm_cast] theorem intCast_one : ((1 : ℤ) : GameForm) = 1 := by simp
 
+@[norm_cast] theorem natCast_zero : ((0 : ℕ) : GameForm) = 0 := rfl
+@[norm_cast] theorem natCast_one : ((1 : ℕ) : GameForm) = 1 := by simp
+
 @[simp, norm_cast]
 theorem intCast_neg (n : ℤ) : ((-n : ℤ) : GameForm) = -(n : GameForm) := by
   cases n with
@@ -477,6 +480,51 @@ theorem leftMoves_eq_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
 theorem leftMoves_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
     : ((a - 1 : ℕ) : GameForm) ∈ moves .left (a : GameForm) := by
   simp [h1]
+
+@[simp 1100] -- This should trigger before `leftMoves_add`.
+theorem leftMoves_intCast_succ {n : ℤ} (h1 : 0 ≤ n) : ((n + 1) : GameForm)ᴸ = {(n : GameForm)} := by
+  match n with
+  | Int.ofNat n => simp
+  | Int.negSucc k => simp
+
+@[simp]
+theorem leftMoves_intCast {a : ℤ} (h1 : 0 < a)
+    : moves .left (a : GameForm) = {((a - 1 : ℤ) : GameForm)} := by
+  have : ∃ x, x + 1 = a := by use a - 1; simp
+  obtain ⟨x, h2⟩ := this
+  rw [<-h2]
+  have h3 : 0 ≤ x := by omega
+  have := leftMoves_intCast_succ h3
+  rw [add_sub_cancel_right, <-this]
+  congr
+  have natCast_add_one {a : ℕ} : (((a + 1) : ℕ) : GameForm) = a + 1 := ext (congrFun rfl)
+  obtain ⟨x', h_x'⟩ := (CanLift.prf x h3 : ∃ (x' : ℕ), x' = x)
+  nth_rewrite 2 [<-h_x']
+  rw [intCast_nat, <-natCast_add_one, <-intCast_nat]
+  simp only [Nat.cast_add, Nat.cast_one]
+  rw [h_x']
+
+theorem leftMoves_intCast_zero_lt {a : ℤ} (h1 : 0 < a)
+    : ((a - 1 : ℤ) : GameForm) ∈ moves .left (a : GameForm) := by
+  simp [h1]
+
+theorem leftMoves_intCast_zero_le_succ {a : ℤ} (h1 : 0 ≤ a)
+    : ((a : ℤ) : GameForm) ∈ moves .left (((a + 1) : ℤ) : GameForm) := by
+  have := leftMoves_intCast_zero_lt (Int.le_iff_lt_add_one.mp h1)
+  rwa [add_sub_cancel_right] at this
+
+@[simp]
+theorem rightMoves_intCast {a : ℤ} (h1 : 0 ≤ a) : moves .right (a : GameForm) = ∅ := by
+  have h2 : 0 < a + 1 := by omega
+  obtain ⟨x', h_x'⟩ := (CanLift.prf a h1 : ∃ (x' : ℕ), x' = a)
+  rw [<-h_x', GameForm.intCast_nat]
+  simp only [rightMoves_natCast]
+
+@[simp]
+theorem leftMoevs_intCast_ne_empty {a : ℤ} (h1 : 0 ≤ a)
+    : moves .left (((a + 1) : ℤ) : GameForm) ≠ ∅ := by
+  have h2 : 0 < a + 1 := by omega
+  simp [h2]
 
 @[simp, norm_cast]
 protected theorem natCast_eq_zero_iff {n : ℕ} : (n : GameForm) = 0 ↔ n = 0 := by
@@ -522,6 +570,9 @@ protected theorem natCast_injective : Function.Injective (@Nat.cast GameForm _) 
 @[simp, norm_cast]
 protected theorem natCast_injective' {n m : ℕ} : ((m : GameForm) = (n : GameForm)) ↔ m = n := by
   exact Function.Injective.eq_iff GameForm.natCast_injective
+
+instance : CharZero GameForm where
+  cast_injective := GameForm.natCast_injective
 
 theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : GameForm} (hx : x ∈ (n : GameForm)ᴸ) :
     x = (n - 1 : ℤ) := by
