@@ -12,12 +12,6 @@ universe u
 
 public section
 
-class HasOne {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  has_one' : A 1
-
-@[simp]
-theorem has_one {G : Type (u + 1)} [Form G] {A : G → Prop} [HasOne A] : A 1 := HasOne.has_one'
-
 @[expose] def IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
@@ -36,8 +30,16 @@ class OutcomeStable {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop) 
 class PFree {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
   pfree {g : G} (h1 : A g) : IsPFree g
 
-class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) extends HasOne A where
+class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_nat (n : ℕ) : A (n : G)
+
+class HasInt (A : GameForm → Prop) extends HasNat A where
+  has_int (n : ℤ) : A (n : GameForm)
+
+@[simp]
+theorem has_one {A : GameForm → Prop} [HasNat A] : A 1 := by
+  rw [<-GameForm.natCast_one]
+  exact HasNat.has_nat 1
 
 class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
@@ -530,7 +532,7 @@ theorem PFree.IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop
 
 @[simp]
 theorem OutcomeStable.zero_ge_one {A : GameForm → Prop}
-    [HasOne A] [OutcomeStable A] [PFree A] :
+    [HasNat A] [OutcomeStable A] [PFree A] :
     0 ≥m A 1 := by
   rw [GameForm.Misere.Outcome.MisereGe]
   intro x h1
@@ -546,7 +548,7 @@ theorem OutcomeStable.zero_ge_one {A : GameForm → Prop}
          GameForm.Misere.Outcome.one_MisereOutcome_R h2
     rw [h3]
 
-theorem ge_one_add_self {A : GameForm → Prop}
+theorem ge_one_add_nat (A : GameForm → Prop)
     [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasNat A]
     (n : ℕ) : n ≥m A (((1 : ℕ) + n) : ℕ) := by
   by_cases h1 : n > 0
@@ -608,7 +610,50 @@ theorem MisereGe_of_nat_le (A : GameForm → Prop)
   | succ k' ih =>
     apply GameForm.Misere.Outcome.MisereGe_trans ih
     rw [<-add_assoc, add_comm (n + k') 1]
-    exact ge_one_add_self (n + k')
+    exact ge_one_add_nat A (n + k')
+
+theorem ge_one_add_int (A : GameForm → Prop)
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A]
+    [GameForm.Misere.Outcome.ClosedUnderNeg A]
+    (n : ℤ) : n ≥m A (((1 : ℤ) + n) : ℤ) := by
+  by_cases h1 : n ≥ 0
+  · obtain ⟨n', h_n'⟩ := (CanLift.prf n h1 : ∃ (n' : ℕ), n' = n)
+    have h2 := ge_one_add_nat A n'
+    rwa [<-GameForm.intCast_nat, h_n',
+         <-GameForm.intCast_nat, Nat.cast_add, h_n', Nat.cast_one] at h2
+  · have : ∃ (n' : ℕ), n' = -n := by
+      use n.natAbs; exact Int.ofNat_natAbs_of_nonpos (by omega)
+    obtain ⟨n', h_n'⟩ := this
+    have h2 := ge_one_add_nat A (n' - 1)
+    have h3 : 1 + (n' - 1) = n' := by omega
+    rw [h3] at h2
+    rw [<-GameForm.intCast_nat, Nat.cast_sub (by omega), h_n',
+        <-GameForm.intCast_nat, h_n',
+        <-GameForm.Misere.Outcome.ClosedUnderNeg.neg_ge_neg_iff] at h2
+    simp only [GameForm.intCast_neg, neg_neg, Nat.cast_one] at h2
+    rw [<-GameForm.intCast_neg] at h2
+    simp only [neg_sub, sub_neg_eq_add] at h2
+    exact h2
+
+theorem ge_nat_add_int (A : GameForm → Prop)
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A]
+    [GameForm.Misere.Outcome.ClosedUnderNeg A]
+    (n : ℕ) (k : ℤ) : k ≥m A ((n + k) : ℤ) := by
+  induction n with
+  | zero => simp
+  | succ m ih =>
+    simp
+    have h1 : m + 1 + k = 1 + (m + k) := by omega
+    rw [h1]
+    exact GameForm.Misere.Outcome.MisereGe_trans ih (ge_one_add_int A (m + k))
+
+theorem MisereGe_of_int_le (A : GameForm → Prop)
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A]
+    [GameForm.Misere.Outcome.ClosedUnderNeg A]
+    (n m : ℤ) (h1 : n ≤ m) : n ≥m A m := by
+  obtain ⟨k, h_k⟩ := Int.le.dest h1
+  rw [<-h_k, add_comm]
+  exact ge_nat_add_int A k n
 
 theorem IsEnd_MisereOutcome {g : GameForm} {p : Player} (h1 : IsPFree g) (h2 : IsEnd p g)
     : MisereOutcome g = .N ∨ MisereOutcome g = Outcome.ofPlayers p p := by

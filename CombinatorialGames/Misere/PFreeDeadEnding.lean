@@ -154,10 +154,10 @@ instance : ClosedUnderAddNat PFreeDeadEnding where
     , dead_ending := IsDeadEnding.add g.dead_ending (IsDeadEnding.nat n)
     }
 
-instance : HasOne PFreeDeadEnding where
-  has_one' :=
-    { p_free := IsPFree.one
-    , dead_ending := IsDeadEnding.one
+instance : ClosedUnderNeg PFreeDeadEnding where
+  neg_of _ g :=
+    { p_free := IsPFree.neg_iff.mpr g.p_free
+    , dead_ending := IsDeadEnding.neg_iff.mpr g.dead_ending
     }
 
 instance : HasNat PFreeDeadEnding where
@@ -166,7 +166,17 @@ instance : HasNat PFreeDeadEnding where
     , dead_ending := IsDeadEnding.nat n
     }
 
+instance : HasInt PFreeDeadEnding where
+  has_int n :=
+    { p_free := IsPFree.int n
+    , dead_ending := IsDeadEnding.int n
+    }
+
 namespace PFreeDeadEnding
+
+@[simp]
+theorem int_ordered (a b : ℤ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
+  MisereGe_of_int_le PFreeDeadEnding b a h1
 
 @[simp]
 theorem nat_ordered (a b : ℕ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
