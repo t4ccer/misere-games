@@ -42,7 +42,7 @@ private theorem left_end_outcome_N_eq_zero {g : GameForm} (hg : PFreeDeadEnding 
 
 mutual
 
-private theorem outcome_LL_add_aux (g h : GameForm)
+private theorem outcome_LL_add_aux {g h : GameForm}
     (hg : PFreeDeadEnding g) (hh : PFreeDeadEnding h)
     (hgL : MisereOutcome g = .L) (hhL : MisereOutcome h = .L) :
     MisereOutcome (g + h) = .L := by
@@ -56,12 +56,12 @@ private theorem outcome_LL_add_aux (g h : GameForm)
       · exact WinsGoingFirst_of_End (IsEnd.add_iff.mpr ⟨hg_end, hh_end⟩)
       · have hhl_pfde := PFreeDeadEnding.of_move hh hhl
         have hhlL := outcome_eq_L_of_not_right_and_pfree hhl_pfde.p_free hhl_not_right
-        have hsumL := outcome_LL_add_aux g hl hg hhl_pfde hgL hhlL
+        have hsumL := outcome_LL_add_aux hg hhl_pfde hgL hhlL
         exact WinsGoingFirst_of_moves
           ⟨g + hl, add_left_mem_moves_add hhl g, (MisereOutcome_eq_L_iff.mp hsumL).right⟩
     · have hgl_pfde := PFreeDeadEnding.of_move hg hgl
       have hglL := outcome_eq_L_of_not_right_and_pfree hgl_pfde.p_free hgl_not_right
-      have hsumL := outcome_LL_add_aux gl h hgl_pfde hh hglL hhL
+      have hsumL := outcome_LL_add_aux hgl_pfde hh hglL hhL
       exact WinsGoingFirst_of_moves
         ⟨gl + h, add_right_mem_moves_add hgl h, (MisereOutcome_eq_L_iff.mp hsumL).right⟩
   · rw [not_WinsGoingFirst]
@@ -74,9 +74,9 @@ private theorem outcome_LL_add_aux (g h : GameForm)
             (not_WinsGoingFirst.mp hg_out.right).right gr' hgr'
         have hgr_pfde := PFreeDeadEnding.of_move hg hgr'
         cases hgr'_out : MisereOutcome gr' with
-        | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux gr' h hgr_pfde hh hgr'_out hhL)).left
+        | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux hgr_pfde hh hgr'_out hhL)).left
         | N => exact add_comm h gr' ▸ MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
-                 (player_outcome_LN_add_aux h gr' hh hgr_pfde hhL hgr'_out)
+                 (player_outcome_LN_add_aux hh hgr_pfde hhL hgr'_out)
         | P => exact absurd hgr'_out hgr_pfde.p_free.MisereOutcome_ne_P
         | R => exact absurd h_left_gr' (MisereOutcome_eq_R_iff.mp hgr'_out).right
       · have h_left_hr : WinsGoingFirst .left hr := by
@@ -84,15 +84,15 @@ private theorem outcome_LL_add_aux (g h : GameForm)
             (not_WinsGoingFirst.mp hh_out.right).right hr hhr
         have hhr_pfde := PFreeDeadEnding.of_move hh hhr
         cases hhr_out : MisereOutcome hr with
-        | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux g hr hg hhr_pfde hgL hhr_out)).left
+        | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux hg hhr_pfde hgL hhr_out)).left
         | N => exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
-                 (player_outcome_LN_add_aux g hr hg hhr_pfde hgL hhr_out)
+                 (player_outcome_LN_add_aux hg hhr_pfde hgL hhr_out)
         | P => exact absurd hhr_out hhr_pfde.p_free.MisereOutcome_ne_P
         | R => exact absurd h_left_hr (MisereOutcome_eq_R_iff.mp hhr_out).right
 termination_by Form.birthday g + Form.birthday h
 decreasing_by all_goals gameform_birthday
 
-private theorem player_outcome_LN_add_aux (g h : GameForm)
+private theorem player_outcome_LN_add_aux {g h : GameForm}
     (hg : PFreeDeadEnding g) (hh : PFreeDeadEnding h)
     (hgL : MisereOutcome g = .L) (hhN : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .left = .left := by
@@ -106,38 +106,36 @@ private theorem player_outcome_LN_add_aux (g h : GameForm)
         h_left_end | ⟨hl, hhl, hhl_not_right⟩
     · exact absurd h_left_end h_not_left_end
     · have hhl_pfde := PFreeDeadEnding.of_move hh hhl
-      have hhlL := outcome_eq_L_of_not_right_and_pfree hhl_pfde.p_free hhl_not_right
-      have hsumL := outcome_LL_add_aux g hl hg hhl_pfde hgL hhlL
-      exact WinsGoingFirst_of_moves
-        ⟨g + hl, add_left_mem_moves_add hhl g, (MisereOutcome_eq_L_iff.mp hsumL).right⟩
+      refine WinsGoingFirst_of_moves ⟨g + hl, add_left_mem_moves_add hhl g, ?_⟩
+      refine (MisereOutcome_eq_L_iff.mp ?_).right
+      apply outcome_LL_add_aux hg hhl_pfde hgL
+      exact outcome_eq_L_of_not_right_and_pfree hhl_pfde.p_free hhl_not_right
 termination_by Form.birthday g + Form.birthday h
 decreasing_by gameform_birthday
 
 end
 
-private theorem outcome_RR_add_aux (g h : GameForm)
+private theorem outcome_RR_add_aux {g h : GameForm}
     (hg : PFreeDeadEnding g) (hh : PFreeDeadEnding h)
-    (hgR : MisereOutcome g = .R) (hhR : MisereOutcome h = .R) :
-    MisereOutcome (g + h) = .R := by
-  have h_neg_g_L : MisereOutcome (-g) = .L := (neg_MisereOutcome_L_iff).2 hgR
-  have h_neg_h_L : MisereOutcome (-h) = .L := (neg_MisereOutcome_L_iff).2 hhR
-  have h_neg_sum_L : MisereOutcome ((-g) + (-h)) = .L :=
-    outcome_LL_add_aux (-g) (-h) hg.neg hh.neg h_neg_g_L h_neg_h_L
-  exact (neg_MisereOutcome_L_iff).1 (by
-    simpa [neg_add_rev, add_comm] using h_neg_sum_L)
+    (hgR : MisereOutcome g = .R) (hhR : MisereOutcome h = .R)
+    : MisereOutcome (g + h) = .R := by
+  rw [<-neg_MisereOutcome_L_iff]
+  simpa [neg_add_rev, add_comm]
+    using outcome_LL_add_aux
+            hg.neg hh.neg
+            ((neg_MisereOutcome_L_iff).mpr hgR) ((neg_MisereOutcome_L_iff).mpr hhR)
 
-private theorem player_outcome_RN_add_aux (g h : GameForm)
+private theorem player_outcome_RN_add_aux {g h : GameForm}
     (hg : PFreeDeadEnding g) (hh : PFreeDeadEnding h)
     (hgR : MisereOutcome g = .R) (hhN : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .right = .right := by
-  have h_neg_g_L : MisereOutcome (-g) = .L := (neg_MisereOutcome_L_iff).2 hgR
-  have h_neg_h_N : MisereOutcome (-h) = .N := neg_MisereOutcome_N_iff.mpr hhN
-  have h_neg_wgf : WinsGoingFirst .left ((-g) + (-h)) :=
-    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
-      (player_outcome_LN_add_aux (-g) (-h) hg.neg hh.neg h_neg_g_L h_neg_h_N)
-  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
-  exact (WinsGoingFirst_neg_iff (g + h) .left).mp (by
-    simpa [neg_add_rev, add_comm] using h_neg_wgf)
+  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, <-Player.neg_left, <-WinsGoingFirst_neg_iff]
+  simpa [neg_add_rev, add_comm]
+    using MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
+          (player_outcome_LN_add_aux
+            hg.neg hh.neg
+            ((neg_MisereOutcome_L_iff).2 hgR) (neg_MisereOutcome_N_iff.mpr hhN))
+
 
 instance : OutcomeStable PFreeDeadEnding where
   outcome_LL_add := outcome_LL_add_aux
@@ -174,31 +172,28 @@ instance : HasInt PFreeDeadEnding where
 
 namespace PFreeDeadEnding
 
-@[simp]
 theorem int_ordered (a b : ℤ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
   MisereGe_of_int_le PFreeDeadEnding b a h1
 
-@[simp]
 theorem nat_ordered (a b : ℕ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
   MisereGe_of_nat_le PFreeDeadEnding b a h1
 
-theorem a_one_MisereOutcome (a : ℕ) : MisereOutcome (!{{(a : GameForm)} | {1}}) = .R := by
+theorem a_one_MisereOutcome {a : ℤ} (h0 : 0 ≤ a) : MisereOutcome (!{{(a : GameForm)} | {1}}) = .R := by
   refine MisereOutcome_eq_R_iff.mpr ?_
   apply And.intro
-  · refine WinsGoingFirst_of_moves ?_
-    use 1
-    simp
+  · refine WinsGoingFirst_of_moves ⟨1, ?_⟩
+    simp only [moves_ofSets, Set.mem_singleton_iff, Player.le_left, Player.neg_right, Player.le_left_eq, true_and]
     refine not_WinsGoingFirst.mpr ?_
     apply And.intro (by simp [IsEnd_def])
     simp
   · refine not_WinsGoingFirst.mpr ?_
-    simp [IsEnd_def]
+    simp [IsEnd_def, h0]
 
-theorem a_one_PFreeDeadEnding (a : ℕ) : PFreeDeadEnding (!{{(a : GameForm)} | {1}}) where
+theorem a_one_PFreeDeadEnding {a : ℤ} (h0 : 0 ≤ a) : PFreeDeadEnding (!{{(a : GameForm)} | {1}}) where
   p_free := by
     unfold IsPFree
     apply And.intro
-    · simp [a_one_MisereOutcome]
+    · simp [a_one_MisereOutcome, h0]
     · intro p; cases p <;> simp
   dead_ending := by
     unfold IsDeadEnding
@@ -214,77 +209,80 @@ instance : Hereditary PFreeDeadEnding where
     , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
     }
 
--- TODO: Fix writeup from 0 to 1
-theorem reduction_a_one_int (a : ℕ) : (!{{(a : GameForm)} | {1}}) =m PFreeDeadEnding ((a + 1) : ℕ) := by
+theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
+    : (!{{(a : GameForm)} | {1}}) =m PFreeDeadEnding ((a + 1) : ℤ) := by
+  have h0' : 0 ≤ a + 1 := Int.le_add_one h0
+  have h0'' : 0 < a + 1 := Int.le_iff_lt_add_one.mp h0
   refine MisereGe_antisymm ?_ ?_
   · apply Hereditary.MisereGe PFreeDeadEnding
-    · simp [Maintenance]
-      exact nat_ordered (a + 1) 0 (Nat.le_add_left 0 (a + 1))
-    · simp [Maintenance]
+    · simpa [Maintenance, h0'] using int_ordered (a + 1) 0 h0'
+    · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left]
+      intro hl h_hl
+      apply Or.inl
+      have h_hl := eq_sub_one_of_mem_leftMoves_intCast h_hl
+      rw [Int.add_sub_cancel a 1] at h_hl
+      simp [h_hl]
     · simp [Proviso, IsEnd_def]
-    · simp [Proviso, IsEnd_def]
+    · simp [Proviso, IsEnd_def, h0]
   · apply Hereditary.MisereGe PFreeDeadEnding
-    · simp [Maintenance]
-    · simp [Maintenance]
+    · simp [Maintenance, h0']
+    · simp [Maintenance, h0'']
     · simp [Proviso, Strong]
-      intro x h2 h3
+      intro _ x h2 h3
       have h4 : WinsGoingFirst .right x := WinsGoingFirst_of_End h3
       have h6 : MisereOutcome x ≤ .N := rightWinsGoingFirst_outcome_le_N h4
       apply Or.elim (Outcome.le_N_eq_N_or_R h6) <;> intro h7
-      · have h8 := OutcomeStable.player_outcome_RN_add _ _ (a_one_PFreeDeadEnding a) h2 (a_one_MisereOutcome a) h7
-        simp at h8
-        exact h8
-      · have h8 := OutcomeStable.outcome_RR_add _ _ (a_one_PFreeDeadEnding a) h2 (a_one_MisereOutcome a) h7
-        simp [h8]
+      · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+        exact OutcomeStable.player_outcome_RN_add (a_one_PFreeDeadEnding h0) h2 (a_one_MisereOutcome h0) h7
+      · apply MisereOutcome_R_eq_WinsGoingFirst
+        exact OutcomeStable.outcome_RR_add (a_one_PFreeDeadEnding h0) h2 (a_one_MisereOutcome h0) h7
     · simp [Proviso, IsEnd_def]
 
-private theorem reduction_ab_int.aux {a b : ℕ} (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
-    : (!{{(a : GameForm)} | {(b : GameForm)}}) =m PFreeDeadEnding (!{{(a : GameForm)} | {(1 : GameForm)}}) := by
-  refine MisereGe_antisymm ?_ ?_
-  · apply Hereditary.MisereGe PFreeDeadEnding
-    · simp [Maintenance]
-      apply Or.inr
-      use ((b - 1) : ℕ)
-      apply And.intro
-      · rw [<-Nat.succ_pred_eq_of_pos h2, leftMoves_natCast_succ']
-        simp
-      · apply MisereGe_rw_right (reduction_a_one_int a)
-        exact nat_ordered (a + 1) (b - 1) (by omega)
-    · simp [Maintenance]
-    · simp [Proviso, IsEnd_def]
-    · simp [Proviso, IsEnd_def]
-  · apply Hereditary.MisereGe PFreeDeadEnding
-    · simp [Maintenance]
-      apply Or.inl
-      rw [<-GameForm.intCast_one]
-      exact nat_ordered b (1 : ℕ) (by omega)
-    · simp [Maintenance]
-    · simp [Proviso, IsEnd_def]
-    · simp [Proviso, IsEnd_def]
+private theorem reduction_ab_int.auxL {a b : ℤ} (h0 : 0 ≤ a) (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
+    : (!{{(a : GameForm)} | {(b : GameForm)}}) ≥m PFreeDeadEnding (!{{(a : GameForm)} | {(1 : GameForm)}}) := by
+  apply Hereditary.MisereGe PFreeDeadEnding
+  · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
+    refine Or.inr ⟨((b - 1) : ℤ), leftMoves_intCast_zero_lt h2, ?_⟩
+    exact MisereGe_rw_right (reduction_a_one_int h0) (int_ordered (a + 1) (b - 1) (by omega))
+  · simp [Maintenance]
+  · simp [Proviso, IsEnd_def]
+  · simp [Proviso, IsEnd_def]
 
-theorem reduction_ab_int (a b : ℕ) (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
-    : (!{{(a : GameForm)} | {(b : GameForm)}}) =m PFreeDeadEnding ((a + 1) : ℕ) := by
-  exact MisereEq_trans (reduction_ab_int.aux h2 h3) (reduction_a_one_int a)
+private theorem reduction_ab_int.auxR (a : ℤ) {b : ℤ} (h0 : 1 ≤ b)
+    : (!{{(a : GameForm)} | {(1 : GameForm)}}) ≥m PFreeDeadEnding (!{{(a : GameForm)} | {(b : GameForm)}}) := by
+  apply Hereditary.MisereGe PFreeDeadEnding
+  · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
+    apply Or.inl
+    rw [<-GameForm.intCast_one]
+    exact int_ordered b (1 : ℕ) h0
+  · simp [Maintenance]
+  · simp [Proviso, IsEnd_def]
+  · simp [Proviso, IsEnd_def]
+
+theorem reduction_ab_int (a b : ℤ) (h0 : 0 ≤ a) (h1 : 1 ≤ b) (h2 : b ≤ a + 2)
+    : (!{{(a : GameForm)} | {(b : GameForm)}}) =m PFreeDeadEnding ((a + 1) : ℤ) := by
+  refine MisereEq_trans ?_ (reduction_a_one_int h0)
+  apply MisereGe_antisymm (reduction_ab_int.auxL h0 h1 h2) (reduction_ab_int.auxR a h1)
 
 lemma MisereOutcome_L_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
     (h1 : A g) (h2 : MisereOutcome g = .L) : Strong A g .left := by
   intro x hx h3
   apply Or.elim (IsEnd_left_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
   · apply Or.elim (OutcomeStable.outcome_LN_add h1 hx h2 h5) <;> intro h6
-    · have h7 := (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).left
-      exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h7
+    · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+      exact (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).left
     · exact MisereOutcome_L_eq_WinsGoingFirst h6
-  · exact MisereOutcome_L_eq_WinsGoingFirst (OutcomeStable.outcome_LL_add g x h1 hx h2 h5)
+  · exact MisereOutcome_L_eq_WinsGoingFirst (OutcomeStable.outcome_LL_add h1 hx h2 h5)
 
 lemma MisereOutcome_R_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
     (h1 : A g) (h2 : MisereOutcome g = .R) : Strong A g .right := by
   intro x hx h3
   apply Or.elim (IsEnd_right_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
   · apply Or.elim (OutcomeStable.outcome_RN_add h1 hx h2 h5) <;> intro h6
-    · have h7 := (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).right
-      exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h7
+    · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+      exact (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).right
     · exact MisereOutcome_R_eq_WinsGoingFirst h6
-  · exact MisereOutcome_R_eq_WinsGoingFirst (OutcomeStable.outcome_RR_add g x h1 hx h2 h5)
+  · exact MisereOutcome_R_eq_WinsGoingFirst (OutcomeStable.outcome_RR_add h1 hx h2 h5)
 
 theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Player}
     : Proviso PFreeDeadEnding g h p ↔ Proviso IsDeadEnding g h p := by
@@ -298,48 +296,31 @@ theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Pla
   · intro h2 x h3 h4
     exact h1 h2 x h3.dead_ending h4
 
-private theorem reduction_ab_between_int_right.aux {a b : ℕ} (h1 : a + 2 ≤ b)
-    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding !{{((b - 2 : ℕ) : GameForm)}|{1}} := by
+private theorem reduction_ab_between_int_left.aux {a b : ℤ} (h0 : 0 ≤ a) (h1 : a + 2 ≤ b)
+    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding !{{((b - 2 : ℤ) : GameForm)}|{1}} := by
   apply Hereditary.MisereGe PFreeDeadEnding
-  · simp [Maintenance]
-    apply Or.inr
-    use (b - 1 : ℕ)
-    apply And.intro
-    · exact leftMoves_natCast_zero_lt (by omega)
-    · have h2 := reduction_ab_int (b - 2) 1 (NeZero.one_le) (by omega)
-      rw [Nat.cast_one] at h2
-      apply MisereGe_rw_right h2
-      have h3 : b - 2 + 1 = b - 1 := by omega
-      rw [h3]
-      exact MisereGe_refl ↑(b - 1)
-  · simp [Maintenance]
-    apply nat_ordered _ _ (by omega)
+  · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
+    refine Or.inr ⟨(b - 1 : ℤ), leftMoves_intCast_zero_lt (by omega), ?_⟩
+    have h2 := reduction_ab_int (b - 2) 1 (by omega) Int.le_rfl (by omega)
+    rw [intCast_ofNat, Nat.cast_one] at h2
+    apply MisereGe_rw_right h2
+    have h3 : b - 2 + 1 = b - 1 := by omega
+    rw [h3]
+    exact MisereGe_refl ↑(b - 1)
+  · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
+    exact Or.inl (int_ordered (b - 2) a (by omega))
   · simp [Proviso, IsEnd_def]
   · simp [Proviso, IsEnd_def]
 
-theorem reduction_ab_between_int_right {a b : ℕ} (h1 : a + 2 ≤ b)
-    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding ((b - 1 : ℕ) : GameForm) := by
-  have h2 := reduction_ab_int (b - 2) 1 (by omega) (by omega)
-  have h3 := reduction_ab_between_int_right.aux h1
+theorem reduction_ab_between_int_left {a b : ℤ} (h0 : 0 ≤ a) (h1 : a + 2 ≤ b)
+    : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding ((b - 1 : ℤ) : GameForm) := by
+  refine MisereGe_rw_right (MisereEq_symm ?_) (reduction_ab_between_int_left.aux h0 h1)
+  have h2 := reduction_ab_int (b - 2) 1 (by omega) Int.le_rfl (by omega)
   have h4 : b - 2 + 1 = b - 1 := by omega
-  rw [Nat.cast_one, h4] at h2
-  exact MisereGe_rw_right (MisereEq_symm h2) h3
+  rwa [intCast_ofNat, Nat.cast_one, h4] at h2
 
-private theorem reduction_ab_between_int_left.aux {a b : ℕ} (h1 : a + 1 ≤ b)
-    : !{{((a : ℕ) : GameForm)}|{1}} ≥m PFreeDeadEnding !{{(a : GameForm)}|{(b : GameForm)}} := by
-  apply Hereditary.MisereGe PFreeDeadEnding
-  · simp [Maintenance]
-    apply Or.inl
-    rw [<-Nat.cast_one]
-    apply nat_ordered _ _ (by omega)
-  · simp [Maintenance]
-  · simp [Proviso, IsEnd_def]
-  · simp [Proviso, IsEnd_def]
-
-theorem reduction_ab_between_int_left {a b : ℕ} (h1 : a + 1 ≤ b)
-    : (a + 1 : GameForm) ≥m PFreeDeadEnding !{{(a : GameForm)}|{(b : GameForm)}} := by
-  have h2 := reduction_ab_int a 1 (by omega) (by omega)
+theorem reduction_ab_between_int_right {a b : ℤ} (h0 : 0 ≤ a) (h1 : 1 ≤ b)
+    : ((a + 1 : ℤ) : GameForm) ≥m PFreeDeadEnding !{{(a : GameForm)}|{(b : GameForm)}} := by
+  refine MisereGe_rw_left ?_ (reduction_ab_int.auxR a h1)
+  have h2 := reduction_ab_int a 1 h0 Int.le_rfl (by omega)
   norm_cast at h2
-  have h3 := reduction_ab_between_int_left.aux h1
-  have h4 : a + 1 + 1 = a + 2 := by omega
-  exact MisereGe_rw_left (by norm_cast) h3

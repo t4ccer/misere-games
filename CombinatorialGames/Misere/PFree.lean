@@ -18,13 +18,13 @@ termination_by g
 decreasing_by form_wf
 
 class OutcomeStable {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop) where
-  outcome_LL_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
+  outcome_LL_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
     MisereOutcome (g + h) = .L
-  outcome_RR_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
+  outcome_RR_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
     MisereOutcome (g + h) = .R
-  player_outcome_LN_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
+  player_outcome_LN_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .left = .left
-  player_outcome_RN_add (g h : G) (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
+  player_outcome_RN_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .right = .right
 
 class PFree {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
@@ -514,7 +514,7 @@ theorem MisereOutcome_sub_nat_L {g : GameForm} (n : ℕ) (h0 : IsPFree g) (h1 : 
 theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
     {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
-  have h5 := player_outcome_LN_add g h h1 h2 h3 h4
+  have h5 := player_outcome_LN_add h1 h2 h3 h4
   simp only [MisereOutcome, Outcome.ofPlayers, h5]
   cases MiserePlayerOutcome (g + h) Player.right
   <;> simp only [reduceCtorEq, or_true, or_false]
@@ -522,7 +522,7 @@ theorem OutcomeStable.outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] 
 theorem OutcomeStable.outcome_RN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
     {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .R := by
-  have h5 := player_outcome_RN_add g h h1 h2 h3 h4
+  have h5 := player_outcome_RN_add h1 h2 h3 h4
   simp only [MisereOutcome, Outcome.ofPlayers, h5]
   cases MiserePlayerOutcome (g + h) Player.left
   <;> simp only [reduceCtorEq, or_true, or_false]
@@ -542,10 +542,7 @@ theorem OutcomeStable.zero_ge_one {A : GameForm → Prop}
   · have h3 := OutcomeStable.outcome_RN_add has_one h1 GameForm.Misere.Outcome.one_MisereOutcome_R h2
     apply Or.elim h3 <;> intro h3 <;> simp only [h3, ge_iff_le, le_refl, Outcome.ge_R]
   · exact False.elim ((PFree.pfree h1).MisereOutcome_ne_P h2)
-  · have h3 := OutcomeStable.outcome_RR_add
-         (1 : GameForm) x
-         has_one h1
-         GameForm.Misere.Outcome.one_MisereOutcome_R h2
+  · have h3 := OutcomeStable.outcome_RR_add has_one h1 GameForm.Misere.Outcome.one_MisereOutcome_R h2
     rw [h3]
 
 theorem ge_one_add_nat (A : GameForm → Prop)
@@ -590,7 +587,6 @@ theorem ge_one_add_nat (A : GameForm → Prop)
         apply nat_add_IsPFree (PFree.IsPFree h2)
     · refine False.elim (IsPFree.MisereOutcome_ne_P (PFree.pfree h2) h3)
     · have h4 := OutcomeStable.outcome_RR_add
-         n x
          (HasNat.has_nat n) h2
          (GameForm.Misere.Outcome.pos_nat_MisereOutcome_R h1) h3
       simp only [ge_iff_le, Outcome.le_R_iff, h4]
