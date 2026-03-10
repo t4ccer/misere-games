@@ -6,7 +6,7 @@ Authors: Violeta Hernández Palacios, Kim Morrison
 module
 
 public import CombinatorialGames.GameForm.Birthday
-public import CombinatorialGames.GameForm.ClosedUnderNeg
+public import CombinatorialGames.Form.ClosedUnderNeg
 import Mathlib.Data.Fintype.Order
 
 /-!
@@ -133,7 +133,7 @@ protected instance neg (x : G) [Short x] : Short (-x) := by
 termination_by x
 decreasing_by form_wf
 
-instance : ClosedUnderNeg Form.Short where
+instance : ClosedUnderNeg (Form.Short (G := G)) where
   neg_of h := by infer_instance
 
 theorem short_iff_finite_setOf_subposition {x : G} :
@@ -177,8 +177,8 @@ theorem short_iff_birthday_nat {x : GameForm} :
 @[simp]
 protected instance Short.zero : Short (0 : GameForm) := by
   rw [Form.short_def]
-  simp only [Form.moves_zero, Set.finite_empty, Set.mem_empty_iff_false, IsEmpty.forall_iff,
-             implies_true, and_self]
+  simp only [Form.moves_zero (G := GameForm), Set.finite_empty, Set.mem_empty_iff_false,
+             IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]
 protected instance Short.one : Short (1 : GameForm) := by

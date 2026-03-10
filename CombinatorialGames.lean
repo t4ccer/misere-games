@@ -6,12 +6,12 @@ public import CombinatorialGames.AugmentedForm.Misere.Adjoint
 public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Birthday
+public import CombinatorialGames.Form.ClosedUnderNeg
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Form.Short
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Adjoint
 public import CombinatorialGames.GameForm.Birthday
-public import CombinatorialGames.GameForm.ClosedUnderNeg
 public import CombinatorialGames.GameForm.Misere.Adjoint
 public import CombinatorialGames.GameForm.Misere.Outcome
 public import CombinatorialGames.GameForm.Special

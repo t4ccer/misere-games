@@ -8,8 +8,8 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
+open Form.Misere.Outcome
 open GameForm
-open GameForm.Misere.Outcome
 
 public section
 

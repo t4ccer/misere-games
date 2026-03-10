@@ -61,7 +61,7 @@ private def IsPFree.neg {g : G} (h1 : IsPFree g) : IsPFree (-g) := by
 termination_by birthday g
 decreasing_by gameform_birthday
 
-instance : ClosedUnderNeg IsPFree where
+instance : ClosedUnderNeg (IsPFree (G := G)) where
   neg_of := IsPFree.neg
 
 theorem IsPFree.mem_moves {g h : G} {p : Player} (h1 : IsPFree g) (h2 : h ∈ moves p g) :
@@ -79,7 +79,7 @@ protected theorem IsPFree.IsOption {g g' : G} (h1 : IsPFree g) (h2 : Moves.IsOpt
 protected theorem IsPFree.zero : IsPFree (0 : GameForm) := by
   unfold IsPFree
   apply And.intro (by simp)
-  simp only [moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true]
+  simp only [moves_zero (G := GameForm), Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true]
 
 @[simp]
 protected theorem IsPFree.nat (n : ℕ) : IsPFree (n : GameForm) := by
@@ -413,7 +413,7 @@ private theorem WinsGoingFirst_right_add_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .right g) : WinsGoingFirst .right (g + 1) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine GameForm.Misere.Outcome.add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + 1, add_right_mem_moves_add h1 1, ?_⟩
     rw [Player.neg_right] at ⊢ h2
@@ -471,7 +471,7 @@ private theorem WinsGoingFirst_left_sub_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .left g) : WinsGoingFirst .left (g + (-1)) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine GameForm.Misere.Outcome.add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + (-1), add_right_mem_moves_add h1 (-1), ?_⟩
     rw [Player.neg_left] at ⊢ h2

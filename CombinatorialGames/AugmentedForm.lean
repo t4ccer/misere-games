@@ -563,6 +563,60 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := private neg_neg'
 
+/-- The subtraction of `x` and `y` is defined as `x + (-y)`. -/
+instance : SubNegMonoid AugmentedForm where
+  zsmul := zsmulRec
+
+/-- We define the `NatCast` instance as `↑0 = 0` and `↑(n + 1) = !{{↑n} | ∅}`. -/
+instance : AddCommMonoidWithOne AugmentedForm where
+
+private theorem moves_neg' (p : Player) (x : AugmentedForm) :
+    moves p (-x) = -moves (-p) x := by
+  rw [neg_eq, moves_ofSetsWithTombs]
+  ext y
+  simp
+  apply Iff.intro <;> intro h1
+  · obtain ⟨a, h1, h2⟩ := h1
+    rwa [<-h2, neg_neg]
+  · use -y, h1
+    rw [neg_neg]
+
+private theorem hasTombstone_neg' (x : AugmentedForm) (p : Player)
+    : hasTombstone p (-x) ↔ hasTombstone (-p) x := by
+  rw [neg_eq, hasTombstone_ofSetsWithTombs]
+
+private theorem EndLike_neg' (x : AugmentedForm) (p : Player)
+    : EndLike p (-x) ↔ EndLike (-p) x := by
+  rw [neg_eq]
+  simp [EndLike, IsEnd_def]
+
+private theorem neg_add' (x y : AugmentedForm) : -(x + y) = -x + -y := by
+  ext
+  simp only [moves_neg', moves_add', Set.union_neg, Set.mem_union, Set.mem_neg, Set.mem_image, Set.exists_neg_mem]
+  · congr! 3 <;>
+    · refine and_congr_right_iff.2 fun _ ↦ ?_
+      rw [← neg_inj, neg_add', neg_neg]
+  · simp [hasTombstone_neg', EndLike_neg']
+termination_by (x, y)
+decreasing_by form_wf
+
+@[simp]
+theorem add_eq_zero_iff {x y : AugmentedForm} : x + y = 0 ↔ x = 0 ∧ y = 0 := by
+  constructor
+    <;> simp only [AugmentedForm.ext_iff, EndLike, IsEnd_def, Player.forall, Set.image_eq_empty,
+                   Set.union_empty_iff, and_imp, hasTombstone_add', iff_false, moves_add',
+                   moves_zero, not_and, not_hasTombstone_zero, not_or]
+    <;> tauto
+
+instance : NegZeroClass AugmentedForm where
+  neg_zero := by simp [zero_def, neg_eq', Set.range]
+
+instance : SubtractionCommMonoid AugmentedForm where
+  neg_neg := neg_neg
+  neg_add_rev x y := by rw [neg_add', add_comm]
+  neg_eq_of_add := by simp only [add_eq_zero_iff, and_imp, forall_eq_apply_imp_iff, forall_eq, neg_zero]
+  add_comm := add_comm
+
 noncomputable instance : Form AugmentedForm where
   moves_neg' := by
     intro p x

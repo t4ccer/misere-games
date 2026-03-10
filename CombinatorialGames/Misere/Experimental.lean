@@ -127,7 +127,6 @@ lemma strong_coercion_compat {U : GameForm → Prop} (g : GameForm) (p : Player)
 
 lemma misere_ge_coercion_compat {U : GameForm → Prop} (g h : GameForm) :
     g ≥m U h ↔ (g : AugmentedForm) ≥ma U (h : AugmentedForm) := by
-  simp only [GameForm.Misere.Outcome.MisereGe, AugmentedMisereGe]
   constructor
   · intro h1 x hx
     have h2 := h1 x hx

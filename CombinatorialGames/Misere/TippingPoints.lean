@@ -16,7 +16,7 @@ mutual
 private theorem right_wins_of_birthday_le (g : GameForm) (b : ℕ) (h1 : birthday g ≤ b) :
     WinsGoingFirst .right (g + b) := by
   by_cases h2 : IsEnd .right g
-  · exact GameForm.Misere.Outcome.add_end_WinsGoingFirst h2 (GameForm.nat_IsEnd_right b)
+  · exact add_end_WinsGoingFirst h2 (GameForm.nat_IsEnd_right b)
   · obtain ⟨gr, h3⟩ := Form.not_IsEnd_exists_move h2
     refine WinsGoingFirst_of_moves ?_
     refine ⟨gr + b, Form.add_right_mem_moves_add h3 b, ?_⟩
@@ -49,7 +49,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
         apply Order.lt_add_one_iff.mp
         simpa [hk, Nat.cast_add, Nat.cast_one] using h1
       by_cases h8 : IsEnd .right g
-      · exact GameForm.Misere.Outcome.add_end_WinsGoingFirst h8 (GameForm.nat_IsEnd_right k)
+      · exact add_end_WinsGoingFirst h8 (GameForm.nat_IsEnd_right k)
       · obtain ⟨gr, h9⟩ := Form.not_IsEnd_exists_move h8
         refine WinsGoingFirst_of_moves ?_
         refine ⟨gr + k, Form.add_right_mem_moves_add h9 k, ?_⟩

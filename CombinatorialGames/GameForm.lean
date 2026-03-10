@@ -357,40 +357,13 @@ instance : AddCommMonoid GameForm where
 instance : SubNegMonoid GameForm where
   zsmul := zsmulRec
 
-/-- We define the `NatCast` instance as `↑0 = 0` and `↑(n + 1) = !{{↑n} | ∅}`.
-
-Note that this is equivalent, but not identical, to the more common definition `↑n = !{Iio n | ∅}`.
-For that, use `NatOrdinal.toGameForm`. -/
+/-- We define the `NatCast` instance as `↑0 = 0` and `↑(n + 1) = !{{↑n} | ∅}`. -/
 instance : AddCommMonoidWithOne GameForm where
-
-instance : Form GameForm where
-  moves_neg' := private moves_neg'
-  moves_add' := private moves_add'
-  moves_zero' := private moves_zero'
-  moves_small' := instSmallElemMoves
-  IsEndLike p x := moves p x = ∅
-  IsEndLike_ofEnd' _ _ h1 := h1
-
-@[simp]
-theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
-  simp only [IsEndLike, IsEnd_def]
 
 @[simp]
 theorem moves_sub (p : Player) (x y : GameForm) :
     moves p (x - y) = (· - y) '' moves p x ∪ (x + ·) '' (-moves (-p) y) := by
-  simp only [sub_eq_add_neg, moves_add, moves_neg]
-
-theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
-    z - x ∈ moves (-p) (z - y) := by
-  apply add_left_mem_moves_add; simpa [moves_neg]
-
-theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ moves (-p) y) (z : GameForm) :
-    z - x ∈ moves p (z - y) := by
-  apply add_left_mem_moves_add; simpa [moves_neg]
-
-theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
-    x - z ∈ moves p (y - z) :=
-  add_right_mem_moves_add h _
+  simp only [sub_eq_add_neg, moves_add', moves_neg']
 
 private theorem neg_add' (x y : GameForm) : -(x + y) = -x + -y := by
   ext
@@ -405,8 +378,32 @@ decreasing_by form_wf
 instance : SubtractionCommMonoid GameForm where
   neg_neg := neg_neg
   neg_add_rev x y := by rw [neg_add', add_comm]
-  neg_eq_of_add := by simp
+  neg_eq_of_add := by simp only [add_eq_zero_iff, and_imp, forall_eq_apply_imp_iff, forall_eq, neg_zero]
   add_comm := add_comm
+
+instance : Form GameForm where
+  moves_neg' := private moves_neg'
+  moves_add' := private moves_add'
+  moves_zero' := private moves_zero'
+  moves_small' := instSmallElemMoves
+  IsEndLike p x := moves p x = ∅
+  IsEndLike_ofEnd' _ _ h1 := h1
+
+@[simp]
+theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
+  simp only [IsEndLike, IsEnd_def]
+
+theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
+    z - x ∈ moves (-p) (z - y) := by
+  apply add_left_mem_moves_add; simpa [moves_neg]
+
+theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ moves (-p) y) (z : GameForm) :
+    z - x ∈ moves p (z - y) := by
+  apply add_left_mem_moves_add; simpa [moves_neg]
+
+theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
+    x - z ∈ moves p (y - z) :=
+  add_right_mem_moves_add h _
 
 /-- This version of the theorem is more convenient for the `game_cmp` tactic. -/
 theorem leftMoves_natCast_succ' : ∀ n : ℕ, (n.succ : GameForm)ᴸ = {(n : GameForm)}
@@ -541,7 +538,7 @@ protected theorem natCast_eq_zero_iff {n : ℕ} : (n : GameForm) = 0 ↔ n = 0 :
       intro h
       exfalso
       have h1 := GameForm.ext_iff.mp h .left
-      rw [Nat.cast_add, Nat.cast_one, leftMoves_natCast_succ, moves_zero] at h1
+      rw [Nat.cast_add, Nat.cast_one, leftMoves_natCast_succ, moves_zero (G := GameForm)] at h1
       exact Set.singleton_ne_empty _ h1
   · intro h1
     simp only [h1, Nat.cast_zero]

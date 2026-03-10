@@ -303,7 +303,7 @@ private theorem reduction_ab_between_int_left.aux {a b : ℤ} (h0 : 0 ≤ a) (h1
     apply MisereGe_rw_right h2
     have h3 : b - 2 + 1 = b - 1 := by omega
     rw [h3]
-    exact MisereGe_refl ↑(b - 1)
+    exact MisereGe_refl _
   · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
     exact Or.inl (int_ordered (b - 2) a (by omega))
   · simp [Proviso, IsEnd_def]

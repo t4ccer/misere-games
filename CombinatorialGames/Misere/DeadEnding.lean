@@ -83,8 +83,8 @@ protected theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ 
 @[simp]
 protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : GameForm) := by
   unfold IsDeadEnd
-  simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
-             and_self]
+  simp only [GameForm.zero_end, moves_zero (G := GameForm), Set.mem_empty_iff_false,
+             IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]
 theorem IsDeadEnd.right_nat (n : ℕ) : IsDeadEnd .right (n : GameForm) := by
@@ -193,7 +193,7 @@ private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g
 termination_by g
 decreasing_by form_wf
 
-instance : ClosedUnderNeg IsDeadEnding where
+instance : ClosedUnderNeg (IsDeadEnding (G := GameForm)) where
   neg_of {g} h := by
     rw [<-neg_neg g] at h
     exact IsDeadEnding.neg h
@@ -201,8 +201,7 @@ instance : ClosedUnderNeg IsDeadEnding where
 @[simp]
 protected theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
   unfold IsDeadEnding IsDeadEnd
-  simp only [IsEnd_zero, moves_zero, Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true,
-            and_self]
+  simp only [zero_end, IsEnd.not_mem_moves, IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]
 protected theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by

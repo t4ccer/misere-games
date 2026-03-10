@@ -37,7 +37,8 @@ theorem birthday_ofSets_const (s : Set GameForm.{u}) [Small.{u} s] :
 theorem birthday_eq_zero {x : GameForm} : birthday x = 0 ↔ x = 0 := by
   rw [birthday, iSup_eq_zero_iff, GameForm.ext_iff]
   simp only [succ_eq_add_one, add_one_ne_zero, Subtype.forall, IsOption.iff_mem_union, mem_union,
-             imp_false, not_or, forall_and, moves_zero, eq_empty_iff_forall_notMem, Player.forall]
+             imp_false, not_or, forall_and, moves_zero (G := GameForm), eq_empty_iff_forall_notMem,
+             Player.forall]
 
 noncomputable def birthdayFinset : ℕ → Finset GameForm.{u}
   | 0 => {0}
