@@ -5,11 +5,10 @@ public import CombinatorialGames.Misere.Hereditary
 
 universe u
 
-variable {G : Type (u + 1)} [Form G]
+variable {G : Type (u + 1)} [Form G] [MisereForm G] [OfSets G fun _ ↦ True]
 
 open Form
 open Form.Misere.Outcome
-open GameForm
 
 public section
 
@@ -19,24 +18,25 @@ class ClosedUnderSum (A : G → Prop) [Add G] where
 class ClosedUnderFollower (A : G → Prop) where
   closed_follower (g : G) (h1 : A g) : ∀g', IsOption g' g → A g'
 
-class ClosedUnderDicotic (A : GameForm → Prop) where
-  closed_dicotic (B C : Set GameForm) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
-    [Small B] [Small C] : A !{B | C}
+class ClosedUnderDicotic (A : G → Prop) where
+  closed_dicotic (B C : Set G) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
+    [Small B] [Small C] : A (!{B | C} : G)
 
-class ClosedUnderDicoticShort (A : GameForm → Prop) where
-  closed_dicotic_short (B C : Set GameForm) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
+class ClosedUnderDicoticShort (A : G → Prop) where
+  closed_dicotic_short (B C : Set G) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
     (hBfin : B.Finite) (HBnonempty : B.Nonempty)
     (hCfin : C.Finite) (HCnonempty : C.Nonempty) [Small B] [Small C] : A !{B | C}
 
-class ShortUniverse (A : GameForm → Prop) extends
+class ShortUniverse (A : G → Prop) extends
   ClosedUnderSum A, ClosedUnderFollower A,
   ClosedUnderNeg A, ClosedUnderDicoticShort A where
-  short_only (g : GameForm) (h1 : A g) : Short g
+  short_only (g : G) (h1 : A g) : Short g
 
-namespace GameForm
+namespace Form
 
-theorem Maintenance_of_subset (U : GameForm → Prop) (pfU : GameForm → Prop)
-    (h_subset : ∀g, pfU g → U g) (g h : GameForm) {p : Player}
+omit [OfSets G fun _ ↦ True] in
+theorem Maintenance_of_subset (U : G → Prop) (pfU : G → Prop)
+    (h_subset : ∀g, pfU g → U g) (g h : G) {p : Player}
     (h_maintenance_u : Maintenance U g h p) : Maintenance pfU g h p := by
   unfold Maintenance at h_maintenance_u ⊢
   cases p
@@ -67,10 +67,10 @@ theorem Maintenance_of_subset (U : GameForm → Prop) (pfU : GameForm → Prop)
       apply And.intro h_grl
       exact MisereGe_of_subset U h_subset grl h h_grl_ge_h
 
-theorem misere_ge_iff_maintenance_and_proviso {U : GameForm → Prop} [ShortUniverse U]
-    (g h : GameForm) :
+theorem misere_ge_iff_maintenance_and_proviso {U : G → Prop} [ShortUniverse U]
+    (g h : G) :
     g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
                Proviso U g h .right ∧ Proviso U h g .left := by
   sorry
 
-end GameForm
+end Form

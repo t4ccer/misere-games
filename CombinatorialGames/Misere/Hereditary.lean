@@ -1,6 +1,6 @@
 module
 
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Misere.Outcome
 
 public section
 
@@ -8,13 +8,13 @@ universe u
 
 open Form
 open Form.Misere.Outcome
-open GameForm.Misere.Outcome
-open GameForm
 open MisereForm
 
-namespace GameForm
+namespace Form
 
-@[expose] def Maintenance (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
+variable {G : Type (u + 1)} [Form G] [MisereForm G]
+
+@[expose] def Maintenance (U : G → Prop) (g h : G) (p : Player) : Prop :=
   match p with
   | .right => ∀ gr ∈ moves .right g,
       (∃ hr ∈ moves .right h, gr ≥m U hr) ∨
@@ -23,16 +23,16 @@ namespace GameForm
       (∃ gl ∈ moves .left g, gl ≥m U hl) ∨
       (∃ hlr ∈ moves .right hl, g ≥m U hlr)
 
-@[expose] def Strong (U : GameForm → Prop) (g : GameForm) (p : Player) : Prop :=
-  ∀ x, U x → IsEnd p x → WinsGoingFirst p (g + x)
+@[expose] def Strong (U : G → Prop) (g : G) (p : Player) : Prop :=
+  ∀ x, U x → IsEndLike p x → WinsGoingFirst p (g + x)
 
-@[expose] def Proviso (U : GameForm → Prop) (g h : GameForm) (p : Player) : Prop :=
-  IsEnd p g → Strong U h p
+@[expose] def Proviso (U : G → Prop) (g h : G) (p : Player) : Prop :=
+  IsEndLike p g → Strong U h p
 
-class Hereditary (A : GameForm → Prop) where
-  has_option {g g' : GameForm} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
+class Hereditary (A : G → Prop) where
+  has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
 
-private theorem auxCases {h x : GameForm} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
+private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)
     ∨ (∃ hl ∈ moves p h, MiserePlayerOutcome (hl + x) (-p) = p)
     ∨ (IsEndLike p (h + x)) := by
@@ -59,8 +59,8 @@ mutual
 
 -- TODO: Combine proofs
 
-private theorem auxR (A : GameForm → Prop) [Hereditary A]
-    {g h x : GameForm}
+private theorem auxR (A : G → Prop) [Hereditary A]
+    {g h x : G}
     (hx : A x)
     (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
@@ -114,7 +114,7 @@ private theorem auxR (A : GameForm → Prop) [Hereditary A]
   · -- 3. G + X is Right end-like.
     intro h7
     -- Since X ∈ A, it must follow that X is a Right end and G is Right end-like.
-    simp only [IsEndLike_iff, IsEnd.add_iff] at h7
+    rw [IsEndLike.add_iff] at h7
     have ⟨h8, h9⟩ := h7
     -- By hypothesis, H is Right A-strong, and hence o^R(H + X) = R.
     have h11 := h4 h8 x hx h9
@@ -125,8 +125,8 @@ decreasing_by
     first
     | form_wf
 
-private theorem auxL (A : GameForm → Prop) [Hereditary A]
-    {g h x : GameForm}
+private theorem auxL (A : G → Prop) [Hereditary A]
+    {g h x : G}
     (hx : A x)
     (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
@@ -178,7 +178,7 @@ private theorem auxL (A : GameForm → Prop) [Hereditary A]
   · -- 3. H + X is Left end-like.
     intro h7
     -- Since X ∈ A, it must follow that X is a Left end and H is Left end-like.
-    simp only [IsEndLike_iff, IsEnd.add_iff] at h7
+    rw [IsEndLike.add_iff] at h7
     have ⟨h8, h9⟩ := h7
     -- By hypothesis, G is Left A-strong, and hence o^L(G + X) = L.
     have h11 := h5 h8 x hx h9
@@ -189,8 +189,8 @@ decreasing_by
     first
     | form_wf
 
-private theorem aux (A : GameForm → Prop) [Hereditary A]
-    {g h x : GameForm}
+private theorem aux (A : G → Prop) [Hereditary A]
+    {g h x : G}
     (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
     (hx : A x)
@@ -211,8 +211,8 @@ decreasing_by
 
 end
 
-theorem Hereditary.MisereGe (A : GameForm → Prop) [Hereditary A]
-    {g h : GameForm}
+theorem Hereditary.MisereGe (A : G → Prop) [Hereditary A]
+    {g h : G}
     (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
     : g ≥m A h := by

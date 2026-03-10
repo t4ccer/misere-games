@@ -388,22 +388,11 @@ instance : Form GameForm where
   moves_small' := instSmallElemMoves
   IsEndLike p x := moves p x = ∅
   IsEndLike_ofEnd' _ _ h1 := h1
+  IsEndLike_add_iff' p x y := by simp [moves_add']
 
 @[simp]
 theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
   simp only [IsEndLike, IsEnd_def]
-
-theorem sub_left_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
-    z - x ∈ moves (-p) (z - y) := by
-  apply add_left_mem_moves_add; simpa [moves_neg]
-
-theorem sub_left_mem_moves_sub_neg {p : Player} {x y : GameForm} (h : x ∈ moves (-p) y) (z : GameForm) :
-    z - x ∈ moves p (z - y) := by
-  apply add_left_mem_moves_add; simpa [moves_neg]
-
-theorem sub_right_mem_moves_sub {p : Player} {x y : GameForm} (h : x ∈ moves p y) (z : GameForm) :
-    x - z ∈ moves p (y - z) :=
-  add_right_mem_moves_add h _
 
 /-- This version of the theorem is more convenient for the `game_cmp` tactic. -/
 theorem leftMoves_natCast_succ' : ∀ n : ℕ, (n.succ : GameForm)ᴸ = {(n : GameForm)}

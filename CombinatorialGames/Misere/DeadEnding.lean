@@ -9,7 +9,7 @@ namespace Form
 
 universe u
 
-variable {G : Type (u + 1)} [g_form : Form G]
+variable {G : Type (u + 1)} [Form G]
 
 open Form
 open MisereForm
@@ -81,9 +81,9 @@ protected theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ 
     exact IsDeadEnd.neg h1
 
 @[simp]
-protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : GameForm) := by
+protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : G) := by
   unfold IsDeadEnd
-  simp only [GameForm.zero_end, moves_zero (G := GameForm), Set.mem_empty_iff_false,
+  simp only [zero_IsEnd, moves_zero (G := G), Set.mem_empty_iff_false,
              IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]

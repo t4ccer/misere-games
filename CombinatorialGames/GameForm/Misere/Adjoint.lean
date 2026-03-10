@@ -24,7 +24,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
     rw [not_WinsGoingFirst]
-    simp [IsEnd.add_iff, moves_add, Set.mem_union, Set.mem_image, adjoint_not_end]
+    simp [moves_add, Set.mem_union, Set.mem_image, adjoint_not_end]
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
     · have h3 : gr + gr° ∈ moves (-p) (gr + g°) :=

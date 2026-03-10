@@ -27,6 +27,7 @@ class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, SubtractionCommM
   moves_small' (p : Player) (x : G) : Small.{v} (moves p x)
   IsEndLike (p : Player) (x : G) : Prop
   IsEndLike_ofEnd' (p : Player) (x : G) (h1 : moves p x = ∅) : IsEndLike p x
+  IsEndLike_add_iff' (p : Player) (x y : G) : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y
 
 namespace Moves
 
@@ -101,6 +102,10 @@ protected theorem IsEnd.IsEndLike {p : Player} {x : G} (h1 : IsEnd p x) : IsEndL
   IsEndLike_ofEnd' p x h1
 
 @[simp]
+protected theorem IsEndLike.add_iff {p : Player} {x y : G}
+    : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y := IsEndLike_add_iff' p x y
+
+@[simp]
 theorem moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x) :=
   moves_neg' p x
 
@@ -111,6 +116,9 @@ theorem moves_add (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p
 @[simp]
 theorem moves_zero (p : Player) : @moves G _ p 0 = ∅ :=
   moves_zero' p
+
+@[simp]
+theorem zero_IsEnd (p : Player) : IsEnd p (0 : G) := moves_zero p
 
 @[simp]
 theorem moves_small (p : Player) (x : G) : Small.{u} (moves p x) :=
@@ -172,6 +180,23 @@ theorem add_left_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z :
 theorem add_right_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
     x + z ∈ moves p (y + z) := by
   rw [moves_add]; left; use x
+
+theorem sub_left_mem_moves_sub {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
+    z - x ∈ moves (-p) (z - y) := by
+  rw [sub_eq_add_neg, sub_eq_add_neg]
+  apply add_left_mem_moves_add;
+  simpa [moves_neg]
+
+theorem sub_left_mem_moves_sub_neg {p : Player} {x y : G} (h : x ∈ moves (-p) y) (z : G) :
+    z - x ∈ moves p (z - y) := by
+  rw [sub_eq_add_neg, sub_eq_add_neg]
+  apply add_left_mem_moves_add;
+  simpa [moves_neg]
+
+theorem sub_right_mem_moves_sub {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
+    x - z ∈ moves p (y - z) := by
+  rw [sub_eq_add_neg, sub_eq_add_neg]
+  exact add_right_mem_moves_add h _
 
 theorem exists_moves_add {p : Player} {P : G → Prop} {x y : G} :
     (∃ a ∈ moves p (x + y), P a) ↔

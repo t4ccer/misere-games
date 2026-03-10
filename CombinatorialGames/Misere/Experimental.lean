@@ -113,11 +113,11 @@ lemma strong_coercion_compat {U : GameForm → Prop} (g : GameForm) (p : Player)
   · intro h x hx h_end
     rw [GameForm.IsEndLike_iff, <-AugmentedForm.IsEndLike_ofGameForm_iff] at h_end
     have h_end' := (isEnd_coercion_compat x p).mpr h_end
-    have h1 := h x hx h_end'
+    have h1 := h x hx (GameForm.IsEndLike_iff.mpr h_end')
     convert (winsGoingFirst_coercion_compat (g + x) p).mp h1 using 1
     rw [AugmentedForm.ofGameForm_add]
   · intro h x hx h_end
-    have h_end' := (isEnd_coercion_compat x p).mp h_end
+    have h_end' := (isEnd_coercion_compat x p).mp (GameForm.IsEndLike_iff.mp h_end)
     rw [AugmentedForm.IsEndLike_ofGameForm_iff, <-GameForm.IsEndLike_iff] at h_end'
     have h1 := h x hx h_end'
     have h2 : MisereForm.WinsGoingFirst p (AugmentedForm.ofGameForm (g + x)) := by
@@ -143,7 +143,7 @@ lemma maintenance_coercion_compat {U : GameForm → Prop} (g h : GameForm) (p : 
 
 lemma proviso_coercion_compat {U : GameForm → Prop} (g h : GameForm) (p : Player) :
     Proviso U g h p ↔ Augmented_proviso U (g : AugmentedForm) (h : AugmentedForm) p := by
-  simp only [Proviso, Augmented_proviso, isEnd_coercion_compat, strong_coercion_compat]
+  simp only [Proviso, Augmented_proviso, isEnd_coercion_compat, strong_coercion_compat, GameForm.IsEndLike_iff]
 
 theorem augmented_misere_ge_iff_maintenance_and_proviso {U : GameForm → Prop} [ShortUniverse U]
     (g h : AugmentedForm) [Form.Short g] [Form.Short h] :
