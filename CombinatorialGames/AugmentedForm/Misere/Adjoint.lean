@@ -19,7 +19,7 @@ theorem outcome_add_adjoint_eq_P (g : AugmentedForm) : MisereOutcome (g + g°) =
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
     rw [not_WinsGoingFirst]
-    simp only [EndLike_add_iff, adjoint_not_EndLike, and_false, not_false_eq_true,
+    simp only [IsEndLike_add_iff, adjoint_not_EndLike, and_false, not_false_eq_true,
                moves_add, Set.mem_union, Set.mem_image, true_and]
     intro k h1
     apply Or.elim h1 <;> intro ⟨gr, h2, h3⟩ <;> rw [<-h3] <;> clear h1 h3 k
@@ -31,7 +31,7 @@ theorem outcome_add_adjoint_eq_P (g : AugmentedForm) : MisereOutcome (g + g°) =
       use gr + gr°, h3
       exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gr)
     · by_cases h3 : IsEnd (-p) g
-      · apply WinsGoingFirst_of_End
+      · apply WinsGoingFirst_of_IsEnd
         have h4 : gr = 0 := mem_adjoint_end_opposite h2 h3
         simp only [h3, h4, add_zero]
       · apply WinsGoingFirst_of_moves

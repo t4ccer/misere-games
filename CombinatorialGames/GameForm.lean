@@ -368,6 +368,12 @@ instance : Form GameForm where
   moves_add' := private moves_add'
   moves_zero' := private moves_zero'
   moves_small' := instSmallElemMoves
+  IsEndLike p x := moves p x = ∅
+  IsEndLike_ofEnd' _ _ h1 := h1
+
+@[simp]
+theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
+  simp only [IsEndLike, IsEnd_def]
 
 @[simp]
 theorem moves_sub (p : Player) (x y : GameForm) :

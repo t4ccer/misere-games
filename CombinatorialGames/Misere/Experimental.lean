@@ -33,7 +33,7 @@ termination_by g
 decreasing_by form_wf
 
 def Augmented_strong (U : GameForm → Prop) (g : AugmentedForm) (p : Player) : Prop :=
-  ∀ x, U x → AugmentedForm.EndLike p x → MisereForm.WinsGoingFirst p (g + (x : AugmentedForm))
+  ∀ x, U x → IsEndLike p x → MisereForm.WinsGoingFirst p (g + (x : AugmentedForm))
 
 def AugmentedMisereGe (U : GameForm → Prop) (g h : AugmentedForm) : Prop :=
   ∀ x, (U x → MisereForm.MisereOutcome (g + (x : AugmentedForm)) ≥ MisereForm.MisereOutcome (h + (x : AugmentedForm)))
@@ -51,7 +51,7 @@ def Augmented_maintenance (U : GameForm → Prop) (g h : AugmentedForm) (p : Pla
       (∃ hlr ∈ moves .right hl, g ≥ma U hlr)
 
 def Augmented_proviso (U : GameForm → Prop) (g h : AugmentedForm) (p : Player) : Prop :=
-  AugmentedForm.EndLike p g →  Augmented_strong U h p
+  IsEndLike p g →  Augmented_strong U h p
 
 lemma ofGameForm_preserves_short (g : GameForm) [Form.Short g] :
     Form.Short (AugmentedForm.ofGameForm g) := by
@@ -90,8 +90,8 @@ lemma moves_empty_coercion_compat (g : GameForm) (p : Player) :
     exact h (gp : AugmentedForm) this
 
 lemma isEnd_coercion_compat (g : GameForm) (p : Player) :
-    IsEnd p g ↔ AugmentedForm.EndLike p (g : AugmentedForm) := by
-  simp only [IsEnd_def, AugmentedForm.EndLike]
+    IsEnd p g ↔ IsEndLike p (g : AugmentedForm) := by
+  simp only [IsEnd_def, AugmentedForm.IsEndLike_iff]
   constructor
   · intro h
     right
@@ -111,12 +111,14 @@ lemma strong_coercion_compat {U : GameForm → Prop} (g : GameForm) (p : Player)
   simp only [Strong, Augmented_strong]
   constructor
   · intro h x hx h_end
-    have h_end' : IsEnd p x := (isEnd_coercion_compat x p).mpr h_end
+    rw [GameForm.IsEndLike_iff, <-AugmentedForm.IsEndLike_ofGameForm_iff] at h_end
+    have h_end' := (isEnd_coercion_compat x p).mpr h_end
     have h1 := h x hx h_end'
     convert (winsGoingFirst_coercion_compat (g + x) p).mp h1 using 1
     rw [AugmentedForm.ofGameForm_add]
   · intro h x hx h_end
-    have h_end' : AugmentedForm.EndLike p (x : AugmentedForm) := (isEnd_coercion_compat x p).mp h_end
+    have h_end' := (isEnd_coercion_compat x p).mp h_end
+    rw [AugmentedForm.IsEndLike_ofGameForm_iff, <-GameForm.IsEndLike_iff] at h_end'
     have h1 := h x hx h_end'
     have h2 : MisereForm.WinsGoingFirst p (AugmentedForm.ofGameForm (g + x)) := by
       convert h1 using 1

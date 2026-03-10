@@ -33,7 +33,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
       use gr + gr°, h3
       exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gr)
     · by_cases h3 : IsEnd (-p) g
-      · apply WinsGoingFirst_of_End
+      · apply WinsGoingFirst_of_IsEnd
         have h4 : gr = 0 := mem_adjoint_end_opposite h2 h3
         simp only [h3, h4, add_zero]
       · apply WinsGoingFirst_of_moves

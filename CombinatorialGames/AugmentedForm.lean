@@ -142,7 +142,7 @@ theorem moveRecOn_eq {motive : AugmentedForm → Sort*} (x)
   rw [moveRecOn]
 
 open scoped Classical in
-noncomputable def EndLike (p : Player) (g : AugmentedForm) : Prop :=
+private noncomputable def EndLike (p : Player) (g : AugmentedForm) : Prop :=
   g.hasTombstone p ∨ (Form.IsEnd p g)
 
 private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
@@ -331,10 +331,10 @@ theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone 
   cases p <;> simp only [not_false_eq_true]
 
 @[simp]
-theorem EndLike_zero (p : Player) : EndLike p (0 : AugmentedForm) := by
+private theorem EndLike_zero (p : Player) : EndLike p (0 : AugmentedForm) := by
   simp [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd_def]
 
-theorem add_eq (x y : AugmentedForm) : x + y =
+private theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
       (Player.cases ((· + y) '' moves .left x ∪ (x + ·) '' moves .left y) ((· + y) '' moves .right x ∪ (x + ·) '' moves .right y))
       (Player.cases
@@ -347,7 +347,7 @@ theorem add_eq (x y : AugmentedForm) : x + y =
   · ext p
     cases p <;> simp [HAdd.hAdd, Add.add]
 
-theorem add_eq' (x y : AugmentedForm) : x + y =
+private theorem add_eq' (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
       (fun p => (· + y) '' moves p x ∪ (x + ·) '' moves p y)
       (fun p => (x.hasTombstone p ∧ EndLike p y) ∨ (y.hasTombstone p ∧ EndLike p x)) := by
@@ -358,7 +358,7 @@ theorem add_eq' (x y : AugmentedForm) : x + y =
     cases p <;> rfl
 
 @[simp]
-theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
+private theorem hasTombstone_add' {x y : AugmentedForm} {p : Player} :
     (x + y).hasTombstone p ↔ ((x.hasTombstone p ∧ EndLike p y) ∨ (y.hasTombstone p ∧ EndLike p x)) := by
   rw [add_eq]
   cases p <;> simp only [hasTombstone_ofSetsWithTombs]
@@ -370,7 +370,7 @@ private theorem moves_add' (p : Player) (x y : AugmentedForm) :
 
 lemma hasTombstone_add_zero (g : AugmentedForm) (p : Player)
     : (g + 0).hasTombstone p ↔ g.hasTombstone p := by
-  simp only [hasTombstone_add, EndLike_zero, and_true, not_hasTombstone_zero, false_and, or_false]
+  simp only [hasTombstone_add', EndLike_zero, and_true, not_hasTombstone_zero, false_and, or_false]
 
 private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
   refine moveRecOn x ?_
@@ -385,18 +385,18 @@ private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
     congr! 3 <;>
     · refine and_congr_right_iff.2 fun h ↦ ?_
       rw [add_comm']
-  · simp only [hasTombstone_add, and_comm, or_comm]
+  · simp only [hasTombstone_add', or_comm]
 termination_by (x, y)
 decreasing_by form_wf
 
-private lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
+lemma hasTombstone_add_assoc (x y z : AugmentedForm) (p : Player) :
     hasTombstone p (x + y + z) ↔ hasTombstone p (x + (y + z)) := by
-  simp only [hasTombstone_add]
+  simp only [hasTombstone_add']
   unfold EndLike
   by_cases h1 : hasTombstone p x
   <;> by_cases h2 : hasTombstone p y
   <;> by_cases h3 : hasTombstone p z
-  <;> simp only [h1, h2, h3, hasTombstone_add, And.comm, EndLike, and_self, and_true,
+  <;> simp only [h1, h2, h3, hasTombstone_add', And.comm, EndLike, and_self, and_true,
                  false_and, false_or, iff_or_self, or_false, or_iff_left_iff_imp, or_self,
                  or_self_left, true_and, true_or, IsEnd_def]
   <;> by_cases h4 : moves p x = ∅
@@ -572,6 +572,13 @@ noncomputable instance : Form AugmentedForm where
   moves_add' := private moves_add'
   moves_zero' p := by simp only [moves_zero]
   moves_small' := instSmallElemMoves
+  IsEndLike p g := g.hasTombstone p ∨ (Form.IsEnd p g)
+  IsEndLike_ofEnd' _ _ h1 := by
+    rw [<-IsEnd_def] at h1
+    exact Or.inr h1
+
+lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
+    IsEndLike p g ↔ (g.hasTombstone p ∨ (Form.IsEnd p g)) := by rfl
 
 -- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
 
@@ -583,29 +590,31 @@ theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
   exact Eq.to_iff rfl
 
 @[simp]
-lemma EndLike_add_iff {g h : AugmentedForm} {p : Player} :
-    AugmentedForm.EndLike p (g + h) ↔ (AugmentedForm.EndLike p g ∧ AugmentedForm.EndLike p h) := by
-  simp only [AugmentedForm.EndLike, AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff]
-  tauto
+theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
+    (x + y).hasTombstone p ↔ ((x.hasTombstone p ∧ IsEndLike p y) ∨ (y.hasTombstone p ∧ IsEndLike p x)) := by
+  exact hasTombstone_add'
 
 @[simp]
-lemma not_EndLike {g : AugmentedForm} {p : Player}
-    : ¬EndLike p g ↔ ¬hasTombstone p g ∧ ¬IsEnd p g := by
-  unfold EndLike
-  simp only [not_or]
+lemma IsEndLike_add_iff {g h : AugmentedForm} {p : Player} :
+    IsEndLike p (g + h) ↔ (IsEndLike p g ∧ IsEndLike p h) := by
+  simp only [AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff, IsEndLike_iff]
+  tauto
 
-theorem IsEnd.EndLike {g : AugmentedForm} {p : Player} (h1 : IsEnd p g) : EndLike p g := Or.inr h1
+lemma not_IsEndLike {g : AugmentedForm} {p : Player}
+    : ¬IsEndLike p g ↔ ¬hasTombstone p g ∧ ¬IsEnd p g := by
+  simp only [IsEndLike_iff, not_or]
 
-theorem EndLike_ofGameForm_iff {g : GameForm} {p : Player} :
-    EndLike p (ofGameForm g) ↔ Form.IsEnd p g := by
+@[simp]
+theorem IsEndLike_ofGameForm_iff {g : GameForm} {p : Player} :
+    IsEndLike p (ofGameForm g) ↔ Form.IsEnd p g := by
   constructor <;> intro h1
-  · unfold ofGameForm EndLike at h1
+  · unfold ofGameForm at h1
     apply Or.elim h1 <;> intro h1
     · simp only [hasTombstone_ofSetsWithTombs] at h1
     · simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, Set.isEmpty_coe_sort, IsEnd_def] at h1
       rw [IsEnd_def]
       exact h1
-  · unfold ofGameForm EndLike
+  · unfold ofGameForm
     apply Or.inr
     rw [IsEnd_def, moves_ofSetsWithTombs]
     simp only [Set.range_eq_empty_iff, Set.isEmpty_coe_sort]

@@ -35,7 +35,7 @@ class Hereditary (A : GameForm → Prop) where
 private theorem auxCases {h x : GameForm} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)
     ∨ (∃ hl ∈ moves p h, MiserePlayerOutcome (hl + x) (-p) = p)
-    ∨ (IsEnd p (h + x)) := by
+    ∨ (IsEndLike p (h + x)) := by
   apply Or.elim ((WinsGoingFirst_iff _ _).mp (MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h1))
   · intro h1
     exact (Or.inr (Or.inr h1))
@@ -114,7 +114,8 @@ private theorem auxR (A : GameForm → Prop) [Hereditary A]
   · -- 3. G + X is Right end-like.
     intro h7
     -- Since X ∈ A, it must follow that X is a Right end and G is Right end-like.
-    have ⟨h8, h9⟩ := IsEnd.add_iff.mp h7
+    simp only [IsEndLike_iff, IsEnd.add_iff] at h7
+    have ⟨h8, h9⟩ := h7
     -- By hypothesis, H is Right A-strong, and hence o^R(H + X) = R.
     have h11 := h4 h8 x hx h9
     rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
@@ -177,7 +178,8 @@ private theorem auxL (A : GameForm → Prop) [Hereditary A]
   · -- 3. H + X is Left end-like.
     intro h7
     -- Since X ∈ A, it must follow that X is a Left end and H is Left end-like.
-    have ⟨h8, h9⟩ := IsEnd.add_iff.mp h7
+    simp only [IsEndLike_iff, IsEnd.add_iff] at h7
+    have ⟨h8, h9⟩ := h7
     -- By hypothesis, G is Left A-strong, and hence o^L(G + X) = L.
     have h11 := h5 h8 x hx h9
     rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]

@@ -77,7 +77,7 @@ private theorem outcome_LL_add_aux {g h : GameForm}
         hg_end | ⟨gl, hgl, hgl_not_right⟩
     · rcases (WinsGoingFirst_iff h .left).mp hh_out.left with
           hh_end | ⟨hl, hhl, hhl_not_right⟩
-      · exact WinsGoingFirst_of_End (IsEnd.add_iff.mpr ⟨hg_end, hh_end⟩)
+      · exact WinsGoingFirst_of_IsEnd (IsEnd.add_iff.mpr ⟨GameForm.IsEndLike_iff.mp hg_end, GameForm.IsEndLike_iff.mp  hh_end⟩)
       · have hhl_pfde := PFreeDeadEnding.of_move hh hhl
         have hhlL := outcome_eq_L_of_not_right_and_pfree hhl_pfde.p_free hhl_not_right
         have hsumL := outcome_LL_add_aux hg hhl_pfde hgL hhlL
@@ -90,7 +90,7 @@ private theorem outcome_LL_add_aux {g h : GameForm}
         ⟨gl + h, add_right_mem_moves_add hgl h, (MisereOutcome_eq_L_iff.mp hsumL).right⟩
   · rw [not_WinsGoingFirst]
     refine ⟨fun h_end => ?_, fun gr hgr => ?_⟩
-    · exact hg_out.right (WinsGoingFirst_of_End (IsEnd.add_iff.mp h_end).left)
+    · exact hg_out.right (WinsGoingFirst_of_IsEnd (IsEnd.add_iff.mp (GameForm.IsEndLike_iff.mp  h_end)).left)
     · rw [moves_add, Set.mem_union, Set.mem_image] at hgr
       rcases hgr with ⟨gr', hgr', rfl⟩ | ⟨hr, hhr, rfl⟩
       · have h_left_gr' : WinsGoingFirst .left gr' := by
@@ -128,7 +128,7 @@ private theorem player_outcome_LN_add_aux {g h : GameForm}
       fun h_left_end => h_zero (left_end_outcome_N_eq_zero hh hhN h_left_end)
     rcases (WinsGoingFirst_iff h .left).mp (MisereOutcome_eq_N_iff.mp hhN).left with
         h_left_end | ⟨hl, hhl, hhl_not_right⟩
-    · exact absurd h_left_end h_not_left_end
+    · exact absurd (GameForm.IsEndLike_iff.mp h_left_end) h_not_left_end
     · have hhl_pfde := PFreeDeadEnding.of_move hh hhl
       refine WinsGoingFirst_of_moves ⟨g + hl, add_left_mem_moves_add hhl g, ?_⟩
       refine (MisereOutcome_eq_L_iff.mp ?_).right
@@ -226,7 +226,7 @@ theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
     · simp [Maintenance, h0'']
     · simp [Proviso, Strong]
       intro _ x h2 h3
-      have h4 : WinsGoingFirst .right x := WinsGoingFirst_of_End h3
+      have h4 : WinsGoingFirst .right x := WinsGoingFirst_of_IsEnd h3
       have h6 : MisereOutcome x ≤ .N := rightWinsGoingFirst_outcome_le_N h4
       apply Or.elim (Outcome.le_N_eq_N_or_R h6) <;> intro h7
       · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]

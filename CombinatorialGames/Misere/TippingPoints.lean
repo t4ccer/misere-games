@@ -18,7 +18,7 @@ private theorem right_wins_of_birthday_le (g : GameForm) (b : ℕ) (h1 : birthda
   by_cases h2 : IsEnd .right g
   · exact GameForm.Misere.Outcome.add_end_WinsGoingFirst h2 (GameForm.nat_IsEnd_right b)
   · obtain ⟨gr, h3⟩ := Form.not_IsEnd_exists_move h2
-    refine GameForm.Misere.Outcome.WinsGoingFirst_of_moves ?_
+    refine WinsGoingFirst_of_moves ?_
     refine ⟨gr + b, Form.add_right_mem_moves_add h3 b, ?_⟩
     exact not_left_wins_of_birthday_lt gr b ((Form.birthday_lt_of_mem_moves h3).trans_le h1)
 termination_by g
@@ -32,9 +32,10 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
     subst this
     simp at h1
   obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hbpos)
-  rw [GameForm.Misere.Outcome.not_WinsGoingFirst]
+  rw [not_WinsGoingFirst]
   constructor
   · intro h2
+    rw [GameForm.IsEndLike_iff] at h2
     have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [IsEnd_def]
     exact h4 (by simpa [hk] using (IsEnd.add_iff.mp h2).right)
   · intro gl h2
@@ -50,7 +51,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
       by_cases h8 : IsEnd .right g
       · exact GameForm.Misere.Outcome.add_end_WinsGoingFirst h8 (GameForm.nat_IsEnd_right k)
       · obtain ⟨gr, h9⟩ := Form.not_IsEnd_exists_move h8
-        refine GameForm.Misere.Outcome.WinsGoingFirst_of_moves ?_
+        refine WinsGoingFirst_of_moves ?_
         refine ⟨gr + k, Form.add_right_mem_moves_add h9 k, ?_⟩
         exact not_left_wins_of_birthday_lt gr k ((Form.birthday_lt_of_mem_moves h9).trans_le h7)
 termination_by g
@@ -91,7 +92,7 @@ def LTippingPoint.aux (g : GameForm) [h1 : Short g] :
 
 private theorem left_wins_second_implies_left_wins_first_add_one {g : GameForm}
     (h1 : ¬WinsGoingFirst .right g) : WinsGoingFirst .left (g + 1) := by
-  refine GameForm.Misere.Outcome.WinsGoingFirst_of_moves ?_
+  refine WinsGoingFirst_of_moves ?_
   refine ⟨g, ?_, ?_⟩
   · rw [moves_add, GameForm.leftMoves_one]
     right
@@ -146,8 +147,8 @@ def NTippingPoint.aux (g : GameForm) [h1 : Short g] :
 noncomputable def NTippingPoint (g : GameForm) [Short g] : ℕ :=
   Nat.find (NTippingPoint.aux g)
 
-theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint g = NTippingPoint (-g) := by
-  classical
+@[simp]
+theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint (-g) = NTippingPoint g := by
   unfold NTippingPoint
   apply Nat.find_congr'
   intro n
@@ -163,13 +164,12 @@ theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint g = NTippingP
   have h2 : MisereOutcome (g + (-n)) = .N ↔ MisereOutcome (-g + n) = .N := by
     simpa [neg_add_rev, add_comm, add_left_comm, add_assoc] using hconjN (g + (-n))
   constructor <;> intro h
-  · simpa [or_comm] using Or.imp h1.mp h2.mp h
   · simpa [or_comm] using Or.imp h2.mpr h1.mpr h
+  · simpa [or_comm] using Or.imp h1.mp h2.mp h
 
 noncomputable def RTippingPoint (g : GameForm) [Short g] : ℕ :=
   Nat.find (RTippingPoint.aux g)
 
-open scoped Classical in
 theorem RTippingPoint_iff (g : GameForm) [Short g] (n : ℕ) :
     (RTippingPoint g = n)
      ↔ ((MisereOutcome (g + n) = .R) ∧ ∀ (x : ℕ), MisereOutcome (g + x) = .R → n ≤ x) := by

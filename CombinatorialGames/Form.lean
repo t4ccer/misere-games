@@ -25,6 +25,8 @@ class Form (G : Type (v + 1)) extends Moves G, InvolutiveNeg G, AddCommMonoidWit
   moves_add' (p : Player) (x y : G) : moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y
   moves_zero' (p : Player) : moves p 0 = ∅
   moves_small' (p : Player) (x : G) : Small.{v} (moves p x)
+  IsEndLike (p : Player) (x : G) : Prop
+  IsEndLike_ofEnd' (p : Player) (x : G) (h1 : moves p x = ∅) : IsEndLike p x
 
 namespace Moves
 
@@ -94,6 +96,9 @@ def IsEnd {G : Type (u + 1)} [Moves G] (p : Player) (g : G) := moves p g = ∅
 theorem IsEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : IsEnd p g = (moves p g = ∅) := by rfl
 
 variable {G : Type (u + 1)} [g_form : Form G]
+
+protected theorem IsEnd.IsEndLike {p : Player} {x : G} (h1 : IsEnd p x) : IsEndLike p x :=
+  IsEndLike_ofEnd' p x h1
 
 @[simp]
 theorem moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x) :=
@@ -182,7 +187,8 @@ end Form
 class MisereForm (G : Type (v + 1)) [Form G] where
   WinsGoingFirst (p : Player) (g : G) : Prop
   WinsGoingFirst_neg_iff' (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g)
-  WinsGoingFirst_of_IsEnd' (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g
+  WinsGoingFirst_iff (g : G) (p : Player)
+    : WinsGoingFirst p g ↔ Form.IsEndLike p g ∨ (∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g')
 
 namespace MisereForm
 
@@ -193,8 +199,23 @@ theorem WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) �
   WinsGoingFirst_neg_iff' g p
 
 @[simp]
-theorem WinsGoingFirst_of_IsEnd (g : G) (p : Player) (h1 : Form.IsEnd p g) : WinsGoingFirst p g :=
-  WinsGoingFirst_of_IsEnd' g p h1
+theorem WinsGoingFirst_of_IsEndLike {g : G} {p : Player} (h1 : Form.IsEndLike p g) : WinsGoingFirst p g :=
+  (WinsGoingFirst_iff g p).mpr (Or.inl h1)
+
+@[simp]
+theorem WinsGoingFirst_of_IsEnd {g : G} {p : Player} (h1 : Form.IsEnd p g) : WinsGoingFirst p g :=
+  WinsGoingFirst_of_IsEndLike (Form.IsEnd.IsEndLike h1)
+
+theorem WinsGoingFirst_of_moves {g : G} {p : Player}
+    (h1 : ∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g')
+    : WinsGoingFirst p g := by
+  rw [WinsGoingFirst_iff]
+  exact Or.inr h1
+
+theorem not_WinsGoingFirst {g : G} {p : Player}
+    : ¬MisereForm.WinsGoingFirst p g ↔ (¬Form.IsEndLike p g ∧ (∀ g' ∈ Form.moves p g, MisereForm.WinsGoingFirst (-p) g')) := by
+  rw [WinsGoingFirst_iff]
+  simp only [not_or, not_exists, not_and, not_not]
 
 @[simp]
 theorem WinsGoingFirst_of_zero (p : Player) : WinsGoingFirst p (0 : G) := by

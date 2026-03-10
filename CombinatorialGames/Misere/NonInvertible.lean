@@ -16,6 +16,7 @@ open GameForm.Adjoint
 open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
+open MisereForm
 
 public section
 
@@ -73,10 +74,10 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
   have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
     apply not_rightWinsGoingFirst_ge_P
     rw [WinsGoingFirst_iff]
-    simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff]
+    simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff, GameForm.IsEndLike_iff]
     apply And.intro (fun h3 => by
       simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd_def])
-    simp only [Player.neg_right, not_exists, not_and, not_not]
+    simp [Player.neg_right, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
@@ -99,8 +100,8 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     · refine add_left_mem_moves_add ?_ g
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
     · rw [not_WinsGoingFirst]
-      simp only [IsEnd_def, Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
-                 Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
+      simp only [IsEnd_def, GameForm.IsEndLike_iff, Player.neg_right, moves_add, GameForm.moves_ofSets,
+                 Player.cases, Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
                  Player.neg_left, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
       rw [IsEnd_def] at h2
       apply And.intro h2

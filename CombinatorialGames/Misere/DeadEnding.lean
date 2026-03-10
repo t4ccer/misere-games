@@ -107,7 +107,7 @@ theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k 
 protected theorem IsDeadEnd.IsPFree {g : GameForm} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
   unfold IsPFree
   apply And.intro
-  · have h2 := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (WinsGoingFirst_of_End (IsEnd h1))
+  · have h2 := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (WinsGoingFirst_of_IsEnd (IsEnd h1))
     cases p
     · cases h3 : MiserePlayerOutcome g .right <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
     · cases h3 : MiserePlayerOutcome g .left <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
@@ -146,15 +146,16 @@ namespace GameForm
 open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
+open MisereForm
 
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereForm.MisereOutcome g = Outcome.ofPlayer p := by
   rw [MisereOutcome_eq_player_iff]
-  apply And.intro (WinsGoingFirst_of_End (IsDeadEnd.IsEnd h2))
-  simp only [not_WinsGoingFirst, neg_neg]
+  apply And.intro (WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd h2))
+  simp only [not_WinsGoingFirst, neg_neg, GameForm.IsEndLike_iff]
   apply And.intro (zero_not_both_end h1 (IsDeadEnd.IsEnd h2))
   intro gr h4
-  exact WinsGoingFirst_of_End (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 h4))
+  exact WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2
