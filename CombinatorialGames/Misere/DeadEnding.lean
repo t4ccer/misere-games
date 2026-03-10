@@ -1,6 +1,6 @@
 module
 
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.ShortUniverse
 
 public section
@@ -192,12 +192,10 @@ private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g
 termination_by g
 decreasing_by form_wf
 
-@[simp]
-protected theorem IsDeadEnding.neg_iff {g : GameForm} : IsDeadEnding (-g) ↔ IsDeadEnding g := by
-  constructor <;> intro h1
-  · exact IsDeadEnding.neg h1
-  · rw [<-neg_neg g] at h1
-    exact IsDeadEnding.neg h1
+instance : ClosedUnderNeg IsDeadEnding where
+  neg_of {g} h := by
+    rw [<-neg_neg g] at h
+    exact IsDeadEnding.neg h
 
 @[simp]
 protected theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
@@ -220,7 +218,7 @@ protected theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
   match k with
   | .ofNat n => exact IsDeadEnding.nat n
   | .negSucc n =>
-    rw [Int.negSucc_eq, GameForm.intCast_neg, IsDeadEnding.neg_iff]
+    rw [Int.negSucc_eq, GameForm.intCast_neg, ClosedUnderNeg.neg_iff (A := IsDeadEnding)]
     norm_cast
     exact IsDeadEnding.nat (n + 1)
 
@@ -244,9 +242,9 @@ instance : ShortUniverse ShortDeadEnding where
       exact Short.isOption h2
   , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
   }
-  neg_of _ h :=
-  { short := Short.neg_iff.mpr h.short
-  , dead_ending := IsDeadEnding.neg_iff.mpr h.dead_ending
+  neg_of h :=
+  { short := ClosedUnderNeg.neg_iff.mpr h.short
+  , dead_ending := ClosedUnderNeg.neg_iff.mpr h.dead_ending
   }
   closed_dicotic_short B C b c hb hb' hc hc' _ _ :=
   { short := by

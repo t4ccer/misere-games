@@ -11,6 +11,7 @@ public import CombinatorialGames.GameForm.Misere.Adjoint
 public import CombinatorialGames.GameForm.Misere.Outcome
 import Mathlib.Data.Set.Finite.Range
 
+open GameForm
 open GameForm.Adjoint
 open GameForm.Misere.Outcome
 open Form
@@ -21,7 +22,7 @@ public section
 def AnyGame (_ : GameForm) := True
 
 instance : ClosedUnderNeg AnyGame where
-  neg_of _ _ := trivial
+  neg_of _ := trivial
 
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : moves .right h => (hr : GameForm)°
@@ -155,7 +156,7 @@ theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdent
   · have h3 := leftEnd_not_leftEnd_not_ge (has_T_g_zero h0) GameForm.zero_end h2
     exact not_MisereEq_of_not_MisereGe h3
   · intro h3
-    have h4 : A (-g) := EqZeroIdentical.toClosedUnderNeg.neg_of g h0
+    have h4 : A (-g) := ClosedUnderNeg.neg_iff.mpr h0
     have h5 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-0)) := by
       rw [neg_zero]
       exact has_T_g_zero h4

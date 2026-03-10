@@ -6,7 +6,6 @@ Authors: Violeta Hernández Palacios, Tristan Figueroa Reid
 module
 
 public import CombinatorialGames.Form.Short
-public import CombinatorialGames.Form
 
 /-!
 # Special games

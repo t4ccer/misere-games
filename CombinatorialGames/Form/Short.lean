@@ -5,11 +5,9 @@ Authors: Violeta Hernández Palacios, Kim Morrison
 -/
 module
 
-public import CombinatorialGames.Form
-public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.ClosedUnderNeg
 import Mathlib.Data.Fintype.Order
-import Mathlib.Data.Set.Finite.Lattice
 
 /-!
 # Short games
@@ -28,6 +26,7 @@ public section
 namespace Form
 
 open Form
+open GameForm
 
 variable {G : Type (u + 1)} [g_form : Form G]
 
@@ -134,9 +133,8 @@ protected instance neg (x : G) [Short x] : Short (-x) := by
 termination_by x
 decreasing_by form_wf
 
-@[simp]
-theorem neg_iff {x : G} : Short (-x) ↔ Short x :=
-  ⟨fun _ ↦ by simpa using Short.neg (-x), fun _ ↦ Short.neg x⟩
+instance : ClosedUnderNeg Form.Short where
+  neg_of h := by infer_instance
 
 theorem short_iff_finite_setOf_subposition {x : G} :
     Short x ↔ {y | Subposition y x}.Finite := by

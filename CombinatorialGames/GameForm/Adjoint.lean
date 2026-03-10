@@ -5,10 +5,7 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Special
-import Mathlib.Data.Countable.Small
-import Mathlib.Data.Set.Finite.Range
 
 public section
 
@@ -138,3 +135,4 @@ decreasing_by all_goals form_wf
 
 end Adjoint
 end GameForm
+

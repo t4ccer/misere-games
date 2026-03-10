@@ -1,7 +1,6 @@
 module
 
 public import CombinatorialGames.GameForm.Misere.Outcome
-public import CombinatorialGames.Misere.PFree
 
 public section
 

@@ -1,6 +1,6 @@
 module
 
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Short
 public import CombinatorialGames.Misere.Hereditary
 
 universe u
@@ -8,6 +8,7 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
+open GameForm
 open GameForm.Misere.Outcome
 
 public section
@@ -30,7 +31,7 @@ class ClosedUnderDicoticShort (A : GameForm → Prop) where
 class ShortUniverse (A : GameForm → Prop) extends
   ClosedUnderSum A, ClosedUnderFollower A,
   ClosedUnderNeg A, ClosedUnderDicoticShort A where
-  short_only (g : GameForm) (h1 : A g) : Form.Short g
+  short_only (g : GameForm) (h1 : A g) : Short g
 
 namespace GameForm
 

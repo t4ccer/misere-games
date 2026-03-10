@@ -5,10 +5,9 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Outcome
-public import CombinatorialGames.GameForm.Birthday
-public import CombinatorialGames.Form.Short
 public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.ClosedUnderNeg
 
 public noncomputable section
 
@@ -172,17 +171,11 @@ theorem not_MisereEq_of_not_MisereGe {A : GameForm → Prop} {g h : GameForm} (h
   use h1
   exact Ne.symm (ne_of_not_le h2)
 
-class ClosedUnderNeg (A : GameForm → Prop) where
-  neg_of (g : GameForm) (h1 : A g) : A (-g)
-
-instance : ClosedUnderNeg Form.Short where
-  neg_of _ h := Form.Short.neg_iff.mpr h
-
 private theorem ClosedUnderNeg.not_ge_neg_iff.aux {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h1 : g ≥m A h) : (-h) ≥m A (-g) := by
   unfold MisereGe at *
   intro x h0
-  have h2 := h1 (-x) (ClosedUnderNeg.neg_of x h0)
+  have h2 := h1 (-x) (ClosedUnderNeg.neg_iff.mpr h0)
   have h4 : MisereOutcome (-h + x) = (MisereOutcome (-h + x)).Conjugate.Conjugate :=
     Eq.symm Outcome.conjugate_conjugate_eq_self
   have h5 : (MisereOutcome (-h + x)).Conjugate.Conjugate = (MisereOutcome (h + (-x))).Conjugate :=

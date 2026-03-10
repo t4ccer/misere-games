@@ -11,6 +11,7 @@ public import CombinatorialGames.Form.Short
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Adjoint
 public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.ClosedUnderNeg
 public import CombinatorialGames.GameForm.Misere.Adjoint
 public import CombinatorialGames.GameForm.Misere.Outcome
 public import CombinatorialGames.GameForm.Special
@@ -20,9 +21,11 @@ public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Experimental
 public import CombinatorialGames.Misere.Hereditary
 public import CombinatorialGames.Misere.NonInvertible
+public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.ShortUniverse
+public import CombinatorialGames.Misere.TippingPoints
 public import CombinatorialGames.OfSets
 public import CombinatorialGames.Outcome
 public import CombinatorialGames.Player

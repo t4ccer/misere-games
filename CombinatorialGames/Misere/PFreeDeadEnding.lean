@@ -2,6 +2,7 @@ module
 
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.PFree
 
 public section
@@ -20,19 +21,42 @@ structure PFreeDeadEnding (g : GameForm) : Prop where
 
 private theorem PFreeDeadEnding.of_move {g gp : GameForm} {p : Player}
     (h : PFreeDeadEnding g) (h_mem : gp ∈ moves p g) : PFreeDeadEnding gp where
-  p_free := IsPFree_moves h.p_free h_mem
+  p_free := IsPFree.mem_moves h.p_free h_mem
   dead_ending := IsDeadEnding.hereditary h.dead_ending h_mem
 
-private theorem PFreeDeadEnding.neg {g : GameForm} (h : PFreeDeadEnding g) : PFreeDeadEnding (-g) where
-  p_free := IsPFree.neg_iff.mpr h.p_free
-  dead_ending := IsDeadEnding.neg_iff.mpr h.dead_ending
+instance : PFree PFreeDeadEnding where
+  pfree h := h.p_free
+
+instance : ClosedUnderAddNat PFreeDeadEnding where
+  has_add g n :=
+    { p_free := IsPFree.add_nat g.p_free n
+    , dead_ending := IsDeadEnding.add g.dead_ending (IsDeadEnding.nat n)
+    }
+
+instance : ClosedUnderNeg PFreeDeadEnding where
+  neg_of g :=
+    { p_free := ClosedUnderNeg.neg_iff.mpr g.p_free
+    , dead_ending := ClosedUnderNeg.neg_iff.mpr g.dead_ending
+    }
+
+instance : HasNat PFreeDeadEnding where
+  has_nat n :=
+    { p_free := IsPFree.nat n
+    , dead_ending := IsDeadEnding.nat n
+    }
+
+instance : HasInt PFreeDeadEnding where
+  has_int n :=
+    { p_free := IsPFree.int n
+    , dead_ending := IsDeadEnding.int n
+    }
 
 private theorem outcome_eq_L_of_not_right_and_pfree {g : GameForm}
     (h_pfree : IsPFree g) (h_not_right : ¬WinsGoingFirst .right g) : MisereOutcome g = .L := by
   rw [MisereOutcome_eq_L_iff]
   refine ⟨?_, h_not_right⟩
   by_contra h_not_left
-  exact h_pfree.MisereOutcome_ne_P (MisereOutcome_eq_P_iff.mpr ⟨h_not_right, h_not_left⟩)
+  exact PFree.MisereOutcome_ne_P h_pfree (MisereOutcome_eq_P_iff.mpr ⟨h_not_right, h_not_left⟩)
 
 private theorem left_end_outcome_N_eq_zero {g : GameForm} (hg : PFreeDeadEnding g)
     (hN : MisereOutcome g = .N) (h_left_end : IsEnd .left g) : g = 0 := by
@@ -77,7 +101,7 @@ private theorem outcome_LL_add_aux {g h : GameForm}
         | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux hgr_pfde hh hgr'_out hhL)).left
         | N => exact add_comm h gr' ▸ MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
                  (player_outcome_LN_add_aux hh hgr_pfde hhL hgr'_out)
-        | P => exact absurd hgr'_out hgr_pfde.p_free.MisereOutcome_ne_P
+        | P => exact absurd hgr'_out (PFree.MisereOutcome_ne_P hgr_pfde)
         | R => exact absurd h_left_gr' (MisereOutcome_eq_R_iff.mp hgr'_out).right
       · have h_left_hr : WinsGoingFirst .left hr := by
           simpa [Player.neg_right] using
@@ -87,7 +111,7 @@ private theorem outcome_LL_add_aux {g h : GameForm}
         | L => exact (MisereOutcome_eq_L_iff.mp (outcome_LL_add_aux hg hhr_pfde hgL hhr_out)).left
         | N => exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
                  (player_outcome_LN_add_aux hg hhr_pfde hgL hhr_out)
-        | P => exact absurd hhr_out hhr_pfde.p_free.MisereOutcome_ne_P
+        | P => exact absurd hhr_out (PFree.MisereOutcome_ne_P hhr_pfde)
         | R => exact absurd h_left_hr (MisereOutcome_eq_R_iff.mp hhr_out).right
 termination_by Form.birthday g + Form.birthday h
 decreasing_by all_goals gameform_birthday
@@ -122,7 +146,7 @@ private theorem outcome_RR_add_aux {g h : GameForm}
   rw [<-neg_MisereOutcome_L_iff]
   simpa [neg_add_rev, add_comm]
     using outcome_LL_add_aux
-            hg.neg hh.neg
+            (ClosedUnderNeg.neg_iff.mpr hg) (ClosedUnderNeg.neg_iff.mpr hh)
             ((neg_MisereOutcome_L_iff).mpr hgR) ((neg_MisereOutcome_L_iff).mpr hhR)
 
 private theorem player_outcome_RN_add_aux {g h : GameForm}
@@ -133,7 +157,7 @@ private theorem player_outcome_RN_add_aux {g h : GameForm}
   simpa [neg_add_rev, add_comm]
     using MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp
           (player_outcome_LN_add_aux
-            hg.neg hh.neg
+            (ClosedUnderNeg.neg_iff.mpr hg) (ClosedUnderNeg.neg_iff.mpr hh)
             ((neg_MisereOutcome_L_iff).2 hgR) (neg_MisereOutcome_N_iff.mpr hhN))
 
 
@@ -143,40 +167,13 @@ instance : OutcomeStable PFreeDeadEnding where
   player_outcome_LN_add := player_outcome_LN_add_aux
   player_outcome_RN_add := player_outcome_RN_add_aux
 
-instance : PFree PFreeDeadEnding where
-  pfree h := h.p_free
-
-instance : ClosedUnderAddNat PFreeDeadEnding where
-  has_add g n :=
-    { p_free := add_nat_IsPFree g.p_free n
-    , dead_ending := IsDeadEnding.add g.dead_ending (IsDeadEnding.nat n)
-    }
-
-instance : ClosedUnderNeg PFreeDeadEnding where
-  neg_of _ g :=
-    { p_free := IsPFree.neg_iff.mpr g.p_free
-    , dead_ending := IsDeadEnding.neg_iff.mpr g.dead_ending
-    }
-
-instance : HasNat PFreeDeadEnding where
-  has_nat n :=
-    { p_free := IsPFree.nat n
-    , dead_ending := IsDeadEnding.nat n
-    }
-
-instance : HasInt PFreeDeadEnding where
-  has_int n :=
-    { p_free := IsPFree.int n
-    , dead_ending := IsDeadEnding.int n
-    }
-
 namespace PFreeDeadEnding
 
 theorem int_ordered (a b : ℤ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
-  MisereGe_of_int_le PFreeDeadEnding b a h1
+  OutcomeStable.MisereGe_of_int_le PFreeDeadEnding b a h1
 
 theorem nat_ordered (a b : ℕ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
-  MisereGe_of_nat_le PFreeDeadEnding b a h1
+  OutcomeStable.MisereGe_of_nat_le PFreeDeadEnding b a h1
 
 theorem a_one_MisereOutcome {a : ℤ} (h0 : 0 ≤ a) : MisereOutcome (!{{(a : GameForm)} | {1}}) = .R := by
   refine MisereOutcome_eq_R_iff.mpr ?_
@@ -267,7 +264,7 @@ theorem reduction_ab_int (a b : ℤ) (h0 : 0 ≤ a) (h1 : 1 ≤ b) (h2 : b ≤ a
 lemma MisereOutcome_L_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
     (h1 : A g) (h2 : MisereOutcome g = .L) : Strong A g .left := by
   intro x hx h3
-  apply Or.elim (IsEnd_left_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
+  apply Or.elim (PFree.IsEnd_left_MisereOutcome hx h3) <;> intro h5
   · apply Or.elim (OutcomeStable.outcome_LN_add h1 hx h2 h5) <;> intro h6
     · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
       exact (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).left
@@ -277,7 +274,7 @@ lemma MisereOutcome_L_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A]
 lemma MisereOutcome_R_Strong {A : GameForm → Prop} [PFree A] [OutcomeStable A] {g : GameForm}
     (h1 : A g) (h2 : MisereOutcome g = .R) : Strong A g .right := by
   intro x hx h3
-  apply Or.elim (IsEnd_right_MisereOutcome (PFree.pfree hx) h3) <;> intro h5
+  apply Or.elim (PFree.IsEnd_right_MisereOutcome hx h3) <;> intro h5
   · apply Or.elim (OutcomeStable.outcome_RN_add h1 hx h2 h5) <;> intro h6
     · rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
       exact (MisereOutcome_N_iff_MiserePlayerOutcome.mp h6).right
