@@ -321,3 +321,88 @@ theorem reduction_ab_between_int_right {a b : ℤ} (h0 : 0 ≤ a) (h1 : 1 ≤ b)
   refine MisereGe_rw_left ?_ (reduction_ab_int.auxR a h1)
   have h2 := reduction_ab_int a 1 h0 Int.le_rfl (by omega)
   norm_cast at h2
+
+private theorem reduction_a_eq_neg_ba_c.aux {a b : ℤ} (h1 : 0 ≤ a) (h2 : 1 ≤ b)
+    : !{{-(b : GameForm)} | {((a + 1 : ℤ) : GameForm)}} ≥m PFreeDeadEnding (a : GameForm) := by
+  apply Hereditary.MisereGe PFreeDeadEnding
+  · simp [Maintenance]
+    apply Or.inr
+    use a
+    simp [leftMoves_intCast_zero_le_succ h1]
+  · simp only [Maintenance, moves_ofSets, Player.cases, Set.mem_singleton_iff, exists_eq_left]
+    intro x h5
+    apply Or.inl
+    obtain h_lt | h_eq := lt_or_eq_of_le h1
+    · simp only [leftMoves_intCast h_lt, Set.mem_singleton_iff] at h5
+      rw [h5, <-intCast_neg]
+      exact int_ordered _ _ (by omega)
+    · simp [h_eq] at h5
+  · simp [Proviso, IsEnd_def]
+  · simp only [Proviso, IsEndLike_iff, IsEnd_def]
+    intro h5
+    rw [leftMoves_intCast_le_zero_of_empty h1 h5]
+    intro x h6 h7
+    refine WinsGoingFirst_of_moves ?_
+    use (-b : ℤ) + x, add_right_mem_moves_add (by simp) x
+    refine not_WinsGoingFirst.mpr ?_
+    constructor
+    · simp only [Player.neg_left, IsEndLike.add_iff, IsEndLike_iff, not_and]
+      intro h8
+      absurd h8
+      simp [IsEnd_def, leftMoves_intCast_le_one_ne_empty h2]
+    · intro g' h8
+      simp at h8
+      apply Or.elim h8 <;> intro ⟨y, h9, h10⟩ <;> rw[<-h10]
+      · refine WinsGoingFirst_of_IsEndLike ?_
+        simp only [leftMoves_intCast_le_one_eq h2, Set.mem_singleton_iff] at h9
+        rw [neg_neg, IsEndLike.add_iff]
+        refine And.intro ?_ h7
+        simp only [h9, IsEndLike_iff, IsEnd_def, moves_neg, Player.neg_left, Set.neg_eq_empty]
+        exact rightMoves_intCast (Int.sub_nonneg_of_le h2)
+      · refine add_end_WinsGoingFirst ?_ ?_
+        · simp only [IsEnd_def, moves_neg, Set.neg_eq_empty]
+          exact rightMoves_intCast (Int.le_of_lt h2)
+        · apply IsDeadEnd.IsEnd
+          refine IsDeadEnd.hereditary_def ?_ y h9
+          exact IsDeadEnding.IsDeadEnd h6.dead_ending (IsEndLike_iff.mp h7)
+
+theorem reduction_a_eq_neg_ba_c {a b c : ℤ} (h1 : 1 ≤ a) (h2 : 1 ≤ b) (h3 : 1 ≤ c) (h4 : c ≤ a + 1)
+    : !{{!{{(((-b) : ℤ) : GameForm)}|{(a : GameForm)}}}|{(c : GameForm)}} =m PFreeDeadEnding (a : GameForm)  := by
+  obtain ⟨a', h5⟩ := Int.le.dest h1
+  norm_cast at h5
+  rw [add_comm] at h5
+  rw [<-h5]; norm_cast
+  have h6 := reduction_ab_int a' 1 (Int.natCast_nonneg a') Int.le_rfl (by omega)
+  rw [intCast_nat] at h6
+  refine MisereEq_trans ?_ h6
+  refine MisereGe_antisymm ?_ ?_
+  · apply Hereditary.MisereGe PFreeDeadEnding
+    · simp only [Maintenance, moves_ofSets, Player.cases, Set.mem_singleton_iff,
+                 exists_eq_left, forall_eq]
+      apply Or.inr
+      use (c - 1 : ℤ), leftMoves_intCast_zero_lt h3
+      apply MisereGe_rw_right h6
+      exact int_ordered _ _ (by omega)
+    · simp only [Maintenance, intCast_ofNat, Nat.cast_one, moves_ofSets,
+                 Player.cases, Set.mem_singleton_iff, intCast_neg, Nat.cast_add, exists_eq_left,
+                 forall_eq, rightMoves_natCast, Set.mem_empty_iff_false, false_and,
+                 exists_const, or_false]
+      have h3 := reduction_a_eq_neg_ba_c.aux (Int.natCast_nonneg a') h2
+      norm_cast at h3
+      norm_cast
+    · simp [Proviso, IsEnd_def]
+    · simp [Proviso, IsEnd_def]
+  · apply Hereditary.MisereGe PFreeDeadEnding
+    · simp only [Maintenance, moves_ofSets, Player.cases, Set.mem_singleton_iff, intCast_neg,
+                 exists_eq_left, forall_eq]
+      apply Or.inl
+      exact int_ordered _ _ h3
+    · simp only [Maintenance, intCast_neg, Nat.cast_one,
+                 moves_ofSets, Player.cases, Set.mem_singleton_iff, intCast_ofNat, exists_eq_left,
+                 forall_eq]
+      apply Or.inr
+      norm_cast at h6
+      apply MisereGe_rw_left (MisereEq_symm h6)
+      exact MisereGe_refl ((a' + 1) : GameForm)
+    · simp [Proviso, IsEnd_def]
+    · simp [Proviso, IsEnd_def]

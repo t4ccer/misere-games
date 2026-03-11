@@ -505,6 +505,25 @@ theorem leftMoves_intCast_zero_le_succ {a : ℤ} (h1 : 0 ≤ a)
   have := leftMoves_intCast_zero_lt (Int.le_iff_lt_add_one.mp h1)
   rwa [add_sub_cancel_right] at this
 
+theorem leftMoves_intCast_le_zero_of_empty {k : ℤ} (h1 : 0 ≤ k) (h2 : moves .left (k : GameForm) = ∅)
+    : k = 0 := by
+  obtain h_lt | h_eq := lt_or_eq_of_le h1
+  · have h3 := leftMoves_intCast_zero_lt h_lt
+    rw [h2] at h3
+    exact not_neZero.mp fun a ↦ h3
+  · exact h_eq.symm
+
+theorem leftMoves_intCast_le_one_eq {a : ℤ} (h1 : 1 ≤ a)
+    : moves .left ((a : ℤ) : GameForm) = {((a - 1 : ℤ) : GameForm)} := by
+  obtain ⟨x, h2⟩ := Int.le.dest h1
+  rw [<-h2, add_comm]
+  simp
+
+@[simp]
+theorem leftMoves_intCast_le_one_ne_empty {a : ℤ} (h1 : 1 ≤ a)
+    : moves .left ((a : ℤ) : GameForm) ≠ ∅ := by
+  simp [leftMoves_intCast_le_one_eq h1]
+
 @[simp]
 theorem rightMoves_intCast {a : ℤ} (h1 : 0 ≤ a) : moves .right (a : GameForm) = ∅ := by
   have h2 : 0 < a + 1 := by omega
@@ -513,7 +532,7 @@ theorem rightMoves_intCast {a : ℤ} (h1 : 0 ≤ a) : moves .right (a : GameForm
   simp only [rightMoves_natCast]
 
 @[simp]
-theorem leftMoevs_intCast_ne_empty {a : ℤ} (h1 : 0 ≤ a)
+theorem leftMoves_intCast_le_zero_ne_empty {a : ℤ} (h1 : 0 ≤ a)
     : moves .left (((a + 1) : ℤ) : GameForm) ≠ ∅ := by
   have h2 : 0 < a + 1 := by omega
   simp [h2]
