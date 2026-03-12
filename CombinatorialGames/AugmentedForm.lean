@@ -634,6 +634,13 @@ noncomputable instance : Form AugmentedForm where
     simp only [EndLike, hasTombstone_add', IsEnd_def, moves_add',
                Set.union_empty_iff, Set.image_eq_empty]
     tauto
+  IsEndLike_neg_iff_neg' p g := by
+    apply or_congr (hasTombstone_neg' g p)
+    constructor <;> cases p
+    all_goals
+    · intro h1
+      simp only [moves_neg', Player.neg_left, Player.neg_right, Set.neg_eq_empty, IsEnd_def] at h1 ⊢
+      exact h1
 
 lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
     IsEndLike p g ↔ (g.hasTombstone p ∨ (Form.IsEnd p g)) := by rfl

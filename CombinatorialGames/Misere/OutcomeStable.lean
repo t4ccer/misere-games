@@ -5,13 +5,12 @@ public import CombinatorialGames.Misere.PFree
 open Form
 open Form.Misere.Outcome
 open GameForm
-open MisereForm
 
 universe u
 
 public section
 
-class OutcomeStable {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop) where
+class OutcomeStable {G : Type (u + 1)} [Form G] (A : G → Prop) where
   outcome_LL_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
     MisereOutcome (g + h) = .L
   outcome_RR_add {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
@@ -23,7 +22,7 @@ class OutcomeStable {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop) 
 
 namespace OutcomeStable
 
-theorem outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
+theorem outcome_LN_add {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
     {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
   have h5 := player_outcome_LN_add h1 h2 h3 h4
@@ -31,7 +30,7 @@ theorem outcome_LN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Pro
   cases MiserePlayerOutcome (g + h) Player.right
   <;> simp only [reduceCtorEq, or_true, or_false]
 
-theorem outcome_RN_add {G : Type (u + 1)} [Form G] [MisereForm G] {A : G → Prop} [OutcomeStable A]
+theorem outcome_RN_add {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
     {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .R := by
   have h5 := player_outcome_RN_add h1 h2 h3 h4

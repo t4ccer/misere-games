@@ -12,7 +12,6 @@ open GameForm.Adjoint
 open Form.Misere.Outcome
 open GameForm.Misere.Outcome
 open Form
-open MisereForm
 
 public section
 

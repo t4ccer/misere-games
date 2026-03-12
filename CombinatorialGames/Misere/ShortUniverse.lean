@@ -5,7 +5,7 @@ public import CombinatorialGames.Misere.Hereditary
 
 universe u
 
-variable {G : Type (u + 1)} [Form G] [MisereForm G] [OfSets G fun _ ↦ True]
+variable {G : Type (u + 1)} [Form G] [OfSets G fun _ ↦ True]
 
 open Form
 open Form.Misere.Outcome

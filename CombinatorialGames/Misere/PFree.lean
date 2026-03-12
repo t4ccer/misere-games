@@ -6,21 +6,20 @@ public import CombinatorialGames.GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
 open GameForm
-open MisereForm
 
 universe u
 
 public section
 
-@[expose] def IsPFree {G : Type (u + 1)} [Form G] [MisereForm G] (g : G) : Prop :=
+@[expose] def IsPFree {G : Type (u + 1)} [Form G] (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf
 
-class PFree {G : Type (u + 1)} [Form G] [MisereForm G] (A : G → Prop)  where
+class PFree {G : Type (u + 1)} [Form G] (A : G → Prop)  where
   pfree {g : G} (h1 : A g) : IsPFree g
 
-instance {G : Type (u + 1)} [Form G] [MisereForm G] : @PFree G _ _ IsPFree where
+instance {G : Type (u + 1)} [Form G] : PFree (G := G) IsPFree where
   pfree := id
 
 class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
@@ -37,7 +36,7 @@ theorem has_one {A : GameForm → Prop} [HasNat A] : A 1 := by
 class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
 
-variable {G : Type (u + 1)} [Form G] [g_form : MisereForm G]
+variable {G : Type (u + 1)} [Form G]
 
 private def IsPFree.neg {g : G} (h1 : IsPFree g) : IsPFree (-g) := by
   unfold IsPFree at *

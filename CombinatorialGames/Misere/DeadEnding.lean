@@ -12,7 +12,7 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
-open MisereForm
+open Form.Misere.Outcome
 open GameForm.Misere.Outcome
 
 def IsDeadEnd (p : Player) (g : G) : Prop :=
@@ -146,10 +146,9 @@ namespace GameForm
 open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
-open MisereForm
 
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
-    MisereForm.MisereOutcome g = Outcome.ofPlayer p := by
+    MisereOutcome g = Outcome.ofPlayer p := by
   rw [MisereOutcome_eq_player_iff]
   apply And.intro (WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd h2))
   simp only [not_WinsGoingFirst, neg_neg, GameForm.IsEndLike_iff]
@@ -158,10 +157,10 @@ private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDe
   exact WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
-    MisereForm.MisereOutcome g = .L := lemma3.aux h1 h2
+    MisereOutcome g = .L := lemma3.aux h1 h2
 
 theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .right g) :
-    MisereForm.MisereOutcome g = .R := lemma3.aux h1 h2
+    MisereOutcome g = .R := lemma3.aux h1 h2
 
 @[simp]
 theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEnding h) :

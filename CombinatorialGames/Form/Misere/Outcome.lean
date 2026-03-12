@@ -6,17 +6,156 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Form.ClosedUnderNeg
+public import CombinatorialGames.Form.Birthday
 
 public section
 
 namespace Form.Misere.Outcome
 
 open Form
-open MisereForm
 
 universe u
 
-variable {G : Type (u + 1)} [Form G] [g_misere : MisereForm G]
+variable {G : Type (u + 1)} [Form G]
+
+def WinsGoingFirst (p : Player) (g : G) : Prop := IsEndLike p g ∨ (∃ g', ∃ (_ : g' ∈ moves p g), ¬WinsGoingFirst (-p) g')
+  termination_by g
+  decreasing_by exact Moves.Subposition.of_mem_moves (by assumption)
+
+theorem WinsGoingFirst_iff (g : G) (p : Player)
+    : WinsGoingFirst p g ↔ IsEndLike p g ∨ (∃ g' ∈ moves p g, ¬WinsGoingFirst (-p) g') := by
+  apply Iff.intro <;> intro h1
+  · unfold WinsGoingFirst at h1
+    obtain h1 | ⟨g', h2, h3⟩ := h1
+    · exact Or.inl h1
+    · apply Or.inr
+      use g'
+  · unfold WinsGoingFirst
+    obtain h1 | ⟨g', h2⟩ := h1
+    · exact Or.inl h1
+    · apply Or.inr
+      use g'
+
+@[simp]
+theorem WinsGoingFirst_of_IsEndLike {g : G} {p : Player} (h1 : IsEndLike p g) : WinsGoingFirst p g :=
+  (WinsGoingFirst_iff g p).mpr (Or.inl h1)
+
+@[simp]
+theorem WinsGoingFirst_of_IsEnd {g : G} {p : Player} (h1 : IsEnd p g) : WinsGoingFirst p g :=
+  (WinsGoingFirst_iff g p).mpr (Or.inl (IsEnd.IsEndLike h1))
+
+theorem WinsGoingFirst_of_moves {g : G} {p : Player}
+    (h1 : ∃ g' ∈ Form.moves p g, ¬WinsGoingFirst (-p) g')
+    : WinsGoingFirst p g := by
+  rw [WinsGoingFirst_iff]
+  exact Or.inr h1
+
+theorem WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) ↔ (WinsGoingFirst (-p) g) := by
+  constructor
+    <;> intro h1
+    <;> rw [WinsGoingFirst_iff] at h1
+    <;> apply Or.elim h1
+    <;> intro h1
+  · refine WinsGoingFirst_of_IsEndLike ?_
+    rwa [<-IsEndLike.neg_iff_neg]
+  · obtain ⟨gp, h1, h2⟩ := h1
+    refine (WinsGoingFirst_iff g (-p)).mpr ?_
+    refine Or.inr ?_
+    use -gp
+    constructor
+    · rwa [moves_neg, Set.mem_neg] at h1
+    · rwa [neg_neg, WinsGoingFirst_neg_iff]
+  · refine WinsGoingFirst_of_IsEndLike ?_
+    rwa [IsEndLike.neg_iff_neg]
+  · obtain ⟨gp, h1, h2⟩ := h1
+    rw [neg_neg] at h2
+    rw [WinsGoingFirst_iff]
+    apply Or.inr
+    use -gp
+    constructor
+    · rwa [moves_neg, Set.mem_neg, neg_neg]
+    · rwa [WinsGoingFirst_neg_iff, neg_neg]
+termination_by birthday g
+decreasing_by all_goals gameform_birthday
+
+theorem not_WinsGoingFirst {g : G} {p : Player}
+    : ¬WinsGoingFirst p g ↔ (¬Form.IsEndLike p g ∧ (∀ g' ∈ Form.moves p g, WinsGoingFirst (-p) g')) := by
+  rw [WinsGoingFirst_iff]
+  simp only [not_or, not_exists, not_and, not_not]
+
+@[simp]
+theorem WinsGoingFirst_of_zero (p : Player) : WinsGoingFirst p (0 : G) :=
+  WinsGoingFirst_of_IsEnd Form.IsEnd_zero
+
+open scoped Classical in
+@[expose] noncomputable def MiserePlayerOutcome : G → Player → Player :=
+  fun g p => if WinsGoingFirst p g then p else -p
+
+open scoped Classical in
+@[expose] noncomputable def MisereOutcome : G → Outcome :=
+  fun g => Outcome.ofPlayers (MiserePlayerOutcome g .left) (MiserePlayerOutcome g .right)
+
+@[simp]
+theorem MiserePlayerOutcome_eq_iff_WinsGoingFirst {g : G} {p : Player}
+    : (MiserePlayerOutcome g p = p) ↔ WinsGoingFirst p g := by
+  apply Iff.intro <;> intro h1
+  · simp only [MiserePlayerOutcome] at h1
+    by_cases h2 : WinsGoingFirst p g
+    · exact h2
+    · simp [h2] at h1
+      cases p <;> simp at h1
+  · simp only [MiserePlayerOutcome, h1, ↓reduceIte]
+
+private theorem MisereOutcome_eq_WinsGoingFirst {g : G} {p : Player}
+    (h1 : MisereOutcome g = Outcome.ofPlayers p p) : WinsGoingFirst p g := by
+  rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+  cases p
+  <;> cases h2 : MiserePlayerOutcome g Player.left
+  <;> cases h3 : MiserePlayerOutcome g Player.right
+  <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3] at h1
+  <;> rfl
+
+@[simp]
+theorem MisereOutcome_R_eq_WinsGoingFirst {g : G}
+    (h1 : MisereOutcome g = .R) : WinsGoingFirst .right g := by
+  have h2 : .R = Outcome.ofPlayers .right .right := rfl
+  rw [h2] at h1
+  exact MisereOutcome_eq_WinsGoingFirst h1
+
+@[simp]
+theorem MisereOutcome_L_eq_WinsGoingFirst {g : G}
+    (h1 : MisereOutcome g = .L) : WinsGoingFirst .left g := by
+  have h2 : .L = Outcome.ofPlayers .left .left := rfl
+  rw [h2] at h1
+  exact MisereOutcome_eq_WinsGoingFirst h1
+
+theorem MisereOutcome_L_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .L) ↔ ((MiserePlayerOutcome g .left = .left) ∧ (MiserePlayerOutcome g .right = .left)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_N_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .N) ↔ ((MiserePlayerOutcome g .left = .left) ∧ (MiserePlayerOutcome g .right = .right)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_P_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .P) ↔ ((MiserePlayerOutcome g .left = .right) ∧ (MiserePlayerOutcome g .right = .left)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
+
+theorem MisereOutcome_R_iff_MiserePlayerOutcome {g : G}
+    : (MisereOutcome g = .R) ↔ ((MiserePlayerOutcome g .left = .right) ∧ (MiserePlayerOutcome g .right = .right)) := by
+  simp [MiserePlayerOutcome, MisereOutcome, Outcome.ofPlayers]
+  by_cases h1 : WinsGoingFirst Player.left g
+  <;> by_cases h2 : WinsGoingFirst Player.right g
+  <;> simp [h1, h2]
 
 private theorem conjugate_of_conjugates (g : G) :
     Outcome.ofPlayers
@@ -133,7 +272,7 @@ theorem MisereOutcome_eq_N_iff {g : G} :
 @[simp]
 theorem zero_MiserePlayerOutcome (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
   unfold MiserePlayerOutcome
-  simp only [IsEnd_zero, WinsGoingFirst_of_IsEnd, ↓reduceIte]
+  simp only [WinsGoingFirst_of_zero, ↓reduceIte]
 
 @[simp]
 theorem zero_MisereOutcome_N : MisereOutcome (0 : G) = .N := by

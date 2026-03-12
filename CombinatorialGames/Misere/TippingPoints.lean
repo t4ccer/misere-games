@@ -5,7 +5,6 @@ public import CombinatorialGames.Form.Short
 
 open Form
 open Form.Misere.Outcome
-open MisereForm
 
 universe u
 

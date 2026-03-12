@@ -16,7 +16,6 @@ open GameForm.Adjoint
 open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
-open MisereForm
 
 public section
 
@@ -71,7 +70,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
             | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
   -- First consider H + T
-  have h3 : MisereForm.MisereOutcome (h + t) ≥ Outcome.P := by
+  have h3 : MisereOutcome (h + t) ≥ Outcome.P := by
     apply not_rightWinsGoingFirst_ge_P
     rw [WinsGoingFirst_iff]
     simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff, GameForm.IsEndLike_iff]
@@ -91,7 +90,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
       simp only [h3, GameForm.leftMoves_ofSets, IsEnd_def]
   -- Next consider G + T
-  have h4 : MisereForm.MisereOutcome (g + t) ≤ Outcome.N := by
+  have h4 : MisereOutcome (g + t) ≤ Outcome.N := by
     apply rightWinsGoingFirst_outcome_le_N
     apply WinsGoingFirst_of_moves
     -- Right has a move to G + { | (G^L)° }
@@ -121,12 +120,12 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
         exact GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl
   unfold MisereGe
   intro h5
-  have h6 : MisereForm.MisereOutcome (g + t) ≥ Outcome.P :=
+  have h6 : MisereOutcome (g + t) ≥ Outcome.P :=
     Preorder.le_trans
       Outcome.P
-      (MisereForm.MisereOutcome (h + t))
-      (MisereForm.MisereOutcome (g + t)) h3 (h5 t h0)
-  cases h7 : MisereForm.MisereOutcome (g + t)
+      (MisereOutcome (h + t))
+      (MisereOutcome (g + t)) h3 (h5 t h0)
+  cases h7 : MisereOutcome (g + t)
   all_goals simp only [t, h7, LE.le, LT.lt, and_false, and_self, and_true, ge_iff_le,
                        ne_eq, not_false_eq_true, not_true_eq_false, or_false, or_self, or_true,
                        reduceCtorEq] at h4 h6

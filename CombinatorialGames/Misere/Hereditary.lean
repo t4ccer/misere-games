@@ -8,11 +8,10 @@ universe u
 
 open Form
 open Form.Misere.Outcome
-open MisereForm
 
 namespace Form
 
-variable {G : Type (u + 1)} [Form G] [MisereForm G]
+variable {G : Type (u + 1)} [Form G]
 
 @[expose] def Maintenance (U : G → Prop) (g h : G) (p : Player) : Prop :=
   match p with

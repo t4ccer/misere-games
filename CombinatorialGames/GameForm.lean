@@ -389,6 +389,12 @@ instance : Form GameForm where
   IsEndLike p x := moves p x = ∅
   IsEndLike_ofEnd' _ _ h1 := h1
   IsEndLike_add_iff' p x y := by simp [moves_add']
+  IsEndLike_neg_iff_neg' p g := by
+    constructor <;> cases p
+    all_goals
+    · intro h1
+      simp only [moves_neg', Player.neg_left, Player.neg_right, Set.neg_eq_empty] at h1 ⊢
+      exact h1
 
 @[simp]
 theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by

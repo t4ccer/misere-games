@@ -13,6 +13,7 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
+open Form.Misere.Outcome
 open GameForm.Misere.Outcome
 
 public section
@@ -33,10 +34,10 @@ termination_by g
 decreasing_by form_wf
 
 def Augmented_strong (U : GameForm → Prop) (g : AugmentedForm) (p : Player) : Prop :=
-  ∀ x, U x → IsEndLike p x → MisereForm.WinsGoingFirst p (g + (x : AugmentedForm))
+  ∀ x, U x → IsEndLike p x → WinsGoingFirst p (g + (x : AugmentedForm))
 
 def AugmentedMisereGe (U : GameForm → Prop) (g h : AugmentedForm) : Prop :=
-  ∀ x, (U x → MisereForm.MisereOutcome (g + (x : AugmentedForm)) ≥ MisereForm.MisereOutcome (h + (x : AugmentedForm)))
+  ∀ x, (U x → MisereOutcome (g + (x : AugmentedForm)) ≥ MisereOutcome (h + (x : AugmentedForm)))
 
 /-- `G ≥ma U H` means that G ≥_U H for AugmentedForms -/
 macro_rules | `($x ≥ma $u $y) => `(AugmentedMisereGe $u $x $y)
@@ -62,12 +63,12 @@ lemma toGameForm_preserves_short (g : AugmentedForm) [Form.Short g] (h : Augment
   sorry
 
 lemma winsGoingFirst_coercion_compat (g : GameForm) (p : Player) :
-    MisereForm.WinsGoingFirst p g ↔ MisereForm.WinsGoingFirst p (g : AugmentedForm) := by
+    WinsGoingFirst p g ↔ WinsGoingFirst p (g : AugmentedForm) := by
   sorry
 
 lemma misereOutcome_coercion_compat (g : GameForm) :
-    MisereForm.MisereOutcome g = MisereForm.MisereOutcome (g : AugmentedForm) := by
-  simp only [MisereForm.MisereOutcome, MisereForm.MiserePlayerOutcome]
+    MisereOutcome g = MisereOutcome (g : AugmentedForm) := by
+  simp only [MisereOutcome, MiserePlayerOutcome]
   congr 2 <;> simp [winsGoingFirst_coercion_compat]
 
 -- can just replace with ofGameForms_moves_mem_iff
@@ -120,7 +121,7 @@ lemma strong_coercion_compat {U : GameForm → Prop} (g : GameForm) (p : Player)
     have h_end' := (isEnd_coercion_compat x p).mp (GameForm.IsEndLike_iff.mp h_end)
     rw [AugmentedForm.IsEndLike_ofGameForm_iff, <-GameForm.IsEndLike_iff] at h_end'
     have h1 := h x hx h_end'
-    have h2 : MisereForm.WinsGoingFirst p (AugmentedForm.ofGameForm (g + x)) := by
+    have h2 : WinsGoingFirst p (AugmentedForm.ofGameForm (g + x)) := by
       convert h1 using 1
       rw [AugmentedForm.ofGameForm_add]
     exact (winsGoingFirst_coercion_compat (g + x) p).mpr h2
@@ -171,7 +172,7 @@ theorem self_sub_eq_zero_iff_invertible {U : GameForm → Prop} [ShortUniverse U
   sorry
 
 class NoP (A : GameForm → Prop) where
-  no_P (g : GameForm) (h1 : A g) : MisereForm.MisereOutcome g ≠ .P
+  no_P (g : GameForm) (h1 : A g) : MisereOutcome g ≠ .P
 
 class DeadEnding (A : GameForm → Prop) where
   dead_ending (g : GameForm) : IsDeadEnding g

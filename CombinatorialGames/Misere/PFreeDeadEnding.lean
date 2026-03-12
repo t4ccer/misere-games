@@ -13,7 +13,6 @@ open Form
 open Form.Misere.Outcome
 open GameForm.Misere.Outcome
 open GameForm
-open MisereForm
 
 structure PFreeDeadEnding (g : GameForm) : Prop where
   p_free : IsPFree g
