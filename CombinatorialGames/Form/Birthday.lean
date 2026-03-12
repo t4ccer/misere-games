@@ -108,4 +108,28 @@ theorem birthday_add (g h : G) : birthday (g + h) = birthday g + birthday h := b
 termination_by (g, h)
 decreasing_by form_wf
 
+open Lean Meta Elab Tactic in
+elab "gameform_birthday" : tactic => do
+  Lean.Elab.Tactic.withMainContext do
+    -- From (g' ∈ moves p g) generate proofs for (birthday g' < birthday g)
+    let lctx ← getLCtx
+    for h in lctx do
+      if h.isImplementationDetail then continue
+      let type ← instantiateMVars h.type
+      if type.isAppOfArity ``Membership.mem 5 then
+        let args := type.getAppArgs
+        let collection := args[3]!
+        if collection.getAppFn.isConstOf `Moves.moves then
+          let birthdayName ← mkFreshUserName `h
+          let birthdayProof ← mkAppM `Form.birthday_lt_of_mem_moves #[h.toExpr]
+          liftMetaTactic fun goalId => do
+            let newGoalId ← goalId.assert birthdayName (← inferType birthdayProof) birthdayProof
+            let (_, birthdayProofId) ← newGoalId.intro1P
+            return [birthdayProofId]
+
+  Lean.Elab.Tactic.withMainContext do
+    evalTactic (← `(tactic| try simp only [Form.birthday_neg, Form.birthday_add] at *))
+    evalTactic (← `(tactic| try simp))
+    evalTactic (← `(tactic| try omega))
+
 end Form

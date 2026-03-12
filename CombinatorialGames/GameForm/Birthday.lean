@@ -82,28 +82,4 @@ theorem mem_birthdayFinset {x : GameForm} {n : ℕ} : x ∈ birthdayFinset n ↔
 @[simp] theorem birthday_ofNat (n : ℕ) [n.AtLeastTwo] : birthday (ofNat(n) : GameForm) = n := by
   simp only [OfNat.ofNat, birthday_natCast]
 
-open Lean Meta Elab Tactic in
-elab "gameform_birthday" : tactic => do
-  Lean.Elab.Tactic.withMainContext do
-    -- From (g' ∈ moves p g) generate proofs for (birthday g' < birthday g)
-    let lctx ← getLCtx
-    for h in lctx do
-      if h.isImplementationDetail then continue
-      let type ← instantiateMVars h.type
-      if type.isAppOfArity ``Membership.mem 5 then
-        let args := type.getAppArgs
-        let collection := args[3]!
-        if collection.getAppFn.isConstOf `Moves.moves then
-          let birthdayName ← mkFreshUserName `h
-          let birthdayProof ← mkAppM `Form.birthday_lt_of_mem_moves #[h.toExpr]
-          liftMetaTactic fun goalId => do
-            let newGoalId ← goalId.assert birthdayName (← inferType birthdayProof) birthdayProof
-            let (_, birthdayProofId) ← newGoalId.intro1P
-            return [birthdayProofId]
-
-  Lean.Elab.Tactic.withMainContext do
-    evalTactic (← `(tactic| try simp only [Form.birthday_neg, Form.birthday_add] at *))
-    evalTactic (← `(tactic| try simp))
-    evalTactic (← `(tactic| omega))
-
 end GameForm
