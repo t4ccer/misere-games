@@ -15,7 +15,7 @@ mutual
 private theorem right_wins_of_birthday_le (g : GameForm) (b : ℕ) (h1 : birthday g ≤ b) :
     WinsGoingFirst .right (g + b) := by
   by_cases h2 : IsEnd .right g
-  · exact add_end_WinsGoingFirst h2 (GameForm.nat_IsEnd_right b)
+  · exact WinsGoingFirst_add_of_both_end h2 (GameForm.nat_IsEnd_right b)
   · obtain ⟨gr, h3⟩ := Form.not_IsEnd_exists_move h2
     refine WinsGoingFirst_of_moves ?_
     refine ⟨gr + b, Form.add_right_mem_moves_add h3 b, ?_⟩
@@ -48,7 +48,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
         apply Order.lt_add_one_iff.mp
         simpa [hk, Nat.cast_add, Nat.cast_one] using h1
       by_cases h8 : IsEnd .right g
-      · exact add_end_WinsGoingFirst h8 (GameForm.nat_IsEnd_right k)
+      · exact WinsGoingFirst_add_of_both_end h8 (GameForm.nat_IsEnd_right k)
       · obtain ⟨gr, h9⟩ := Form.not_IsEnd_exists_move h8
         refine WinsGoingFirst_of_moves ?_
         refine ⟨gr + k, Form.add_right_mem_moves_add h9 k, ?_⟩
@@ -60,7 +60,7 @@ end
 
 private theorem add_gt_birthday_R (g : GameForm) (b : ℕ) (h1 : birthday g < b) :
     MisereOutcome (g + b) = .R := by
-  exact MisereOutcome_eq_R_iff.mpr
+  exact MisereOutcome_R_iff_WinsGoingFirst.mpr
     ⟨right_wins_of_birthday_le g b h1.le, not_left_wins_of_birthday_lt g b h1⟩
 
 theorem add_birthday_plus_one_R (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
@@ -71,7 +71,7 @@ theorem add_birthday_plus_one_R (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
 
 theorem add_neg_birthday_plus_one_L (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
     MisereOutcome (g + (-(b + (1 : ℕ)))) = .L := by
-  simpa [outcome_conjugate_eq_outcome_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using
+  simpa [MisereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using
     congrArg Outcome.Conjugate
       (add_birthday_plus_one_R (-g) b (by simpa [Form.birthday_neg] using h1))
 
@@ -115,7 +115,7 @@ private theorem exists_add_nat_N_of_not_R (g : GameForm) [Short g] (h1 : MisereO
     omega
   have hnotR_n : MisereOutcome (g + n) ≠ .R := by
     exact Nat.find_min hR (by simpa [r] using hnlt)
-  have hnotLeft_r : ¬WinsGoingFirst .left (g + r) := (MisereOutcome_eq_R_iff.mp hrR).2
+  have hnotLeft_r : ¬WinsGoingFirst .left (g + r) := (MisereOutcome_R_iff_WinsGoingFirst.mp hrR).2
   have hright_n : WinsGoingFirst .right (g + n) := by
     by_contra h2
     have h3 : WinsGoingFirst .left ((g + n) + 1) :=
@@ -125,9 +125,9 @@ private theorem exists_add_nat_N_of_not_R (g : GameForm) [Short g] (h1 : MisereO
     exact hnotLeft_r (by simpa [hnsucc] using h4)
   refine ⟨n, ?_⟩
   cases hn : MisereOutcome (g + n)
-  · exact False.elim ((MisereOutcome_eq_L_iff.mp hn).right hright_n)
+  · exact False.elim ((MisereOutcome_L_iff_WinsGoingFirst.mp hn).right hright_n)
   · simp
-  · exact False.elim ((MisereOutcome_eq_P_iff.mp hn).left hright_n)
+  · exact False.elim ((MisereOutcome_P_iff_WinsGoingFirst.mp hn).left hright_n)
   · exact False.elim (hnotR_n hn)
 
 def NTippingPoint.aux (g : GameForm) [h1 : Short g] :
@@ -139,7 +139,7 @@ def NTippingPoint.aux (g : GameForm) [h1 : Short g] :
     have h4 : (MisereOutcome (-g + n)).Conjugate = .N := by
       rw [hn]
       rfl
-    simpa [outcome_conjugate_eq_outcome_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using h4
+    simpa [MisereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using h4
   · obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R g h2
     exact ⟨n, Or.inl hn⟩
 
@@ -155,9 +155,9 @@ theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint (-g) = NTippi
     intro x
     constructor <;> intro hx
     · have : (MisereOutcome x).Conjugate = .N := by rw [hx]; rfl
-      simpa [outcome_conjugate_eq_outcome_neg] using this
+      simpa [MisereOutcome_conjugate_neg] using this
     · have : (MisereOutcome (-x)).Conjugate = .N := by rw [hx]; rfl
-      simpa [outcome_conjugate_eq_outcome_neg] using this
+      simpa [MisereOutcome_conjugate_neg] using this
   have h1 : MisereOutcome (g + n) = .N ↔ MisereOutcome (-g + (-n)) = .N := by
     simpa [neg_add_rev, add_comm, add_left_comm, add_assoc] using hconjN (g + n)
   have h2 : MisereOutcome (g + (-n)) = .N ↔ MisereOutcome (-g + n) = .N := by

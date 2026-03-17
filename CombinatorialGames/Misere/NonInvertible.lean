@@ -71,7 +71,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
 
   -- First consider H + T
   have h3 : MisereOutcome (h + t) ≥ Outcome.P := by
-    apply not_rightWinsGoingFirst_ge_P
+    apply MisereOutcome_ge_P_of_not_WinsGoingFirst_right
     rw [WinsGoingFirst_iff]
     simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff, GameForm.IsEndLike_iff]
     apply And.intro (fun h3 => by
@@ -80,18 +80,18 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
-      refine outcome_eq_P_leftWinsGoingFirst ?_ (GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P hr)
+      refine WinsGoingFirst_left_of_move_MisereOutcome_P ?_ (GameForm.Misere.Adjoint.MisereOutcome_add_adjoint_P hr)
       refine add_left_mem_moves_add ?_ hr
       simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
-      apply add_end_WinsGoingFirst h1
+      apply WinsGoingFirst_add_of_both_end h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
       simp only [h3, GameForm.leftMoves_ofSets, IsEnd_def]
   -- Next consider G + T
   have h4 : MisereOutcome (g + t) ≤ Outcome.N := by
-    apply rightWinsGoingFirst_outcome_le_N
+    apply MisereOutcome_le_N_of_WinsGoingFirst_right
     apply WinsGoingFirst_of_moves
     -- Right has a move to G + { | (G^L)° }
     use (g + !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°})
@@ -116,8 +116,8 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       constructor
       · apply Or.inr
         use gl
-      · apply outcome_eq_P_not_WinsGoingFirst
-        exact GameForm.Misere.Adjoint.outcome_add_adjoint_eq_P gl
+      · apply not_WinsGoingFirst_of_MisereOutcome_P
+        exact GameForm.Misere.Adjoint.MisereOutcome_add_adjoint_P gl
   unfold MisereGe
   intro h5
   have h6 : MisereOutcome (g + t) ≥ Outcome.P :=

@@ -80,7 +80,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
         simpa [h8] using h9
       exact Player.le_right_eq _ h11
     -- and hence oR(H + X) = R.
-    exact MiserePlayerOutcome_moves_right (add_left_mem_moves_add h7 h) h10
+    exact MiserePlayerOutcome_of_rightMoves (add_left_mem_moves_add h7 h) h10
   · -- 2. o^L(G^R + X) = R for some G^R.
     intro ⟨gr, h7, h8⟩
     rw [Player.neg_right] at h8
@@ -96,7 +96,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
         have h13 : MiserePlayerOutcome (hr + x) .left ≤ .right := by
           simpa [h8] using h11
         exact Player.le_right_eq _ h13
-      exact MiserePlayerOutcome_moves_right (add_right_mem_moves_add h9 x) h12
+      exact MiserePlayerOutcome_of_rightMoves (add_right_mem_moves_add h9 x) h12
     · -- or else there exists some G^RL with G^RL ≥A H
       intro ⟨grl, h9, h10⟩
       -- In the latter, we observe that o^R(G^RL + X) = R (since o^L(G^R + X) = R),
@@ -146,7 +146,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
         simpa [h8] using h9
       exact Player.le_left_eq _ h11
     -- and hence oL(G + X) = L.
-    exact MiserePlayerOutcome_moves_left (add_left_mem_moves_add h7 g) h10
+    exact MiserePlayerOutcome_of_leftMoves (add_left_mem_moves_add h7 g) h10
   · -- 2. o^R(H^L + X) = L for some H^L.
     intro ⟨hl, h7, h8⟩
     rw [Player.neg_left] at h8
@@ -158,7 +158,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
       have h11 : MiserePlayerOutcome (gl + x) .right ≥ MiserePlayerOutcome (hl + x) .right := by
         exact MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (h10 x hx) .right
       -- and hence o^L(G + X) = L.
-      refine MiserePlayerOutcome_moves_left (add_right_mem_moves_add h9 x) ?_
+      refine MiserePlayerOutcome_of_leftMoves (add_right_mem_moves_add h9 x) ?_
       simp [h8] at h11
       simp [h11]
     · -- or else there exists some H^LR with G ≥A H^LR

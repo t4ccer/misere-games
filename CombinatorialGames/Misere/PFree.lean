@@ -43,11 +43,11 @@ private def IsPFree.neg {g : G} (h1 : IsPFree g) : IsPFree (-g) := by
   obtain ⟨h1, h2⟩ := h1
   constructor
   · unfold MisereOutcome Outcome.ofPlayers
-    simp only [outcome_eq_neg_player_conjugate,
+    simp only [MiserePlayerOutcome_neg_player_neg,
                Player.neg_left, Player.neg_right, ne_eq]
     cases h3 : MiserePlayerOutcome g .left <;> cases h4 : MiserePlayerOutcome g .right
     <;> simp only [reduceCtorEq, not_false_eq_true, not_true_eq_false]
-    refine h1 (wins_opposite_outcome_eq_P ?_)
+    refine h1 (MisereOutcome_P_of_MiserePlayerOutcome_neg ?_)
     intro p
     cases p
     · exact h3
@@ -122,7 +122,7 @@ private lemma Special.not_WinsGoingFirst_right {g : GameForm} (h1: IsSpecial g)
     unfold IsSpecial at h1
     cases h1.2 gr hgr_mem with
     | inl h_outcome_L =>
-      rw [MisereOutcome_eq_L_iff] at h_outcome_L
+      rw [MisereOutcome_L_iff_WinsGoingFirst] at h_outcome_L
       exact hgr_win h_outcome_L.left
     | inr h_left_special =>
       obtain ⟨grl, hgrl_mem, hgrl_special⟩ := h_left_special
@@ -261,7 +261,7 @@ private lemma Special.of_add_one_not_WinsGoingFirst_right {g : GameForm} (h1 : I
           cases h_rest with
           | inl h_R =>
             exfalso
-            rw [MisereOutcome_eq_R_iff] at h_R
+            rw [MisereOutcome_R_iff_WinsGoingFirst] at h_R
             obtain ⟨h_right_wins_gr, _⟩ := h_R
             exact h_right_not_wins_gr h_right_wins_gr
           | inr h_N =>
@@ -294,7 +294,7 @@ private theorem IsPFree.add_one_MisereOutcome_ne_P {g : GameForm} (h1 : IsPFree 
   -- 0. Assume for contradiction that g+1 has outcome P
   -- 1. This means Right does not win g+1 going first
   have h_right_not_wins_g1 : ¬WinsGoingFirst .right (g + 1) :=
-    outcome_eq_P_not_WinsGoingFirst h_outcome_P
+    not_WinsGoingFirst_of_MisereOutcome_P h_outcome_P
 
   -- 2. By add_one_P_gives_special, g is special
   have h_g_special : IsSpecial g := Special.of_add_one_not_WinsGoingFirst_right h1 h_right_not_wins_g1
@@ -316,7 +316,7 @@ private theorem IsPFree.add_one_MisereOutcome_ne_P {g : GameForm} (h1 : IsPFree 
   -- 7. But we assumed that g+1 had outcome P, which means Left does not win
   -- g+1 going first: this is a contradiction.
   have h_left_not_wins_g_plus_one : ¬WinsGoingFirst .left (g + 1) :=
-    outcome_eq_P_not_WinsGoingFirst h_outcome_P
+    not_WinsGoingFirst_of_MisereOutcome_P h_outcome_P
 
   exact h_left_not_wins_g_plus_one h_left_wins_g_plus_one
 
@@ -378,7 +378,7 @@ theorem exists_move_WinsGoingFirst {g : GameForm} {p : Player}
   use gr, h3
   by_cases h5 : WinsGoingFirst p gr
   · exact h5
-  · have h6 : MisereOutcome gr = .P := MisereOutcome_eq_P_iff'.mpr ⟨h5, h4⟩
+  · have h6 : MisereOutcome gr = .P := MisereOutcome_P_iff_WinsGoingFirst'.mpr ⟨h5, h4⟩
     have h7 : MisereOutcome gr ≠ .P := PFree.MisereOutcome_ne_P (IsPFree_ofMoves h2 h3)
     exact False.elim (h7 h6)
 
@@ -395,7 +395,7 @@ private theorem not_WinsGoingFirst_left_add_one {g : GameForm} (h0 : IsPFree g)
     simp at h2
     obtain h2 | ⟨gll, h2, h4⟩ := h2
     · rw [h2] at h3
-      have h4 := MisereOutcome_eq_P_iff.mpr ⟨h3, h1⟩
+      have h4 := MisereOutcome_P_iff_WinsGoingFirst.mpr ⟨h3, h1⟩
       exact PFree.MisereOutcome_ne_P h0 h4
     · rw [<-h4] at h3
       have h5 : IsPFree gll := PFree.IsPFree_ofMoves h0 h2
@@ -412,7 +412,7 @@ private theorem WinsGoingFirst_right_add_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .right g) : WinsGoingFirst .right (g + 1) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine WinsGoingFirst_add_of_both_end (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + 1, add_right_mem_moves_add h1 1, ?_⟩
     rw [Player.neg_right] at ⊢ h2
@@ -425,8 +425,8 @@ end
 @[aesop safe apply]
 theorem MisereOutcome_add_one_R {g : GameForm} (h0 : A g) (h1 : MisereOutcome g = .R) :
     MisereOutcome (g + 1) = .R := by
-  simp only [MisereOutcome_eq_R_iff]
-  have ⟨h2, h3⟩ := MisereOutcome_eq_R_iff.mp h1
+  simp only [MisereOutcome_R_iff_WinsGoingFirst]
+  have ⟨h2, h3⟩ := MisereOutcome_R_iff_WinsGoingFirst.mp h1
   constructor
   · exact WinsGoingFirst_right_add_one (PFree.pfree h0) h2
   · exact not_WinsGoingFirst_left_add_one (PFree.pfree h0) h3
@@ -453,7 +453,7 @@ private theorem not_WinsGoingFirst_right_sub_one {g : GameForm} (h0 : IsPFree g)
     simp at h2
     obtain h2 | ⟨gll, h2, h4⟩ := h2
     · rw [h2] at h3
-      have h4 := MisereOutcome_eq_P_iff.mpr ⟨h1, h3⟩
+      have h4 := MisereOutcome_P_iff_WinsGoingFirst.mpr ⟨h1, h3⟩
       exact PFree.MisereOutcome_ne_P h0 h4
     · rw [<-h4] at h3
       have h5 : IsPFree gll := IsPFree.mem_moves h0 h2
@@ -470,7 +470,7 @@ private theorem WinsGoingFirst_left_sub_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .left g) : WinsGoingFirst .left (g + (-1)) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine add_end_WinsGoingFirst (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine WinsGoingFirst_add_of_both_end (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + (-1), add_right_mem_moves_add h1 (-1), ?_⟩
     rw [Player.neg_left] at ⊢ h2
@@ -482,8 +482,8 @@ end
 
 theorem MisereOutcome_sub_one_L {g : GameForm} (h0 : A g) (h1 : MisereOutcome g = .L) :
     MisereOutcome (g + (-1)) = .L := by
-  simp only [MisereOutcome_eq_L_iff]
-  have ⟨h2, h3⟩ := MisereOutcome_eq_L_iff.mp h1
+  simp only [MisereOutcome_L_iff_WinsGoingFirst]
+  have ⟨h2, h3⟩ := MisereOutcome_L_iff_WinsGoingFirst.mp h1
   constructor
   · exact WinsGoingFirst_left_sub_one (PFree.pfree h0) h2
   · exact not_WinsGoingFirst_right_sub_one (PFree.pfree h0) h3
@@ -545,7 +545,7 @@ private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSp
   obtain h_outcome_eq_L | h4 := h2 gr h_gr_mem_right
   · -- 3. gr has outcome L
     -- 4. then Left wins
-    exact (MisereOutcome_eq_L_iff.mp h_outcome_eq_L).left
+    exact (MisereOutcome_L_iff_WinsGoingFirst.mp h_outcome_eq_L).left
   · -- 5. there exists a left move grl of gr that is special
     obtain ⟨grl, h_grl_mem_left, h_grl_special⟩ := h4
     -- 6. by induction, right does not win going first on grl, so Left wins

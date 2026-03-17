@@ -110,10 +110,7 @@ theorem ofSets_leftMoves_rightMoves (x : GameForm) : !{xᴸ | xᴿ} = x := by
   convert x.ofSets_moves with p
   cases p <;> rfl
 
-/-- Two `GameForm`s are equal when their move sets are.
-
-For the weaker but more common notion of equivalence where `x = y` if `x ≤ y` and `y ≤ x`,
-use `Game`. -/
+/-- Two `GameForm`s are equal when their move sets are. -/
 @[ext]
 theorem ext {x y : GameForm.{u}} (h : ∀ p, moves p x = moves p y) :
     x = y := by

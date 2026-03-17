@@ -84,7 +84,7 @@ theorem not_WinsGoingFirst {g : G} {p : Player}
   simp only [not_or, not_exists, not_and, not_not]
 
 @[simp]
-theorem WinsGoingFirst_of_zero (p : Player) : WinsGoingFirst p (0 : G) :=
+theorem WinsGoingFirst_zero (p : Player) : WinsGoingFirst p (0 : G) :=
   WinsGoingFirst_of_IsEnd Form.IsEnd_zero
 
 open scoped Classical in
@@ -105,29 +105,6 @@ theorem MiserePlayerOutcome_eq_iff_WinsGoingFirst {g : G} {p : Player}
     · simp [h2] at h1
       cases p <;> simp at h1
   · simp only [MiserePlayerOutcome, h1, ↓reduceIte]
-
-private theorem MisereOutcome_eq_WinsGoingFirst {g : G} {p : Player}
-    (h1 : MisereOutcome g = Outcome.ofPlayers p p) : WinsGoingFirst p g := by
-  rw [<-MiserePlayerOutcome_eq_iff_WinsGoingFirst]
-  cases p
-  <;> cases h2 : MiserePlayerOutcome g Player.left
-  <;> cases h3 : MiserePlayerOutcome g Player.right
-  <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3] at h1
-  <;> rfl
-
-@[simp]
-theorem MisereOutcome_R_eq_WinsGoingFirst {g : G}
-    (h1 : MisereOutcome g = .R) : WinsGoingFirst .right g := by
-  have h2 : .R = Outcome.ofPlayers .right .right := rfl
-  rw [h2] at h1
-  exact MisereOutcome_eq_WinsGoingFirst h1
-
-@[simp]
-theorem MisereOutcome_L_eq_WinsGoingFirst {g : G}
-    (h1 : MisereOutcome g = .L) : WinsGoingFirst .left g := by
-  have h2 : .L = Outcome.ofPlayers .left .left := rfl
-  rw [h2] at h1
-  exact MisereOutcome_eq_WinsGoingFirst h1
 
 theorem MisereOutcome_L_iff_MiserePlayerOutcome {g : G}
     : (MisereOutcome g = .L) ↔ ((MiserePlayerOutcome g .left = .left) ∧ (MiserePlayerOutcome g .right = .left)) := by
@@ -157,17 +134,29 @@ theorem MisereOutcome_R_iff_MiserePlayerOutcome {g : G}
   <;> by_cases h2 : WinsGoingFirst Player.right g
   <;> simp [h1, h2]
 
-private theorem conjugate_of_conjugates (g : G) :
+@[simp]
+theorem WinsGoingFirst_left_of_MisereOutcome_L {g : G}
+    (h1 : MisereOutcome g = .L) : WinsGoingFirst .left g := by
+  rw [MisereOutcome_L_iff_MiserePlayerOutcome, MiserePlayerOutcome_eq_iff_WinsGoingFirst] at h1
+  exact h1.left
+
+@[simp]
+theorem WinsGoingFirst_right_of_MisereOutcome_R {g : G}
+    (h1 : MisereOutcome g = .R) : WinsGoingFirst .right g := by
+  rw [MisereOutcome_R_iff_MiserePlayerOutcome, MiserePlayerOutcome_eq_iff_WinsGoingFirst] at h1
+  exact h1.right
+
+private theorem Conjugate_MisereOutcome_of_ofPlayers_neg (g : G) :
     Outcome.ofPlayers
       (-(MiserePlayerOutcome g .right))
       (-(MiserePlayerOutcome g .left))
-    = (MisereOutcome g).Conjugate := by
+    = Outcome.Conjugate (MisereOutcome g) := by
   cases h1 : MiserePlayerOutcome g .right
   <;> cases h2 : MiserePlayerOutcome g .left
   all_goals simp only [h1, h2, Outcome.Conjugate, Outcome.ofPlayers, MisereOutcome]
 
 @[simp]
-theorem outcome_eq_neg_player_conjugate (g : G) (p : Player) :
+theorem MiserePlayerOutcome_neg_player_neg (g : G) (p : Player) :
     MiserePlayerOutcome (-g) p = -(MiserePlayerOutcome g (-p)) := by
   unfold MiserePlayerOutcome
   rw [WinsGoingFirst_neg_iff g p, neg_neg]
@@ -176,29 +165,29 @@ theorem outcome_eq_neg_player_conjugate (g : G) (p : Player) :
   · by_cases h1 : WinsGoingFirst .left g <;> simp [h1]
 
 @[simp]
-theorem outcome_conjugate_eq_outcome_neg (g : G) :
+theorem MisereOutcome_conjugate_neg (g : G) :
     (MisereOutcome g).Conjugate = MisereOutcome (-g) := by
   unfold Outcome.Conjugate
   cases h1 : MisereOutcome g
   all_goals
   · unfold MisereOutcome
-    rw [outcome_eq_neg_player_conjugate, Player.neg_left,
-        outcome_eq_neg_player_conjugate, Player.neg_right,
-        conjugate_of_conjugates g, h1]
+    rw [MiserePlayerOutcome_neg_player_neg, Player.neg_left,
+        MiserePlayerOutcome_neg_player_neg, Player.neg_right,
+        Conjugate_MisereOutcome_of_ofPlayers_neg g, h1]
     rfl
 
-theorem not_rightWinsGoingFirst_ge_P {g : G} (h1 : ¬WinsGoingFirst .right g) :
+theorem MisereOutcome_ge_P_of_not_WinsGoingFirst_right {g : G} (h1 : ¬WinsGoingFirst .right g) :
     MisereOutcome g ≥ Outcome.P := by
   unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome
   by_cases h2 : WinsGoingFirst .left g
   all_goals simp only [h1, h2, reduceIte, ge_iff_le, le_refl, Outcome.L_ge]
 
-theorem rightWinsGoingFirst_outcome_le_N {g : G} (h1 : WinsGoingFirst .right g) :
+theorem MisereOutcome_le_N_of_WinsGoingFirst_right {g : G} (h1 : WinsGoingFirst .right g) :
     MisereOutcome g ≤ Outcome.N := by
   unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome
   by_cases h2 : WinsGoingFirst .left g <;> simp [h1, h2]
 
-theorem outcome_eq_P_not_WinsGoingFirst {g : G} {p : Player}
+theorem not_WinsGoingFirst_of_MisereOutcome_P {g : G} {p : Player}
     (h1 : MisereOutcome g = Outcome.P) : ¬WinsGoingFirst p g := by
   intro h2
   unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h1
@@ -209,7 +198,7 @@ theorem outcome_eq_P_not_WinsGoingFirst {g : G} {p : Player}
   · exact h3 h2
   · exact h4 h2
 
-theorem wins_opposite_outcome_eq_P {g : G} (h1 : ∀ p, MiserePlayerOutcome g p = -p) :
+theorem MisereOutcome_P_of_MiserePlayerOutcome_neg {g : G} (h1 : ∀ p, MiserePlayerOutcome g p = -p) :
     MisereOutcome g = Outcome.P := by
   unfold MisereOutcome Outcome.ofPlayers
   simp only [h1 .left, h1 .right]
@@ -231,25 +220,25 @@ theorem MisereOutcome_eq_player_iff (g : G) (p : Player) :
     <;> simp only [Player.neg_left, Player.neg_right] at h1
     <;> simp only [h1, reduceIte, Player.neg_right, Outcome.ofPlayer]
 
-theorem MisereOutcome_eq_L_iff {g : G} :
+theorem MisereOutcome_L_iff_WinsGoingFirst {g : G} :
     (MisereOutcome g = .L) ↔ (WinsGoingFirst .left g ∧ ¬WinsGoingFirst .right g) := by
   have h1 : Outcome.L = Outcome.ofPlayer .left := by rfl
   have h2 : Player.right = -Player.left := rfl
   rw [h1, h2]
   exact MisereOutcome_eq_player_iff g Player.left
 
-theorem MisereOutcome_eq_R_iff {g : G} :
+theorem MisereOutcome_R_iff_WinsGoingFirst {g : G} :
     (MisereOutcome g = .R) ↔ (WinsGoingFirst .right g ∧ ¬WinsGoingFirst .left g) := by
   have h1 : Outcome.R = Outcome.ofPlayer .right := by rfl
   have h2 : Player.left = -Player.right := by rfl
   rw [h1, h2]
   exact MisereOutcome_eq_player_iff g Player.right
 
-theorem MisereOutcome_eq_P_iff' {g : G} {p : Player} :
+theorem MisereOutcome_P_iff_WinsGoingFirst' {g : G} {p : Player} :
     (MisereOutcome g = .P) ↔ (¬WinsGoingFirst p g ∧ ¬WinsGoingFirst (-p) g) := by
   constructor
   · intro h1
-    exact ⟨outcome_eq_P_not_WinsGoingFirst h1, outcome_eq_P_not_WinsGoingFirst h1⟩
+    exact ⟨not_WinsGoingFirst_of_MisereOutcome_P h1, not_WinsGoingFirst_of_MisereOutcome_P h1⟩
   · intro ⟨h1, h2⟩
     unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome
     cases p
@@ -257,12 +246,12 @@ theorem MisereOutcome_eq_P_iff' {g : G} {p : Player} :
     · simp only [Player.neg_right, Player.neg_left] at h2
       simp only [h1, h2, Player.neg_left, Player.neg_right, Player.neg_right, reduceIte]
 
-theorem MisereOutcome_eq_P_iff {g : G} :
+theorem MisereOutcome_P_iff_WinsGoingFirst {g : G} :
     (MisereOutcome g = .P) ↔ (¬WinsGoingFirst .right g ∧ ¬WinsGoingFirst .left g) := by
   rw [<-Player.neg_right]
-  exact MisereOutcome_eq_P_iff'
+  exact MisereOutcome_P_iff_WinsGoingFirst'
 
-theorem MisereOutcome_eq_N_iff {g : G} :
+theorem MisereOutcome_N_iff_WinsGoingFirst {g : G} :
     (MisereOutcome g = .N) ↔ (WinsGoingFirst .left g ∧ WinsGoingFirst .right g) := by
   simp only [← MiserePlayerOutcome_eq_iff_WinsGoingFirst]
   cases h_left : MiserePlayerOutcome g .left
@@ -270,31 +259,70 @@ theorem MisereOutcome_eq_N_iff {g : G} :
   <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
 
 @[simp]
-theorem zero_MiserePlayerOutcome (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
+theorem MiserePlayerOutcome_zero (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
   unfold MiserePlayerOutcome
-  simp only [WinsGoingFirst_of_zero, ↓reduceIte]
+  simp only [WinsGoingFirst_zero, ↓reduceIte]
 
 @[simp]
-theorem zero_MisereOutcome_N : MisereOutcome (0 : G) = .N := by
+theorem MisereOutcome_zero_N : MisereOutcome (0 : G) = .N := by
   unfold MisereOutcome Outcome.ofPlayers
-  simp only [zero_MiserePlayerOutcome]
+  simp only [MiserePlayerOutcome_zero]
 
 @[simp]
-theorem neg_MisereOutcome_R_iff {g : G} : (MisereOutcome (-g) = Outcome.R) ↔ (MisereOutcome g = Outcome.L) := by
+theorem MisereOutcome_neg_R_iff_MisereOutcome {g : G}
+    : (MisereOutcome (-g) = .R) ↔ (MisereOutcome g = .L) := by
   unfold MisereOutcome Outcome.ofPlayers
-  simp only [outcome_eq_neg_player_conjugate, Player.neg_left, Player.neg_right]
+  simp only [MiserePlayerOutcome_neg_player_neg, Player.neg_left, Player.neg_right]
   cases MiserePlayerOutcome g Player.right
   <;> cases MiserePlayerOutcome g Player.left
   <;> simp
 
 @[simp]
-theorem neg_MisereOutcome_L_iff {g : G} : (MisereOutcome (-g) = Outcome.L) ↔ (MisereOutcome g = Outcome.R) := by
-  rw [<-neg_neg g, neg_MisereOutcome_R_iff, neg_neg]
+theorem MisereOutcome_neg_L_iff_MisereOutcome {g : G}
+    : (MisereOutcome (-g) = .L) ↔ (MisereOutcome g = .R) := by
+  rw [<-neg_neg g, MisereOutcome_neg_R_iff_MisereOutcome, neg_neg]
 
 @[simp]
-theorem neg_MisereOutcome_N_iff {g : G} : (MisereOutcome (-g) = .N) ↔ (MisereOutcome g = .N) := by
-  rw [← outcome_conjugate_eq_outcome_neg]
+theorem MisereOutcome_neg_N_iff_MisereOutcome {g : G}
+    : (MisereOutcome (-g) = .N) ↔ (MisereOutcome g = .N) := by
+  rw [← MisereOutcome_conjugate_neg]
   cases MisereOutcome g <;> simp [Outcome.Conjugate]
+
+theorem WinsGoingFirst_left_of_move_MisereOutcome_P {g gl : G} (h1 : gl ∈ moves .left g)
+    (h2 : MisereOutcome gl = Outcome.P) : WinsGoingFirst .left g := by
+  unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h2
+  by_cases h3 : WinsGoingFirst .left gl
+    <;> by_cases h4 : WinsGoingFirst .right gl
+    <;> simp only [h3, h4, reduceIte, reduceCtorEq] at h2
+  apply WinsGoingFirst_of_moves
+  simp only [Player.neg_left]
+  use gl
+
+theorem WinsGoingFirst_add_of_both_end {g h : G} {p : Player} (h1 : IsEnd p g)
+    (h2 : IsEnd p h) : WinsGoingFirst p (g + h) :=
+  WinsGoingFirst_of_IsEnd (IsEnd.add_iff.mpr ⟨h1, h2⟩)
+
+theorem MiserePlayerOutcome_of_leftMoves {g gl : G} (h1 : gl ∈ moves .left g)
+    (h2 : MiserePlayerOutcome gl .right = .left) : MiserePlayerOutcome g .left = .left := by
+  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
+  apply Or.inr
+  use gl
+  apply And.intro h1
+  simp only [Player.neg_left, Player.right_le, Player.le_right_eq]
+  unfold MiserePlayerOutcome at h2
+  simp only [Player.le_left, Player.neg_right, Player.le_left_eq, ite_eq_right_iff,
+             reduceCtorEq, imp_false] at h2
+  exact h2
+
+theorem MiserePlayerOutcome_of_rightMoves {g gr : G} (h1 : gr ∈ moves .right g)
+    (h2 : MiserePlayerOutcome gr .left = .right) : MiserePlayerOutcome g .right = .right := by
+  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
+  refine Or.inr ⟨gr, h1, ?_⟩
+  intro h3
+  have h4 : MiserePlayerOutcome gr .left = .left := by
+    rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+  rw [h4] at h2
+  cases h2
 
 -- TODO: Golf
 theorem MisereOutcome_ge_iff_MiserePlayerOutcome_ge {g h : G}
@@ -429,10 +457,10 @@ private theorem ClosedUnderNeg.not_ge_neg_iff.aux {A : G → Prop} [ClosedUnderN
   have h4 : MisereOutcome (-h + x) = (MisereOutcome (-h + x)).Conjugate.Conjugate :=
     Eq.symm Outcome.conjugate_conjugate_eq_self
   have h5 : (MisereOutcome (-h + x)).Conjugate.Conjugate = (MisereOutcome (h + (-x))).Conjugate :=
-    by simp only [outcome_conjugate_eq_outcome_neg, neg_add_rev, neg_neg, add_comm]
+    by simp only [MisereOutcome_conjugate_neg, neg_add_rev, neg_neg, add_comm]
   rw [h4, h5]
   have h6 : (MisereOutcome (g + (-x))).Conjugate = MisereOutcome (-g + x) := by
-    simp only [outcome_conjugate_eq_outcome_neg, neg_add_rev, neg_neg, add_comm]
+    simp only [MisereOutcome_conjugate_neg, neg_add_rev, neg_neg, add_comm]
   rw [<-h6]
   apply Outcome.outcome_ge_conjugate_le
   exact h2
@@ -445,41 +473,5 @@ theorem ClosedUnderNeg.neg_ge_neg_iff {A : G → Prop} [ClosedUnderNeg A]
     simp only [neg_neg] at h2
     exact h2
   · exact not_ge_neg_iff.aux h1
-
-theorem outcome_eq_P_leftWinsGoingFirst {g gl : G} (h1 : gl ∈ moves .left g)
-    (h2 : MisereOutcome gl = Outcome.P) : WinsGoingFirst .left g := by
-  unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h2
-  by_cases h3 : WinsGoingFirst .left gl
-    <;> by_cases h4 : WinsGoingFirst .right gl
-    <;> simp only [h3, h4, reduceIte, reduceCtorEq] at h2
-  apply WinsGoingFirst_of_moves
-  simp only [Player.neg_left]
-  use gl
-
-theorem add_end_WinsGoingFirst {g h : G} {p : Player} (h1 : IsEnd p g)
-    (h2 : IsEnd p h) : WinsGoingFirst p (g + h) :=
-  WinsGoingFirst_of_IsEnd (IsEnd.add_iff.mpr ⟨h1, h2⟩)
-
-theorem MiserePlayerOutcome_moves_left {g gl : G} (h1 : gl ∈ moves .left g)
-    (h2 : MiserePlayerOutcome gl .right = .left) : MiserePlayerOutcome g .left = .left := by
-  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
-  apply Or.inr
-  use gl
-  apply And.intro h1
-  simp only [Player.neg_left, Player.right_le, Player.le_right_eq]
-  unfold MiserePlayerOutcome at h2
-  simp only [Player.le_left, Player.neg_right, Player.le_left_eq, ite_eq_right_iff,
-             reduceCtorEq, imp_false] at h2
-  exact h2
-
-theorem MiserePlayerOutcome_moves_right {g gr : G} (h1 : gr ∈ moves .right g)
-    (h2 : MiserePlayerOutcome gr .left = .right) : MiserePlayerOutcome g .right = .right := by
-  rw [MiserePlayerOutcome_eq_iff_WinsGoingFirst, WinsGoingFirst_iff]
-  refine Or.inr ⟨gr, h1, ?_⟩
-  intro h3
-  have h4 : MiserePlayerOutcome gr .left = .left := by
-    rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
-  rw [h4] at h2
-  cases h2
 
 end Form.Misere.Outcome

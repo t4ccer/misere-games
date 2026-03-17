@@ -19,7 +19,7 @@ universe u
 
 @[simp]
 theorem one_MisereOutcome_R : MisereOutcome (1 : GameForm) = .R := by
-  simp only [MisereOutcome_eq_R_iff]
+  simp only [MisereOutcome_R_iff_WinsGoingFirst]
   constructor
   · refine WinsGoingFirst_of_IsEnd ?_
     simp only [IsEnd_def, GameForm.one_def, GameForm.moves_ofSets, Player.cases]
@@ -31,7 +31,7 @@ theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : Game
   induction n, h1 using Nat.le_induction with
   | base => simp
   | succ k h2 ih =>
-    rw [Nat.cast_add, Nat.cast_one, MisereOutcome_eq_R_iff]
+    rw [Nat.cast_add, Nat.cast_one, MisereOutcome_R_iff_WinsGoingFirst]
     constructor
     · exact WinsGoingFirst_of_IsEnd (nat_IsEnd_right (k + 1))
     · rw [not_WinsGoingFirst]
@@ -45,10 +45,10 @@ theorem pos_int_MisereOutcome_R {n : ℤ} (h1 : n > 0) : MisereOutcome (n : Game
 @[simp]
 theorem neg_int_MisereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : GameForm) = .L := by
   have h2 := pos_int_MisereOutcome_R.{u_1} (Int.neg_pos.mpr h1)
-  rwa [intCast_neg, neg_MisereOutcome_R_iff] at h2
+  rwa [intCast_neg, MisereOutcome_neg_R_iff_MisereOutcome] at h2
 
 @[simp]
 theorem zero_int_MisereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : GameForm) = .N := by
-  rw [h1, intCast_ofNat, Nat.cast_zero, zero_MisereOutcome_N]
+  rw [h1, intCast_ofNat, Nat.cast_zero, MisereOutcome_zero_N]
 
 end GameForm.Misere.Outcome

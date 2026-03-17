@@ -17,8 +17,8 @@ public section
 
 namespace GameForm.Misere.Adjoint
 
-theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outcome.P := by
-  apply wins_opposite_outcome_eq_P
+theorem MisereOutcome_add_adjoint_P (g : GameForm) : MisereOutcome (g + g°) = Outcome.P := by
+  apply MisereOutcome_P_of_MiserePlayerOutcome_neg
   intro p
   unfold MiserePlayerOutcome
   have h1 : ¬(WinsGoingFirst p (g + g°)) := by
@@ -30,7 +30,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
         add_left_mem_moves_add (mem_adjoint_mem_opposite h2) gr
       apply WinsGoingFirst_of_moves
       use gr + gr°, h3
-      exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gr)
+      exact not_WinsGoingFirst_of_MisereOutcome_P (MisereOutcome_add_adjoint_P gr)
     · by_cases h3 : IsEnd (-p) g
       · apply WinsGoingFirst_of_IsEnd
         have h4 : gr = 0 := mem_adjoint_end_opposite h2 h3
@@ -39,7 +39,7 @@ theorem outcome_add_adjoint_eq_P (g : GameForm) : MisereOutcome (g + g°) = Outc
         have ⟨gl, h3, h4⟩ := mem_adjoint_exists_opposite h2 h3
         rw [h4]
         use gl + gl°, add_right_mem_moves_add h3 (gl°)
-        exact outcome_eq_P_not_WinsGoingFirst (outcome_add_adjoint_eq_P gl)
+        exact not_WinsGoingFirst_of_MisereOutcome_P (MisereOutcome_add_adjoint_P gl)
   simp only [h1, reduceIte]
 termination_by g
 decreasing_by all_goals form_wf
