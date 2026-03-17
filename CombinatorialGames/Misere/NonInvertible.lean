@@ -31,7 +31,7 @@ noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
 instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
   unfold leftEnd_not_leftEnd_not_ge.auxT
-  refine short_def.mpr ?_
+  rw [short_def]
   intro p
   change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
   constructor
@@ -46,8 +46,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
       rw [<-h4]
       have _ : Short gp' := Short.of_mem_moves h3
       exact short_adjoint gp'
-    · rw [h3]
-      refine short_def.mpr ?_
+    · rw [h3, short_def]
       intro p
       change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
       constructor <;> cases p

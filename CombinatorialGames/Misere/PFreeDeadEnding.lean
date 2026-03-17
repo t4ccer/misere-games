@@ -71,7 +71,8 @@ private theorem outcome_LL_add_aux {g h : GameForm}
     MisereOutcome (g + h) = .L := by
   have hg_out := MisereOutcome_L_iff_WinsGoingFirst.mp hgL
   have hh_out := MisereOutcome_L_iff_WinsGoingFirst.mp hhL
-  refine MisereOutcome_L_iff_WinsGoingFirst.mpr ⟨?_, ?_⟩
+  rw [MisereOutcome_L_iff_WinsGoingFirst]
+  constructor
   · rcases (WinsGoingFirst_iff g .left).mp hg_out.left with
         hg_end | ⟨gl, hgl, hgl_not_right⟩
     · rcases (WinsGoingFirst_iff h .left).mp hh_out.left with
@@ -175,14 +176,14 @@ theorem nat_ordered (a b : ℕ) (h1 : a ≥ b) : b ≥m PFreeDeadEnding a :=
   OutcomeStable.MisereGe_of_nat_le PFreeDeadEnding b a h1
 
 theorem a_one_MisereOutcome {a : ℤ} (h0 : 0 ≤ a) : MisereOutcome (!{{(a : GameForm)} | {1}}) = .R := by
-  refine MisereOutcome_R_iff_WinsGoingFirst.mpr ?_
+  rw [MisereOutcome_R_iff_WinsGoingFirst]
   apply And.intro
   · refine WinsGoingFirst_of_moves ⟨1, ?_⟩
     simp only [moves_ofSets, Set.mem_singleton_iff, Player.le_left, Player.neg_right, Player.le_left_eq, true_and]
-    refine not_WinsGoingFirst.mpr ?_
+    rw [not_WinsGoingFirst]
     apply And.intro (by simp [IsEnd_def])
     simp
-  · refine not_WinsGoingFirst.mpr ?_
+  · rw [not_WinsGoingFirst]
     simp [IsEnd_def, h0]
 
 theorem a_one_PFreeDeadEnding {a : ℤ} (h0 : 0 ≤ a) : PFreeDeadEnding (!{{(a : GameForm)} | {1}}) where

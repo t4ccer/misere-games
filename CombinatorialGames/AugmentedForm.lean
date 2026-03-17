@@ -250,10 +250,7 @@ theorem ofGameForm_moves_mem_iff {g gp : GameForm} {p : Player}
     obtain ⟨gpp, h1, h2⟩ := h1
     rwa [ofGameForm_Injective h2] at h1
   · unfold ofGameForm
-    rw [moves_ofSetsWithTombs]
-    refine Set.mem_range.mpr ?_
-    rw [<-ofGameForm]
-    refine SetCoe.exists.mpr ?_
+    rw [moves_ofSetsWithTombs, Set.mem_range, <-ofGameForm, SetCoe.exists]
     use gp, h1
 
 theorem toGameForm_moves_mem' {g gp : AugmentedForm} {p : Player} (h1 : gp ∈ moves p g)
@@ -436,7 +433,7 @@ theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
     : ∃g, ofGameForm g = a := by
   unfold ofGameForm
   use !{fun p => Set.range (fun ap : moves p a => toGameForm ap (h1.moves p ap (Subtype.coe_prop ap)))}
-  refine AugmentedForm.ext_iff.mpr ?_
+  rw [AugmentedForm.ext_iff]
   simp only [moves_ofSetsWithTombs]
   constructor
   · intro p

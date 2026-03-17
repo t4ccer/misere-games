@@ -59,7 +59,7 @@ theorem WinsGoingFirst_neg_iff (g : G) (p : Player) : (WinsGoingFirst p (-g)) �
   · refine WinsGoingFirst_of_IsEndLike ?_
     rwa [<-IsEndLike.neg_iff_neg]
   · obtain ⟨gp, h1, h2⟩ := h1
-    refine (WinsGoingFirst_iff g (-p)).mpr ?_
+    rw [(WinsGoingFirst_iff g (-p))]
     refine Or.inr ?_
     use -gp
     constructor
