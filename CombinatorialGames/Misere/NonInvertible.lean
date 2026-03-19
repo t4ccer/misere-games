@@ -152,7 +152,7 @@ theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdent
     {g : GameForm} (h0 : A g) (h1 : g ≠ 0) : ¬(g =m A 0) := by
   obtain ⟨p, h2⟩ := GameForm.ne_zero_not_end h1
   cases p
-  · have h3 := leftEnd_not_leftEnd_not_ge (has_T_g_zero h0) GameForm.zero_end h2
+  · have h3 := leftEnd_not_leftEnd_not_ge (has_T_g_zero h0) IsEnd_zero h2
     exact not_MisereEq_of_not_MisereGe h3
   · intro h3
     have h4 : A (-g) := ClosedUnderNeg.neg_iff.mpr h0
@@ -160,7 +160,7 @@ theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdent
       rw [neg_zero]
       exact has_T_g_zero h4
     exact not_MisereEq_of_not_MisereGe
-            (ClosedUnderNeg.rightEnd_not_rightEnd_not_ge h5 GameForm.zero_end h2)
+            (ClosedUnderNeg.rightEnd_not_rightEnd_not_ge h5 IsEnd_zero h2)
             (MisereEq_symm h3)
 
 theorem EqZeroIdentical.eq_zero_iff_identical_zero {A : GameForm → Prop} [EqZeroIdentical A]

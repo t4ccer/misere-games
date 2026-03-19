@@ -30,7 +30,7 @@ class HasInt (A : GameForm → Prop) extends HasNat A where
 
 @[simp]
 theorem has_one {A : GameForm → Prop} [HasNat A] : A 1 := by
-  rw [<-GameForm.natCast_one]
+  rw [<-natCast_one]
   exact HasNat.has_nat 1
 
 class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
@@ -87,19 +87,19 @@ protected theorem IsPFree.nat (n : ℕ) : IsPFree (n : GameForm) := by
   | .succ k =>
     unfold IsPFree
     have h2 : MisereOutcome ((k.succ : ℤ) : GameForm) ≠ Outcome.P := by simp
-    exact And.intro h2 (GameForm.nat_forall_moves (IsPFree.nat k))
+    exact And.intro h2 (nat_forall_moves (IsPFree.nat k))
 
 @[simp]
 protected theorem IsPFree.int (k : ℤ) : IsPFree (k : GameForm) := by
   match k with
-  | .ofNat n => simp only [Int.ofNat_eq_natCast, GameForm.intCast_nat, IsPFree.nat]
+  | .ofNat n => simp only [Int.ofNat_eq_natCast, intCast_nat, IsPFree.nat]
   | .negSucc n =>
-    rw [Int.negSucc_eq, GameForm.intCast_neg, ClosedUnderNeg.neg_iff (A := IsPFree)]
+    rw [Int.negSucc_eq, intCast_neg, ClosedUnderNeg.neg_iff (A := IsPFree)]
     exact IsPFree.nat (n + 1)
 
 @[simp]
 protected theorem IsPFree.one : IsPFree (1 : GameForm) := by
-  rw [<-GameForm.intCast_one]
+  rw [<-intCast_one]
   exact IsPFree.int 1
 
 private def IsSpecial (g : G) : Prop :=
@@ -171,7 +171,7 @@ private lemma Special.of_add_one_not_WinsGoingFirst_right {g : GameForm} (h1 : I
     intro h_g_right_end
     apply h_g_plus_one_not_right_end
     rw [IsEnd_def] at h_g_right_end ⊢
-    rw [moves_add, GameForm.rightMoves_one, Set.image_empty, Set.union_empty]
+    rw [moves_add, rightMoves_one, Set.image_empty, Set.union_empty]
     simp only [Set.image_eq_empty]
     exact h_g_right_end
   · -- for each right move gr of g, show either gr has outcome L or ∃ special
@@ -203,7 +203,7 @@ private lemma Special.of_add_one_not_WinsGoingFirst_right {g : GameForm} (h1 : I
     cases h_left_wins_gr_plus_one with
     | inl h_gr1_left_end =>
       have h_gr_is_left_move : gr ∈ moves .left (gr + 1) := by
-        rw [moves_add, GameForm.leftMoves_one]
+        rw [moves_add, leftMoves_one]
         right; simp
       rw [h_gr1_left_end] at h_gr_is_left_move
       exfalso
@@ -212,7 +212,7 @@ private lemma Special.of_add_one_not_WinsGoingFirst_right {g : GameForm} (h1 : I
       obtain ⟨winning_move, h_winning_mem, h_winning_wins⟩ := h_left_has_winning_move
 
       rw [moves_add] at h_winning_mem
-      rw [GameForm.leftMoves_one] at h_winning_mem
+      rw [leftMoves_one] at h_winning_mem
       simp only [Set.mem_union, Set.mem_image, Set.mem_singleton_iff] at h_winning_mem
 
       cases h_winning_mem with
@@ -305,7 +305,7 @@ private theorem IsPFree.add_one_MisereOutcome_ne_P {g : GameForm} (h1 : IsPFree 
   -- 4. We will now show that Left wins g+1 going first.
   -- 5. Left can play on g+1 to g (by playing on 1)
   have h_g_is_left_move : g ∈ moves .left (g + 1) := by
-    rw [moves_add, GameForm.leftMoves_one]
+    rw [moves_add, leftMoves_one]
     right; simp
 
   -- 6. Since Right doesn't win g going first, Left wins g+1 going first
@@ -332,7 +332,7 @@ theorem IsPFree.add_one {g : GameForm} (h1 : IsPFree g) : IsPFree (g + 1) := by
     exact IsPFree.add_one (IsPFree.mem_moves h1 h3)
   · cases p <;> simp only [Set.mem_empty_iff_false, Set.mem_singleton_iff, add_zero, exists_const,
                            exists_eq_left, false_and,
-                           GameForm.leftMoves_one, GameForm.rightMoves_one] at h2
+                           leftMoves_one, rightMoves_one] at h2
     rwa [<-h2]
 termination_by g
 decreasing_by form_wf
@@ -354,7 +354,7 @@ theorem IsPFree.add_int {g : GameForm} (h1 : IsPFree g) (n : ℤ) : IsPFree (g +
   match n with
   | .ofNat m => exact IsPFree.add_nat h1 m
   | .negSucc m =>
-    rw [GameForm.intCast_negSucc, <-ClosedUnderNeg.neg_iff (A := IsPFree), neg_add_rev, neg_neg, add_comm]
+    rw [intCast_negSucc, <-ClosedUnderNeg.neg_iff (A := IsPFree), neg_add_rev, neg_neg, add_comm]
     exact IsPFree.add_nat h1.neg (m + 1)
 
 namespace PFree
@@ -389,8 +389,8 @@ private theorem not_WinsGoingFirst_left_add_one {g : GameForm} (h0 : IsPFree g)
   intro h2
   rw [WinsGoingFirst_iff] at h2
   obtain h2 | ⟨gl, h2, h3⟩ := h2
-  · have h3 := (IsEnd.add_iff.mp (GameForm.IsEndLike_iff.mp h2)).right
-    simp [IsEnd_def] at h3
+  · have h3 := (IsEndLike.add_iff.mp h2).right
+    simp at h3
   · rw [Player.neg_left] at h3
     simp at h2
     obtain h2 | ⟨gll, h2, h4⟩ := h2

@@ -82,7 +82,7 @@ instance : OfSets AugmentedForm fun _ ↦ True where
   ofSets st _ := ofSetsWithTombs st (fun _ => False)
 
 @[simp]
-theorem moves_ofSets (p) (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
+private theorem moves_ofSets (p) (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
     moves p !{st} = st p := by
   dsimp [ofSets, ofSetsWithTombs, moves]; rw [moves', QPF.Fix.dest_mk]
 
@@ -309,28 +309,6 @@ theorem ofGameForm_toGameForm (g : AugmentedForm) (h1 : TombstoneFree g) :
 termination_by g
 decreasing_by form_wf
 
-instance : Zero AugmentedForm := ⟨ofSetsWithTombs (fun _ ↦ ∅) (fun _ => False)⟩
-
-theorem zero_def : (0 : AugmentedForm) = ofSetsWithTombs (fun _ ↦ ∅) (fun _ => False) := rfl
-
-instance : One AugmentedForm := ⟨!{{0} | ∅}⟩
-
-theorem one_def : (1 : AugmentedForm) = !{{0} | ∅} := rfl
-
-@[simp]
-theorem moves_zero (p : Player) : moves p (0 : AugmentedForm) = ∅ := by
-  rw [zero_def]
-  simp only [moves_ofSetsWithTombs]
-
-@[simp]
-theorem not_hasTombstone_zero (p : Player) : ¬(0 : AugmentedForm).hasTombstone p := by
-  rw [zero_def, hasTombstone_ofSetsWithTombs]
-  cases p <;> simp only [not_false_eq_true]
-
-@[simp]
-private theorem EndLike_zero (p : Player) : EndLike p (0 : AugmentedForm) := by
-  simp [EndLike, not_hasTombstone_zero, moves_zero, or_true, Form.IsEnd_def]
-
 private theorem add_eq (x y : AugmentedForm) : x + y =
     ofSetsWithTombs
       (Player.cases ((· + y) '' moves .left x ∪ (x + ·) '' moves .left y) ((· + y) '' moves .right x ∪ (x + ·) '' moves .right y))
@@ -364,17 +342,6 @@ private theorem hasTombstone_add' {x y : AugmentedForm} {p : Player} :
 private theorem moves_add' (p : Player) (x y : AugmentedForm) :
     moves p (x + y) = (· + y) '' moves p x ∪ (x + ·) '' moves p y := by
   rw [add_eq', moves_ofSetsWithTombs]
-
-lemma hasTombstone_add_zero (g : AugmentedForm) (p : Player)
-    : (g + 0).hasTombstone p ↔ g.hasTombstone p := by
-  simp only [hasTombstone_add', EndLike_zero, and_true, not_hasTombstone_zero, false_and, or_false]
-
-private theorem add_zero' (x : AugmentedForm) : x + 0 = x := by
-  refine moveRecOn x ?_
-  intro x ih
-  ext
-  · aesop
-  · exact hasTombstone_add_zero x _
 
 private theorem add_comm' (x y : AugmentedForm) : x + y = y + x := by
   ext
@@ -411,23 +378,6 @@ private theorem add_assoc' (x y z : AugmentedForm) : x + y + z = x + (y + z) := 
   · exact hasTombstone_add_assoc x y z _
 termination_by (x, y, z)
 decreasing_by form_wf
-
-noncomputable instance : AddCommMonoid AugmentedForm where
-  add_zero := private add_zero'
-  zero_add x := private add_comm' .. ▸ add_zero' x
-  add_comm := private add_comm'
-  add_assoc := private add_assoc'
-  nsmul := nsmulRec
-
-instance : AddMonoidWithOne AugmentedForm where
-
-theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
-  rw [GameForm.zero_def, zero_def, ofGameForm]
-  refine ext ?_ ?_
-  · intro p
-    simp only [moves_ofSetsWithTombs, Set.range_eq_empty_iff, GameForm.moves_ofSets,
-               Set.isEmpty_coe_sort]
-  · simp only [hasTombstone_ofSetsWithTombs, implies_true]
 
 theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
     : ∃g, ofGameForm g = a := by
@@ -497,16 +447,6 @@ theorem ofGameForm_add (g h : GameForm) : ofGameForm (g + h) = ofGameForm g + of
 termination_by (g, h)
 decreasing_by form_wf
 
-/-- The coercion from GameForm to AugmentedForm is an additive monoid homomorphism -/
-def ofGameFormHom : GameForm →+ AugmentedForm where
-  toFun := ofGameForm
-  map_zero' := ofGameForm_zero
-  map_add' := ofGameForm_add
-
-theorem ofGameFormHom_injective : Function.Injective ofGameFormHom := by
-  intro g h eq
-  exact ofGameForm_Injective (by simpa using congrArg (fun f => f) eq)
-
 private def neg' (x : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => (Set.range fun xp : moves (-p) x => neg' xp))
@@ -560,13 +500,6 @@ decreasing_by form_wf
 instance : InvolutiveNeg AugmentedForm where
   neg_neg := private neg_neg'
 
-/-- The subtraction of `x` and `y` is defined as `x + (-y)`. -/
-instance : SubNegMonoid AugmentedForm where
-  zsmul := zsmulRec
-
-/-- We define the `NatCast` instance as `↑0 = 0` and `↑(n + 1) = !{{↑n} | ∅}`. -/
-instance : AddCommMonoidWithOne AugmentedForm where
-
 private theorem moves_neg' (p : Player) (x : AugmentedForm) :
     moves p (-x) = -moves (-p) x := by
   rw [neg_eq, moves_ofSetsWithTombs]
@@ -597,22 +530,29 @@ private theorem neg_add' (x y : AugmentedForm) : -(x + y) = -x + -y := by
 termination_by (x, y)
 decreasing_by form_wf
 
-@[simp]
-theorem add_eq_zero_iff {x y : AugmentedForm} : x + y = 0 ↔ x = 0 ∧ y = 0 := by
+instance : AddCommSemigroup AugmentedForm where
+  add_assoc := private add_assoc'
+  add_comm := private add_comm'
+
+theorem not_hasTombstone_zero' (p : Player) : ¬(!{fun _ => ∅} : AugmentedForm).hasTombstone p := by
+  exact hasTombstone_ofSets (fun x ↦ ∅) p
+
+theorem add_eq_zero_iff {x y : AugmentedForm}
+    : x + y = !{fun _ => ∅} ↔ x = !{fun _ => ∅} ∧ y = !{fun _ => ∅} := by
   constructor
-    <;> simp only [AugmentedForm.ext_iff, EndLike, IsEnd_def, Player.forall, Set.image_eq_empty,
-                   Set.union_empty_iff, and_imp, hasTombstone_add', iff_false, moves_add',
-                   moves_zero, not_and, not_hasTombstone_zero, not_or]
+    <;> simp [AugmentedForm.ext_iff, EndLike, IsEnd_def]
     <;> tauto
 
-instance : NegZeroClass AugmentedForm where
-  neg_zero := by simp [zero_def, neg_eq', Set.range]
+private lemma hasTombstone_add_zero' (g : AugmentedForm) (p : Player)
+    : (g + !{fun _ => ∅}).hasTombstone p ↔ g.hasTombstone p := by
+  simp [hasTombstone_add', EndLike, IsEnd_def]
 
-instance : SubtractionCommMonoid AugmentedForm where
-  neg_neg := neg_neg
-  neg_add_rev x y := by rw [neg_add', add_comm]
-  neg_eq_of_add := by simp only [add_eq_zero_iff, and_imp, forall_eq_apply_imp_iff, forall_eq, neg_zero]
-  add_comm := add_comm
+private lemma add_zero' (x : AugmentedForm) : x + !{fun _ ↦ ∅} = x := by
+  refine moveRecOn x ?_
+  intro x ih
+  ext
+  · aesop
+  · exact hasTombstone_add_zero' x _
 
 noncomputable instance : Form AugmentedForm where
   moves_neg' := by
@@ -621,7 +561,6 @@ noncomputable instance : Form AugmentedForm where
     simp only [←neg'_eq, ←Set.neg_range, Subtype.range_coe_subtype, Set.setOf_mem_eq,
                moves_ofSetsWithTombs]
   moves_add' := private moves_add'
-  moves_zero' p := by simp only [moves_zero]
   moves_small' := instSmallElemMoves
   IsEndLike p g := g.hasTombstone p ∨ (Form.IsEnd p g)
   IsEndLike_ofEnd' _ _ h1 := by
@@ -638,6 +577,42 @@ noncomputable instance : Form AugmentedForm where
     · intro h1
       simp only [moves_neg', Player.neg_left, Player.neg_right, Set.neg_eq_empty, IsEnd_def] at h1 ⊢
       exact h1
+  moves_ofSets' := private moves_ofSets
+  add_zero' := private add_zero'
+  add_eq_zero_iff' _ _ := private add_eq_zero_iff
+  ofSets_inj'' := by
+    intro st1 st2 _ _ _ _
+    apply Iff.intro <;> intro h1
+    · exact ofSetsWithTombs_eq h1
+    · simp [h1]
+  neg_ofSets'' s t _ _ := by
+    simp [neg_eq']
+    ext p x
+    · cases p
+      all_goals
+      · simp
+        apply Iff.intro
+        · intro ⟨y, h1, h2⟩
+          rwa [<-h2, <-neg'_eq, neg_neg]
+        · intro h1
+          use -x, h1
+          rw [<-neg'_eq, neg_neg]
+    · simp
+  neg_add' := private neg_add'
+  smallElemMoves' := instSmallElemMoves
+  ofSets_IsEndLike_iff' p s t _ _ := by
+    apply Iff.intro <;> intro h1
+    · simp at h1
+      rwa [IsEnd_def] at h1
+    · rw [IsEnd_def]
+      exact Or.inr h1
+  ofSets_add_ofSets'' s1 t1 s2 t2 _ _ _ _ := by
+    dsimp [ofSets]
+    rw [add_eq']
+    ext p x
+    · simp only [moves_ofSetsWithTombs]
+      aesop
+    · simp
 
 lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
     IsEndLike p g ↔ (g.hasTombstone p ∨ (Form.IsEnd p g)) := by rfl
@@ -645,6 +620,20 @@ lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
 -- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
 
 attribute [irreducible] AugmentedForm
+
+theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
+  rw [zero_def, zero_def, ofGameForm]
+  ext p x <;> simp
+
+/-- The coercion from GameForm to AugmentedForm is an additive monoid homomorphism -/
+def ofGameFormHom : GameForm →+ AugmentedForm where
+  toFun := ofGameForm
+  map_zero' := ofGameForm_zero
+  map_add' := ofGameForm_add
+
+theorem ofGameFormHom_injective : Function.Injective ofGameFormHom := by
+  intro g h eq
+  exact ofGameForm_Injective (by simpa using congrArg (fun f => f) eq)
 
 theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
     : hasTombstone p (-g) ↔ hasTombstone (-p) g := by

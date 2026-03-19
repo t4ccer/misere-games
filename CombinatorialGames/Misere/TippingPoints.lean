@@ -15,7 +15,7 @@ mutual
 private theorem right_wins_of_birthday_le (g : GameForm) (b : ℕ) (h1 : birthday g ≤ b) :
     WinsGoingFirst .right (g + b) := by
   by_cases h2 : IsEnd .right g
-  · exact WinsGoingFirst_add_of_both_end h2 (GameForm.nat_IsEnd_right b)
+  · exact WinsGoingFirst_add_of_both_end h2 (natCast_IsEnd_right b)
   · obtain ⟨gr, h3⟩ := Form.not_IsEnd_exists_move h2
     refine WinsGoingFirst_of_moves ?_
     refine ⟨gr + b, Form.add_right_mem_moves_add h3 b, ?_⟩
@@ -48,7 +48,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
         apply Order.lt_add_one_iff.mp
         simpa [hk, Nat.cast_add, Nat.cast_one] using h1
       by_cases h8 : IsEnd .right g
-      · exact WinsGoingFirst_add_of_both_end h8 (GameForm.nat_IsEnd_right k)
+      · exact WinsGoingFirst_add_of_both_end h8 (natCast_IsEnd_right k)
       · obtain ⟨gr, h9⟩ := Form.not_IsEnd_exists_move h8
         refine WinsGoingFirst_of_moves ?_
         refine ⟨gr + k, Form.add_right_mem_moves_add h9 k, ?_⟩
@@ -93,7 +93,7 @@ private theorem left_wins_second_implies_left_wins_first_add_one {g : GameForm}
     (h1 : ¬WinsGoingFirst .right g) : WinsGoingFirst .left (g + 1) := by
   refine WinsGoingFirst_of_moves ?_
   refine ⟨g, ?_, ?_⟩
-  · rw [moves_add, GameForm.leftMoves_one]
+  · rw [moves_add, leftMoves_one]
     right
     refine ⟨0, by simp, by simp⟩
   · simpa [Player.neg_left] using h1

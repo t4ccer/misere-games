@@ -22,7 +22,7 @@ theorem one_MisereOutcome_R : MisereOutcome (1 : GameForm) = .R := by
   simp only [MisereOutcome_R_iff_WinsGoingFirst]
   constructor
   · refine WinsGoingFirst_of_IsEnd ?_
-    simp only [IsEnd_def, GameForm.one_def, GameForm.moves_ofSets, Player.cases]
+    simp only [IsEnd_def, one_def, moves_ofSets, Player.cases]
   · rw [not_WinsGoingFirst]
     simp [IsEnd_def]
 
@@ -33,7 +33,7 @@ theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : Game
   | succ k h2 ih =>
     rw [Nat.cast_add, Nat.cast_one, MisereOutcome_R_iff_WinsGoingFirst]
     constructor
-    · exact WinsGoingFirst_of_IsEnd (nat_IsEnd_right (k + 1))
+    · exact WinsGoingFirst_of_IsEnd (natCast_IsEnd_right (k + 1))
     · rw [not_WinsGoingFirst]
       simp [IsEnd_def]
 

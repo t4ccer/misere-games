@@ -181,7 +181,7 @@ theorem a_one_MisereOutcome {a : ℤ} (h0 : 0 ≤ a) : MisereOutcome (!{{(a : Ga
   · refine WinsGoingFirst_of_moves ⟨1, ?_⟩
     simp only [moves_ofSets, Set.mem_singleton_iff, Player.le_left, Player.neg_right, Player.le_left_eq, true_and]
     rw [not_WinsGoingFirst]
-    apply And.intro (by simp [IsEnd_def])
+    apply And.intro (by simp)
     simp
   · rw [not_WinsGoingFirst]
     simp [IsEnd_def, h0]
@@ -250,7 +250,7 @@ private theorem reduction_ab_int.auxR (a : ℤ) {b : ℤ} (h0 : 1 ≤ b)
   apply Hereditary.MisereGe PFreeDeadEnding
   · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
     apply Or.inl
-    rw [<-GameForm.intCast_one]
+    rw [<-intCast_one]
     exact int_ordered b (1 : ℕ) h0
   · simp [Maintenance]
   · simp [Proviso, IsEnd_def]

@@ -200,7 +200,7 @@ instance : ClosedUnderNeg (IsDeadEnding (G := GameForm)) where
 @[simp]
 protected theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
   unfold IsDeadEnding IsDeadEnd
-  simp only [zero_end, IsEnd.not_mem_moves, IsEmpty.forall_iff, implies_true, and_self]
+  simp
 
 @[simp]
 protected theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
@@ -208,22 +208,22 @@ protected theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
   | .zero => exact IsDeadEnding.zero
   | .succ k =>
     unfold IsDeadEnding
-    refine And.intro ?_ (GameForm.nat_forall_moves (IsDeadEnding.nat k))
+    refine And.intro ?_ (nat_forall_moves (IsDeadEnding.nat k))
     intro p h
-    simp only [GameForm.succ_nat_end_right.mp h, IsDeadEnd.right_nat k.succ]
+    simp only [succ_nat_end_right.mp h, IsDeadEnd.right_nat k.succ]
 
 @[simp]
 protected theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
   match k with
   | .ofNat n => exact IsDeadEnding.nat n
   | .negSucc n =>
-    rw [Int.negSucc_eq, GameForm.intCast_neg, ClosedUnderNeg.neg_iff (A := IsDeadEnding)]
+    rw [Int.negSucc_eq, intCast_neg, ClosedUnderNeg.neg_iff (A := IsDeadEnding)]
     norm_cast
     exact IsDeadEnding.nat (n + 1)
 
 @[simp]
 protected theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
-  rw [<-GameForm.intCast_one]
+  rw [<-intCast_one]
   exact IsDeadEnding.int 1
 
 structure ShortDeadEnding (g : GameForm) : Prop where
