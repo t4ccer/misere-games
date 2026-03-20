@@ -86,24 +86,24 @@ protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : G) := by
              IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]
-theorem IsDeadEnd.right_nat (n : ℕ) : IsDeadEnd .right (n : GameForm) := by
+theorem IsDeadEnd.right_nat (n : ℕ) : IsDeadEnd .right (n : G) := by
   match n with
   | .zero => exact IsDeadEnd.zero
   | .succ k => unfold IsDeadEnd; simp [IsDeadEnd.right_nat k]
 
 @[simp]
-theorem IsDeadEnd.right_nonneg_int (k : ℤ) (h1 : k ≥ 0) : IsDeadEnd .right (k : GameForm) := by
+theorem IsDeadEnd.right_nonneg_int (k : ℤ) (h1 : k ≥ 0) : IsDeadEnd .right (k : G) := by
   rw [<-Int.toNat_of_nonneg h1]
   norm_cast
   simp only [IsDeadEnd.right_nat]
 
 @[simp]
-theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k : GameForm) := by
+theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k : G) := by
   rw [<-Player.neg_right, <-IsDeadEnd.neg_iff]
   norm_cast
   exact IsDeadEnd.right_nonneg_int (-k) (by omega)
 
-protected theorem IsDeadEnd.IsPFree {g : GameForm} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
+protected theorem IsDeadEnd.IsPFree {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
   unfold IsPFree
   apply And.intro
   · have h2 := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (WinsGoingFirst_of_IsEnd (IsEnd h1))
