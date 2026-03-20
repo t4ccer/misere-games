@@ -6,11 +6,10 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.GameForm.Adjoint
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Misere.Outcome
 
 open GameForm.Adjoint
 open Form.Misere.Outcome
-open GameForm.Misere.Outcome
 open Form
 
 public section

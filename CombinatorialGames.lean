@@ -13,7 +13,6 @@ public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Adjoint
 public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.GameForm.Misere.Adjoint
-public import CombinatorialGames.GameForm.Misere.Outcome
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.Small

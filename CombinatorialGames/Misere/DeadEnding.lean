@@ -13,7 +13,6 @@ variable {G : Type (u + 1)} [Form G]
 
 open Form
 open Form.Misere.Outcome
-open GameForm.Misere.Outcome
 
 def IsDeadEnd (p : Player) (g : G) : Prop :=
   IsEnd p g ∧ (∀ gp ∈ moves (-p) g, IsDeadEnd p gp)
@@ -143,7 +142,6 @@ end Form
 
 namespace GameForm
 
-open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
 

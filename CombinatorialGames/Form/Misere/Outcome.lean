@@ -298,7 +298,11 @@ theorem WinsGoingFirst_left_of_move_MisereOutcome_P {g gl : G} (h1 : gl ∈ move
   simp only [Player.neg_left]
   use gl
 
-theorem WinsGoingFirst_add_of_both_end {g h : G} {p : Player} (h1 : IsEnd p g)
+theorem WinsGoingFirst_add_of_IsEndLike {g h : G} {p : Player} (h1 : IsEndLike p g)
+    (h2 : IsEndLike p h) : WinsGoingFirst p (g + h) :=
+  WinsGoingFirst_of_IsEndLike (IsEndLike.add_iff.mpr ⟨h1, h2⟩)
+
+theorem WinsGoingFirst_add_of_IsEnd {g h : G} {p : Player} (h1 : IsEnd p g)
     (h2 : IsEnd p h) : WinsGoingFirst p (g + h) :=
   WinsGoingFirst_of_IsEnd (IsEnd.add_iff.mpr ⟨h1, h2⟩)
 
@@ -473,5 +477,38 @@ theorem ClosedUnderNeg.neg_ge_neg_iff {A : G → Prop} [ClosedUnderNeg A]
     simp only [neg_neg] at h2
     exact h2
   · exact not_ge_neg_iff.aux h1
+
+@[simp]
+theorem one_MisereOutcome_R : MisereOutcome (1 : G) = .R := by
+  simp only [MisereOutcome_R_iff_WinsGoingFirst]
+  constructor
+  · exact WinsGoingFirst_of_IsEndLike IsEndLike_right_one
+  · rw [not_WinsGoingFirst]
+    simp [IsEnd_def]
+
+@[simp]
+theorem pos_nat_MisereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
+  induction n, h1 using Nat.le_induction with
+  | base => simp
+  | succ k h2 ih =>
+    rw [Nat.cast_add, Nat.cast_one, MisereOutcome_R_iff_WinsGoingFirst]
+    constructor
+    · exact WinsGoingFirst_of_IsEnd (natCast_IsEnd_right (k + 1))
+    · rw [not_WinsGoingFirst]
+      simp [IsEnd_def]
+
+@[simp]
+theorem pos_int_MisereOutcome_R {n : ℤ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
+  rw [<-Int.toNat_of_nonneg (Int.le_of_lt h1)]
+  exact pos_nat_MisereOutcome_R (Int.pos_iff_toNat_pos.mp h1)
+
+@[simp]
+theorem neg_int_MisereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : G) = .L := by
+  have h2 := pos_int_MisereOutcome_R (G := G) (Int.neg_pos.mpr h1)
+  rwa [intCast_neg, MisereOutcome_neg_R_iff_MisereOutcome] at h2
+
+@[simp]
+theorem zero_int_MisereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : G) = .N := by
+  rw [h1, intCast_ofNat, Nat.cast_zero, MisereOutcome_zero_N]
 
 end Form.Misere.Outcome

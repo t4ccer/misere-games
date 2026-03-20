@@ -11,7 +11,6 @@ universe u
 
 open Form
 open Form.Misere.Outcome
-open GameForm.Misere.Outcome
 open GameForm
 
 structure PFreeDeadEnding (g : GameForm) : Prop where
@@ -359,7 +358,7 @@ private theorem reduction_a_eq_neg_ba_c.aux {a b : ℤ} (h1 : 0 ≤ a) (h2 : 1 �
         refine And.intro ?_ h7
         simp only [h9, IsEndLike_iff, IsEnd_def, moves_neg, Player.neg_left, Set.neg_eq_empty]
         exact rightMoves_intCast (Int.sub_nonneg_of_le h2)
-      · apply WinsGoingFirst_add_of_both_end
+      · apply WinsGoingFirst_add_of_IsEnd
         · simp only [IsEnd_def, moves_neg, Set.neg_eq_empty]
           exact rightMoves_intCast (Int.le_of_lt h2)
         · apply IsDeadEnd.IsEnd

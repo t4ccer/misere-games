@@ -4,7 +4,7 @@ public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Misere.Outcome
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.ShortUniverse
 
@@ -14,7 +14,6 @@ variable {G : Type (u + 1)} [Form G]
 
 open Form
 open Form.Misere.Outcome
-open GameForm.Misere.Outcome
 
 public section
 

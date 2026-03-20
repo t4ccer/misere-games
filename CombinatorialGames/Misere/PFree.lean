@@ -1,7 +1,7 @@
 module
 
 public import CombinatorialGames.AugmentedForm.Misere.Outcome
-public import CombinatorialGames.GameForm.Misere.Outcome
+public import CombinatorialGames.Form.Misere.Outcome
 
 open Form
 open Form.Misere.Outcome
@@ -412,7 +412,7 @@ private theorem WinsGoingFirst_right_add_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .right g) : WinsGoingFirst .right (g + 1) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine WinsGoingFirst_add_of_both_end (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine WinsGoingFirst_add_of_IsEnd (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + 1, add_right_mem_moves_add h1 1, ?_⟩
     rw [Player.neg_right] at ⊢ h2
@@ -470,7 +470,7 @@ private theorem WinsGoingFirst_left_sub_one {g : GameForm} (h0 : IsPFree g)
     (h1 : WinsGoingFirst .left g) : WinsGoingFirst .left (g + (-1)) := by
   rw [WinsGoingFirst_iff] at h1
   obtain h1 | ⟨gr, h1, h2⟩ := h1
-  · refine WinsGoingFirst_add_of_both_end (GameForm.IsEndLike_iff.mp h1) ?_
+  · refine WinsGoingFirst_add_of_IsEnd (GameForm.IsEndLike_iff.mp h1) ?_
     simp [IsEnd_def]
   · refine WinsGoingFirst_of_moves ⟨gr + (-1), add_right_mem_moves_add h1 (-1), ?_⟩
     rw [Player.neg_left] at ⊢ h2

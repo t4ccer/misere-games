@@ -8,12 +8,10 @@ module
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.GameForm.Adjoint
 public import CombinatorialGames.GameForm.Misere.Adjoint
-public import CombinatorialGames.GameForm.Misere.Outcome
 import Mathlib.Data.Set.Finite.Range
 
 open GameForm
 open GameForm.Adjoint
-open GameForm.Misere.Outcome
 open Form
 open Form.Misere.Outcome
 
@@ -85,7 +83,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
-      apply WinsGoingFirst_add_of_both_end h1
+      apply WinsGoingFirst_add_of_IsEnd h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
       simp only [h3, GameForm.leftMoves_ofSets, IsEnd_def]
   -- Next consider G + T
