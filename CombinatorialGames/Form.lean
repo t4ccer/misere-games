@@ -545,6 +545,10 @@ theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : G) ↔ n = 0) := by
     · simp at h2
   · simp [h1, isEnd_def]
 
+theorem isEnd_of_not_mem {p : Player} {g : G} (h1 : ∀ (gr : G), gr ∉ moves p g) : IsEnd p g := by
+  rw [isEnd_def]
+  exact Set.eq_empty_of_subset_empty h1
+
 protected theorem natCast_injective : Function.Injective (@Nat.cast G _) := by
   intro a b h1
   induction a generalizing b with

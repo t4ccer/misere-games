@@ -449,6 +449,11 @@ theorem misereGE_rw_right {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : a �
   rw [h2 x hx]
   exact h1 x hx
 
+theorem misereGE_of_misereEQ  {A : G → Prop} {g h : G} (h1 : g =m A h) : g ≥m A h := by
+  intro x hx
+  have := h1 x hx
+  exact Std.le_of_eq (Eq.symm this)
+
 theorem misereGE_of_subset (U : G → Prop) {V : G → Prop}
     (h_v_subset_u : ∀g, V g → U g) (g h : G) (h2 : g ≥m U h) : g ≥m V h := by
   unfold MisereGE at h2 ⊢

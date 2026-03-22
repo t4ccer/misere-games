@@ -6,6 +6,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.GameForm
 
 public section
 
@@ -215,14 +216,6 @@ decreasing_by
 
 end
 
-theorem Hereditary.misereGE_of_maintenance_proviso (A : G → Prop) [Hereditary A]
-    {g h : G}
-    (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
-    (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
-    : g ≥m A h := by
-  intro x hx
-  exact aux A h2 h3 h4 h5 hx
-
 -- TODO: Move, this doesn't require U to be hereditary
 
 theorem proviso_right_of_misereGE {U : G → Prop}
@@ -246,3 +239,69 @@ theorem proviso_left_of_misereGE {U : G → Prop}
   have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) .left
   rw [hht] at h_cmp
   exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp (Player.le_left_eq _ h_cmp)
+
+namespace Hereditary
+
+theorem misereGE_of_maintenance_proviso (A : G → Prop) [Hereditary A]
+    {g h : G}
+    (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
+    (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
+    : g ≥m A h := by
+  intro x hx
+  exact aux A h2 h3 h4 h5 hx
+
+theorem misereGE_of_moves {A : GameForm → Prop} [Hereditary A] {g h : GameForm}
+    (hl1 : ∀ gl ∈ moves .left g, ∃ hl, hl ∈ moves .left h)
+    (hl2 : ∀ hl ∈ moves .left h, ∃ gl ∈ moves .left g, gl ≥m A hl)
+    (hr1 : ∀ gr ∈ moves .right g, ∃ hr ∈ moves .right h, gr ≥m A hr)
+    (hr2 : ∀ hr ∈ moves .right h, ∃ gr, gr ∈ moves .right g)
+    : g ≥m A h := by
+  refine misereGE_of_maintenance_proviso A ?_ ?_ ?_ ?_
+  · intro gr h1
+    apply Or.inl
+    have ⟨hr, h3, h4⟩ := hr1 gr h1
+    use hr, h3
+  · intro hl h1
+    apply Or.inl
+    have ⟨hr, h3, h4⟩ := hl2 hl h1
+    use hr, h3
+  · intro h2 y hy h1
+    rw [GameForm.isEndLike_iff_isEnd] at h2 h1
+    refine winsGoingFirst_add_of_isEnd (isEnd_of_not_mem ?_) h1
+    simpa only [h2, not_mem_moves_of_isEnd, exists_const, imp_false] using hr2
+  · intro h2 y hy h1
+    rw [GameForm.isEndLike_iff_isEnd] at h2 h1
+    refine winsGoingFirst_add_of_isEnd (isEnd_of_not_mem ?_) h1
+    simpa only [h2, not_mem_moves_of_isEnd, exists_const, imp_false] using hl1
+
+private theorem misereEQ_of_moves.aux {A : GameForm → Prop} [Hereditary A] {g h : GameForm}
+    (hl1 : ∀ gl ∈ moves .left g, ∃ hl ∈ moves .left h, gl =m A hl)
+    (hl2 : ∀ hl ∈ moves .left h, ∃ gl ∈ moves .left g, hl =m A gl)
+    (hr1 : ∀ gr ∈ moves .right g, ∃ hr ∈ moves .right h, gr =m A hr)
+    (hr2 : ∀ hr ∈ moves .right h, ∃ gr ∈ moves .right g, hr =m A gr)
+    : g ≥m A h := by
+  apply misereGE_of_moves
+  · intro gl h_gl
+    have ⟨hl, h1, _⟩ := hl1 gl h_gl
+    use hl, h1
+  · intro hl h_hl
+    have ⟨gl, h1, h2⟩ := hl2 hl h_hl
+    use gl, h1, misereGE_of_misereEQ (MisereEQ.symm h2)
+  · intro gr h_gr
+    have ⟨hr, h1, h2⟩ := hr1 gr h_gr
+    use hr, h1, misereGE_of_misereEQ h2
+  · intro hr h_hr
+    have ⟨gr, h1, h2⟩ := hr2 hr h_hr
+    use gr, h1
+
+theorem misereEQ_of_moves {A : GameForm → Prop} [Hereditary A] {g h : GameForm}
+    (hl1 : ∀ gl ∈ moves .left g, ∃ hl ∈ moves .left h, gl =m A hl)
+    (hl2 : ∀ hl ∈ moves .left h, ∃ gl ∈ moves .left g, hl =m A gl)
+    (hr1 : ∀ gr ∈ moves .right g, ∃ hr ∈ moves .right h, gr =m A hr)
+    (hr2 : ∀ hr ∈ moves .right h, ∃ gr ∈ moves .right g, hr =m A gr)
+    : g =m A h := by
+  apply MisereEq.of_antisymm
+  · exact misereEQ_of_moves.aux hl1 hl2 hr1 hr2
+  · exact misereEQ_of_moves.aux hl2 hl1 hr2 hr1
+
+end Hereditary
