@@ -217,3 +217,25 @@ theorem Hereditary.MisereGe (A : G → Prop) [Hereditary A]
     : g ≥m A h := by
   intro x hx
   exact aux A h2 h3 h4 h5 hx
+
+theorem misere_ge_imp_proviso_right {U : G → Prop}
+    {g h : G} (hge : g ≥m U h) :
+    Proviso U g h .right := by
+  intro hg_end x hx hx_end
+  have hgt : MiserePlayerOutcome (g + x) .right = .right :=
+    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
+      (WinsGoingFirst_of_IsEndLike (IsEndLike.add_iff.mpr ⟨hg_end, hx_end⟩))
+  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge x hx) .right
+  rw [hgt] at h_cmp
+  exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp (Player.le_right_eq _ h_cmp)
+
+theorem misere_ge_imp_proviso_left {U : G → Prop}
+    {g h : G} (hge : g ≥m U h) :
+    Proviso U h g .left := by
+  intro hh_end x hx hx_end
+  have hht : MiserePlayerOutcome (h + x) .left = .left :=
+    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
+      (WinsGoingFirst_of_IsEndLike (IsEndLike.add_iff.mpr ⟨hh_end, hx_end⟩))
+  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge x hx) .left
+  rw [hht] at h_cmp
+  exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp (Player.le_left_eq _ h_cmp)

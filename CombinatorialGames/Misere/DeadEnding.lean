@@ -1,7 +1,7 @@
 module
 
 public import CombinatorialGames.Misere.PFree
-public import CombinatorialGames.Misere.ShortUniverse
+public import CombinatorialGames.Misere.Universe
 
 public section
 
@@ -229,6 +229,13 @@ structure ShortDeadEnding (g : GameForm) : Prop where
   dead_ending : IsDeadEnding g
 
 instance : ShortUniverse ShortDeadEnding where
+  zero_mem :=
+  { short := by
+      rw [short_def]
+      intro p
+      simp
+  , dead_ending := IsDeadEnding.zero
+  }
   closed_sum _ _ h_g h_h :=
   { short := Short.add' h_g.short h_h.short
   , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending

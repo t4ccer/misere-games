@@ -4,9 +4,8 @@ public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Misere.Outcome
-public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.DeadEnding
-public import CombinatorialGames.Misere.ShortUniverse
+public import CombinatorialGames.Misere.Universe
 
 universe u
 
