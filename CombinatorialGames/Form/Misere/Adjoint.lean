@@ -19,6 +19,9 @@ public section
 
 namespace Form.Misere.Adjoint
 
+/--
+[Siegel, "Combinatorial Game Theory" (Proposition 6.4 on p. 270)][siegelCombinatorialGameTheory2013]
+-/
 theorem misereOutcome_add_adjoint_eq_P (g : G) : MisereOutcome (g + g°) = Outcome.P := by
   apply misereOutcome_P_of_miserePlayerOutcome_neg
   intro p

@@ -14,6 +14,11 @@ public section
 namespace Form
 
 open Classical in
+/--
+Adjoint of a position as defined in [Siegel, "Combinatorial Game Theory" (Definition 6.3 on p. 270)][siegelCombinatorialGameTheory2013]
+
+$$G^{\circ} = \begin{cases} * & \; \text{if} \; G = 0 \\ \left\{ \left( G^R \right)^{\circ} \mid 0 \right\} & \; \text{if} \; G \not= 0 \; \text{and} \; G \; \text{is a Left end} \\ \left\{ 0 \mid \left( G^L \right)^{\circ} \right\} & \; \text{if} \; G \not= 0 \; \text{and} \; G \; \text{is a Right end} \\ \left\{ \left( G^R \right)^{\circ} \mid \left( G^L \right)^{\circ} \right\} & \; \text{otherwise} \end{cases}$$
+-/
 @[expose] noncomputable def adjoint {G : Type (u + 1)} [Form G] (g : G) : G :=
   have := moves_small.{u} .left g
   have := moves_small.{u} .right g
@@ -25,7 +30,10 @@ open Classical in
 termination_by g
 decreasing_by form_wf
 
+@[inherit_doc adjoint]
 notation g"°" => adjoint g
+
+recommended_spelling "adjoint" for "°" in [adjoint, «term_°»]
 
 namespace Adjoint
 
@@ -112,6 +120,9 @@ theorem mem_adjoint_end_opposite {g gp : G} {p : Player}
         Set.mem_singleton_iff] at h1
       exact h1
 
+/--
+Adjoint of a short game is also short
+-/
 theorem short_adjoint {g : G} (h1 : IsShort g) : IsShort (g°) := by
   unfold adjoint
   by_cases hleft : IsEnd .left g

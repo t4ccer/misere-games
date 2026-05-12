@@ -9,31 +9,42 @@ public import CombinatorialGames.Form
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.Form.Misere.Outcome
 
-@[expose] public noncomputable section
+public noncomputable section
 
 universe u
 
-def AugmentedFunctor (α : Type (u + 1)) : Type (u + 1) :=
+/-!
+# Augmented Form
+
+This module defines `AugmentedForm`, which apart from ordianry moves may also have tombstones as defined in [Siegel, "On the general dead-ending universe of partizan games" (Definition 5.1 on p. 212)][siegelGeneralDeadendingUniverse2025].
+
+The main result is `AugmentedForm.instForm`
+-/
+
+/--
+Like `GameFunctor` but each position may contain Left and Right tombstones
+-/
+private def AugmentedFunctor (α : Type (u + 1)) : Type (u + 1) :=
   {s : Player → Set α // ∀ p, Small.{u} (s p)} × (Player → Prop)
 
 namespace AugmentedFunctor
 
-@[ext] theorem ext {α : Type (u + 1)} {x y : AugmentedFunctor α} : x.1 = y.1 → x.2 = y.2 → x = y := by
+@[ext] private theorem ext {α : Type (u + 1)} {x y : AugmentedFunctor α} : x.1 = y.1 → x.2 = y.2 → x = y := by
   intro h1 h2
   apply Prod.ext
   · exact h1
   · exact h2
 
-instance {α : Type (u + 1)} (x : AugmentedFunctor α) (p : Player) : Small.{u} (x.1.1 p) := x.1.2 p
+private instance {α : Type (u + 1)} (x : AugmentedFunctor α) (p : Player) : Small.{u} (x.1.1 p) := x.1.2 p
 
-instance : Functor AugmentedFunctor where
+private instance : Functor AugmentedFunctor where
   map f s := ⟨⟨(f '' s.1.1 ·), fun _ => inferInstance⟩, s.2⟩
 
-theorem map_def {α β} (f : α → β) (s : AugmentedFunctor α) :
+private theorem map_def {α β} (f : α → β) (s : AugmentedFunctor α) :
     f <$> s = ⟨⟨(f '' s.1.1 ·), fun _ => inferInstance⟩, s.2⟩ :=
   rfl
 
-instance : QPF AugmentedFunctor where
+private instance : QPF AugmentedFunctor where
   P := ⟨(Player → Type u) × (Player → Prop), fun ⟨x, _⟩ ↦ Σ p, PLift (x p)⟩
   abs x := ⟨⟨fun p ↦ Set.range (x.2 ∘ .mk p ∘ PLift.up), fun _ ↦ inferInstance⟩, x.1.2⟩
   repr x := ⟨⟨fun p ↦ Shrink (x.1.1 p), x.2⟩, Sigma.rec (fun _ y ↦ ((equivShrink _).symm y.1).1)⟩
@@ -51,6 +62,9 @@ instance : QPF AugmentedFunctor where
 
 end AugmentedFunctor
 
+/--
+Like `GameForm` but each position may contain Left and Right tombstones
+-/
 def AugmentedForm : Type (u + 1) :=
   QPF.Fix AugmentedFunctor
 
@@ -74,9 +88,15 @@ private def moves' (p : Player) (x : AugmentedForm.{u}) : Set AugmentedForm.{u} 
     obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
     exact h
 
+/--
+Check if given `Player` has a tombstone option
+-/
 def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
   x.dest.2 p
 
+/--
+Construct an `AugmentedForm` from available moves and tombstones
+-/
 def ofSetsWithTombs (st : Player → Set AugmentedForm) (tomb : Player → Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] : AugmentedForm :=
   QPF.Fix.mk ⟨⟨st, fun
@@ -126,6 +146,9 @@ theorem ofSets_moves_tombs (x : AugmentedForm) :
        cases p <;> rfl
   simp only [Subtype.coe_eta, Prod.mk.eta, QPF.Fix.mk_dest]
 
+/--
+Two `AugmentedForm`s are equal if they have the same moves and tombstones
+-/
 @[ext]
 theorem ext {x y : AugmentedForm.{u}}
     (h_moves : ∀ p, moves p x = moves p y)
@@ -134,6 +157,9 @@ theorem ext {x y : AugmentedForm.{u}}
   rw [← ofSets_moves_tombs x, ← ofSets_moves_tombs y]
   simp_rw [funext h_moves, h_tomb]
 
+/--
+Conway recursion
+-/
 @[elab_as_elim]
 def moveRecOn {motive : AugmentedForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) : motive x :=
@@ -160,6 +186,9 @@ private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
 @[no_expose] noncomputable instance : Add AugmentedForm where
   add := add'
 
+/--
+Convert `GameForm` to `AugmentedForm` with no tombstones
+-/
 def ofGameForm (g : GameForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => Set.range (fun gp : moves p g => ofGameForm gp))
@@ -170,6 +199,9 @@ def ofGameForm (g : GameForm) : AugmentedForm :=
 instance : Coe GameForm AugmentedForm where
   coe := ofGameForm
 
+/--
+A position is `TombstoneFree` if no player has a tombstone and all subpositions are `TombstoneFree`
+-/
 def TombstoneFree (g : AugmentedForm) : Prop :=
   (∀ p, ¬g.hasTombstone p) ∧ ∀ p, ∀ h ∈ moves p g, TombstoneFree h
   termination_by g
@@ -196,6 +228,9 @@ theorem ofSetsWithTombs_ff_TombstoneFree
     rw [moves_ofSetsWithTombs] at h2
     exact h2
 
+/--
+If an `AugmentedForm` is `TombstoneFree` then it is equivalent to `GameForm`
+-/
 def toGameForm (g : AugmentedForm) (h : TombstoneFree g) : GameForm :=
   !{Set.range (fun gl : moves .left g => toGameForm gl (h.moves .left gl gl.property)) |
     Set.range (fun gr : moves .right g => toGameForm gr (h.moves .right gr gr.property))}
@@ -629,7 +664,9 @@ theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
   rw [zero_def, zero_def, ofGameForm]
   ext p x <;> simp
 
-/-- The coercion from GameForm to AugmentedForm is an additive monoid homomorphism -/
+/--
+The coercion from `GameForm` to `AugmentedForm` is an additive monoid homomorphism
+-/
 def ofGameFormHom : GameForm →+ AugmentedForm where
   toFun := ofGameForm
   map_zero' := ofGameForm_zero

@@ -21,10 +21,18 @@ def AnyGame (_ : GameForm) := True
 instance : ClosedUnderNeg AnyGame where
   neg_of _ := trivial
 
+/--
+Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegelCombinatorialGameTheory2013]
+
+$$T = \left\{ \left( H^R \right)^{\circ} \mid \left\{ \cdot \mid \left( G^L \right)^{\circ} \right\} \right\}$$
+-/
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : moves .right h => (hr : GameForm)°
    | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
+/--
+$T$ is short if $G, H$ are short
+-/
 theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
     : IsShort (leftEnd_not_leftEnd_not_ge.auxT g h) := by
   unfold leftEnd_not_leftEnd_not_ge.auxT
@@ -59,6 +67,9 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
         have h_gl : IsShort gl := Short.of_mem_moves h_g h4
         exact Adjoint.short_adjoint h_gl
 
+/--
+Generalizaton of [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegelCombinatorialGameTheory2013]
+-/
 theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
     (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
@@ -124,8 +135,6 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
                        ne_eq, not_false_eq_true, not_true_eq_false, or_false, or_self, or_true,
                        reduceCtorEq] at h4 h6
 
-alias theorem6_6 := not_misereGE_of_isEnd_left_not_isEnd_left
-
 theorem ClosedUnderNeg.not_misereGE_of_isEnd_right_not_isEnd_right {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
     (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
@@ -158,6 +167,9 @@ theorem EqZeroIdentical.not_misereEQ_zero_of_ne_zero {A : GameForm → Prop} [Eq
             (ClosedUnderNeg.not_misereGE_of_isEnd_right_not_isEnd_right h5 isEnd_zero h2)
             (MisereEQ.symm h3)
 
+/--
+Generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+-/
 theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) : (g =m A 0 ↔ g = 0) := by
   constructor <;> intro h2
@@ -167,8 +179,14 @@ theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZer
     intro _
     exact congrFun rfl
 
-theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
-    (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial
-
+/--
+[Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+-/
 theorem Short.misereEQ_zero_iff_eq_zero {g : GameForm} (h_g : IsShort g) :
     (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero h_g
+
+/--
+Transfinite generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+-/
+theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
+    (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial
