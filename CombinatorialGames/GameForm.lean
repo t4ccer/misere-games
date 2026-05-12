@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Violeta Hernández Palacios, Reid Barton, Mario Carneiro, Isabel Longbottom, Kim Morrison, Yuyang Zhao
+Authors: Reid Barton, Mario Carneiro, Alfie Davies, Isabel Longbottom, Tomasz Maciosowski, Kim Morrison, Violeta Hernández Palacios, Yuyang Zhao
 -/
 module
 
