@@ -24,39 +24,39 @@ noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : moves .right h => (hr : GameForm)°
    | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
-instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
-    : Short (leftEnd_not_leftEnd_not_ge.auxT g h) := by
+theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
+    : IsShort (leftEnd_not_leftEnd_not_ge.auxT g h) := by
   unfold leftEnd_not_leftEnd_not_ge.auxT
   rw [short_def]
   intro p
-  change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
+  change (moves p _).Finite ∧ ∀ y ∈ moves p _, IsShort y
   constructor
   · cases p
     · simp only [GameForm.moves_ofSets, Player.cases]
-      have : Finite (moves .right h) := Short.finite_moves .right h
+      have : Finite (moves .right h) := Short.finite_moves .right h_h
       exact Set.finite_range (fun hr : moves .right h => (hr : GameForm)°)
     · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
     · obtain ⟨gp', h3, h4⟩ := h3
       rw [<-h4]
-      have _ : Short gp' := Short.of_mem_moves h3
-      exact Adjoint.short_adjoint gp'
+      have h_gp' : IsShort gp' := Short.of_mem_moves h_h h3
+      exact Adjoint.short_adjoint h_gp'
     · rw [h3, short_def]
       intro p
-      change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
+      change (moves p _).Finite ∧ ∀ y ∈ moves p _, IsShort y
       constructor <;> cases p
       · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
       · simp only [GameForm.moves_ofSets, Player.cases]
-        have : Finite (moves .left g) := Short.finite_moves .left g
+        have : Finite (moves .left g) := Short.finite_moves .left h_g
         exact Set.finite_range (fun gl : moves .left g => (gl : GameForm)°)
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
       · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
                    exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
         intro gl h4
-        have _ : Short gl := Short.of_mem_moves h4
-        exact Adjoint.short_adjoint gl
+        have h_gl : IsShort gl := Short.of_mem_moves h_g h4
+        exact Adjoint.short_adjoint h_gl
 
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
@@ -141,8 +141,8 @@ class EqZeroIdentical (A : GameForm → Prop) extends (ClosedUnderNeg A) where
 instance : EqZeroIdentical AnyGame where
   has_T_g_zero _ := trivial
 
-instance : EqZeroIdentical Short where
-  has_T_g_zero _ := short_auxT
+instance : EqZeroIdentical IsShort where
+  has_T_g_zero h_g := short_auxT h_g Short.zero
 
 theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) (h1 : g ≠ 0) : ¬(g =m A 0) := by
@@ -171,5 +171,5 @@ theorem EqZeroIdentical.eq_zero_iff_identical_zero {A : GameForm → Prop} [EqZe
 theorem Transfinite.eq_zero_iff_identical_zero {g : GameForm} :
     (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero trivial
 
-theorem Short.eq_zero_iff_identical_zero {g : GameForm} [h1 : Short g] :
-    (g =m Short 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h1
+theorem Short.eq_zero_iff_identical_zero {g : GameForm} (h_g : IsShort g) :
+    (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h_g

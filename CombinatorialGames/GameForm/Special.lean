@@ -24,7 +24,7 @@ universe u
 
 namespace GameForm
 
-open Form (Short short_def)
+open Form (IsShort short_def)
 
 /-! ### Star -/
 
@@ -43,7 +43,7 @@ recommended_spelling "star" for "⋆" in [«term⋆»]
 
 @[simp] theorem neg_star : -⋆ = ⋆ := by simp [star]
 
-@[simp] instance : Short ⋆ := by
+@[simp] theorem short_star : IsShort ⋆ := by
   rw [star, Form.short_def]; simp
 
 /-! ### Half -/
@@ -58,7 +58,7 @@ recommended_spelling "half" for "½" in [«term½»]
 @[simp] theorem leftMoves_half : ½ᴸ = {0} := leftMoves_ofSets ..
 @[simp] theorem rightMoves_half : ½ᴿ = {1} := rightMoves_ofSets ..
 
-instance : Short ½ := by
+theorem short_half : IsShort ½ := by
   rw [half, Form.short_def]; simp
 
 /-! ### Up and down -/
@@ -73,7 +73,7 @@ recommended_spelling "up" for "↑" in [«term↑»]
 @[simp] theorem leftMoves_up : ↑ᴸ = {0} := leftMoves_ofSets ..
 @[simp] theorem rightMoves_up : ↑ᴿ = {⋆} := rightMoves_ofSets ..
 
-instance : Short ↑ := by
+theorem short_up : IsShort ↑ := by
   rw [up, Form.short_def]; simp
 
 /-- The game `↓ = {⋆ | 0}`. -/
@@ -89,7 +89,7 @@ recommended_spelling "down" for "↓" in [«term↓»]
 @[simp] theorem neg_down : -↓ = ↑ := by simp [up, down]
 @[simp] theorem neg_up : -↑ = ↓ := by simp [up, down]
 
-instance : Short ↓ := by
+theorem short_down : IsShort ↓ := by
   rw [down, Form.short_def]; simp
 
 /-! ### Tiny and miny -/
@@ -110,8 +110,8 @@ theorem leftMoves_tiny (x : GameForm) : (⧾x)ᴸ = {0} :=
 theorem rightMoves_tiny (x : GameForm) : (⧾x)ᴿ = {!{{0} | {-x}}} :=
   rightMoves_ofSets ..
 
-instance (x : GameForm) [Short x] : Short (⧾x) := by
-  have : Short (!{{0} | {-x}}) := by rw [Form.short_def]; simp; infer_instance
+theorem short_tiny {x : GameForm} (h1 : IsShort x) : IsShort (⧾x) := by
+  have : IsShort (!{{0} | {-x}}) := by rw [Form.short_def]; simpa
   rw [tiny, Form.short_def]; simp [this]
 
 /-- A miny game `⧿x` is defined as `{{x | 0} | 0}`. -/
@@ -137,8 +137,9 @@ theorem neg_tiny (x : GameForm) : -(⧾x) = ⧿x := by
 theorem neg_miny (x : GameForm) : -(⧿x) = ⧾x := by
   simp [miny, tiny]
 
-instance (x : GameForm) [Short x] : Short (⧿x) := by
-  rw [← neg_tiny]; infer_instance
+theorem short_miny {x : GameForm} (h1 : IsShort x) : IsShort (⧿x) := by
+  rw [← neg_tiny, Form.Short.neg_iff]
+  exact short_tiny h1
 
 /-! ### Switches -/
 

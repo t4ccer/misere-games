@@ -107,20 +107,19 @@ theorem mem_adjoint_end_opposite {g gp : G} {p : Player}
         Set.mem_singleton_iff] at h1
       exact h1
 
-instance short_adjoint (g : G) [h1 : Short g] : Short (g°) := by
+instance short_adjoint {g : G} (h1 : IsShort g) : IsShort (g°) := by
   unfold Adjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp only [hleft, hright, and_self, ↓reduceIte, Short.star]
     · simp only [hleft, hright, and_false, ↓reduceIte]
       apply Short.ofSets
-      · have : Finite (moves .right g) := Short.finite_moves .right g
+      · have : Finite (moves .right g) := Short.finite_moves .right h1
         exact Set.finite_range (fun gr : moves .right g => Adjoint (gr : G))
       · intro gr hgr
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgr
         obtain ⟨gr', hgr', rfl⟩ := hgr
-        haveI : Short gr' := Short.of_mem_moves hgr'
-        exact short_adjoint gr'
+        exact short_adjoint (Short.of_mem_moves h1 hgr')
       · exact Set.finite_singleton 0
       · intro gr hgr
         simp only [Set.mem_singleton_iff] at hgr
@@ -134,29 +133,26 @@ instance short_adjoint (g : G) [h1 : Short g] : Short (g°) := by
         simp only [Set.mem_singleton_iff] at hgl
         subst gl
         exact Short.zero
-      · have : Finite (moves .left g) := Short.finite_moves .left g
+      · have : Finite (moves .left g) := Short.finite_moves .left h1
         exact Set.finite_range (fun gl : moves .left g => Adjoint (gl : G))
       · intro gl hgl
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgl
         obtain ⟨gl', hgl', rfl⟩ := hgl
-        haveI : Short gl' := Short.of_mem_moves hgl'
-        exact short_adjoint gl'
+        exact short_adjoint (Short.of_mem_moves h1 hgl')
     · simp only [hleft, hright, and_self, ↓reduceIte]
       apply Short.ofSets
-      · have : Finite (moves .right g) := Short.finite_moves .right g
+      · have : Finite (moves .right g) := Short.finite_moves .right h1
         exact Set.finite_range (fun gr : moves .right g => Adjoint (gr : G))
       · intro gr hgr
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgr
         obtain ⟨gr', hgr', rfl⟩ := hgr
-        haveI : Short gr' := Short.of_mem_moves hgr'
-        exact short_adjoint gr'
-      · have : Finite (moves .left g) := Short.finite_moves .left g
+        exact short_adjoint (Short.of_mem_moves h1 hgr')
+      · have : Finite (moves .left g) := Short.finite_moves .left h1
         exact Set.finite_range (fun gl : moves .left g => Adjoint (gl : G))
       · intro gl hgl
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgl
         obtain ⟨gl', hgl', rfl⟩ := hgl
-        haveI : Short gl' := Short.of_mem_moves hgl'
-        exact short_adjoint gl'
+        exact short_adjoint (Short.of_mem_moves h1 hgl')
 termination_by g
 decreasing_by all_goals form_wf
 

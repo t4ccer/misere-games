@@ -51,12 +51,12 @@ def Augmented_maintenance (U : GameForm → Prop) (g h : AugmentedForm) (p : Pla
 def Augmented_proviso (U : GameForm → Prop) (g h : AugmentedForm) (p : Player) : Prop :=
   IsEndLike p g →  Augmented_strong U h p
 
-lemma ofGameForm_preserves_short (g : GameForm) [Form.Short g] :
-    Form.Short (AugmentedForm.ofGameForm g) := by
+lemma ofGameForm_preserves_short {g : GameForm} (h_g : Form.IsShort g) :
+    Form.IsShort (AugmentedForm.ofGameForm g) := by
   sorry
 
-lemma toGameForm_preserves_short (g : AugmentedForm) [Form.Short g] (h : AugmentedForm.TombstoneFree g) :
-    Form.Short (AugmentedForm.toGameForm g h) := by
+lemma toGameForm_preserves_short {g : AugmentedForm} (h_g : Form.IsShort g) (h : AugmentedForm.TombstoneFree g) :
+    Form.IsShort (AugmentedForm.toGameForm g h) := by
   sorry
 
 lemma winsGoingFirst_coercion_compat (g : GameForm) (p : Player) :
@@ -144,20 +144,22 @@ lemma proviso_coercion_compat {U : GameForm → Prop} (g h : GameForm) (p : Play
   simp only [Proviso, Augmented_proviso, isEnd_coercion_compat, strong_coercion_compat, GameForm.IsEndLike_iff]
 
 theorem augmented_misere_ge_iff_maintenance_and_proviso {U : GameForm → Prop} [ShortUniverse U]
-    (g h : AugmentedForm) [Form.Short g] [Form.Short h] :
+    (g h : AugmentedForm) (h_g : Form.IsShort g) (h_h : Form.IsShort h) :
     g ≥ma U h ↔ Augmented_maintenance U g h .right ∧ Augmented_maintenance U g h .left ∧
                 Augmented_proviso U g h .right ∧ Augmented_proviso U h g .left := by
   sorry
 
 theorem misere_ge_iff_maintenance_and_proviso' {U : GameForm → Prop} [ShortUniverse U]
-    (g h : GameForm) [Form.Short g] [Form.Short h] :
+    (g h : GameForm) (h_g : Form.IsShort g) (h_h : Form.IsShort h) :
     g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
                Proviso U g h .right ∧ Proviso U h g .left := by
-  have hgs : Form.Short (g : AugmentedForm) := ofGameForm_preserves_short g
-  have hhs : Form.Short (h : AugmentedForm) := ofGameForm_preserves_short h
+  have hgs : Form.IsShort (g : AugmentedForm) := ofGameForm_preserves_short h_g
+  have hhs : Form.IsShort (h : AugmentedForm) := ofGameForm_preserves_short h_h
   rw [misere_ge_coercion_compat, augmented_misere_ge_iff_maintenance_and_proviso,
       maintenance_coercion_compat, maintenance_coercion_compat,
       proviso_coercion_compat, proviso_coercion_compat]
+  exact hgs
+  exact hhs
 
 def invertible (U : GameForm → Prop) (g : GameForm) : Prop :=
   ∃ h, U h ∧ (g + h) =m U 0

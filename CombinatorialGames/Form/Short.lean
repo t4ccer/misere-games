@@ -14,9 +14,6 @@ import Mathlib.Data.Fintype.Order
 
 A combinatorial game is `Short` if it has only finitely many subpositions. In particular, this means
 there is a finite set of moves at every point.
-
-We historically defined `Short x` as data, which we then used to enable some degree of computation
-on combinatorial games. This functionality is now implemented through the `game_cmp` tactic instead.
 -/
 
 universe u
@@ -28,78 +25,65 @@ namespace Form
 open Form
 open GameForm
 
-variable {G : Type (u + 1)} [g_form : Form G]
+variable {G : Type (u + 1)} [Form G]
 
-def ShortAux (x : G) : Prop :=
-  ∀ p, (Moves.moves p x).Finite ∧ ∀ y ∈ Moves.moves p x, ShortAux y
+def IsShort (x : G) : Prop :=
+  ∀ p, (Moves.moves p x).Finite ∧ ∀ y ∈ Moves.moves p x, IsShort y
 termination_by x
 decreasing_by form_wf
 
-/-- A short game is one with finitely many subpositions. That is, the left and right sets are
-finite, and all of the games in them are short as well. -/
-@[mk_iff short_iff_aux]
-class Short (x : G) : Prop where of_shortAux ::
-  out : ShortAux x
-
-theorem short_def {x : G} : Short x ↔ ∀ p, (Moves.moves p x).Finite ∧ ∀ y
-∈ Moves.moves p x, Short y := by
-  simp_rw [short_iff_aux]; rw [ShortAux]
+theorem short_def {x : G}
+    : IsShort x ↔ ∀ p, (Moves.moves p x).Finite ∧ ∀ y ∈ Moves.moves p x, IsShort y := by
+  rw [IsShort]
 
 alias ⟨_, Short.mk⟩ := short_def
 
 namespace Short
 
-theorem finite_moves (p : Player) (x : G) [h : Short x] : (Moves.moves p x).Finite :=
-  (short_def.1 h p).1
+theorem finite_moves (p : Player) {x : G} (hx : IsShort x) : (Moves.moves p x).Finite :=
+  (short_def.mp hx p).left
 
-theorem finite_setOf_isOption (x : G) [Short x] : {y | Moves.IsOption y x}.Finite := by
+theorem finite_moves' (p : Player) {x : G} (hx : IsShort x) : Finite ↑(moves p x) :=
+  finite_moves p hx
+
+theorem finite_setOf_isOption {x : G} (hx : IsShort x) : {y | Moves.IsOption y x}.Finite := by
   simp_rw [Moves.IsOption.iff_mem_union]
-  exact (finite_moves _ x).union (finite_moves _ x)
+  exact (finite_moves _ hx).union (finite_moves _ hx)
 
-instance (p : Player) (x : G) [Short x] : Finite (Moves.moves p x) :=
-  (Short.finite_moves _ x).to_subtype
+protected theorem of_mem_moves {x y : G} (hx : IsShort x) {p} (hy : y ∈ Moves.moves p x) : IsShort y :=
+  (short_def.mp hx p).right y hy
 
-instance (x : G) [Short x] : Finite {y // Moves.IsOption y x} :=
-  (Short.finite_setOf_isOption x).to_subtype
-
-protected theorem of_mem_moves {x y : G} [h : Short x] {p} (hy : y ∈ Moves.moves p x) : Short y :=
-  (short_def.1 h p).2 y hy
-
-protected theorem isOption {x y : G} [Short x] (h : Moves.IsOption y x) : Short y := by
-  simp_rw [Moves.IsOption.iff_mem_union] at h
+protected theorem isOption {x y : G} (hx : IsShort x) (h : Moves.IsOption y x) : IsShort y := by
+  rw [Moves.IsOption.iff_mem_union] at h
   cases h with
-  | inl h => exact .of_mem_moves h
-  | inr h => exact .of_mem_moves h
+  | inl h => exact Short.of_mem_moves hx h
+  | inr h => exact Short.of_mem_moves hx h
 
 alias _root_.Moves.IsOption.short := Short.isOption
 
-protected theorem subposition {x y : G} [Short x] (h : Subposition y x) : Short y := by
+protected theorem subposition {x y : G} (hx : IsShort x) (h : Subposition y x) : IsShort y := by
   cases h with
-  | single h => exact Short.isOption h
-  | tail IH h => have := Short.isOption h; exact Short.subposition IH
+  | single h => exact Short.isOption hx h
+  | tail IH h => have hx' := Short.isOption hx h; exact Short.subposition hx' IH
 termination_by x
 decreasing_by form_wf
 
 alias _root_.Moves.IsOption.subposition := Short.subposition
 
-theorem finite_setOf_subposition (x : G) [Short x] : {y | Moves.Subposition y x}.Finite := by
+theorem finite_setOf_subposition {x : G} (hx : IsShort x) : {y | Moves.Subposition y x}.Finite := by
   have : {y | Moves.Subposition y x} = {y | Moves.IsOption y x} ∪
       ⋃ y ∈ {y | Moves.IsOption y x}, {z | Moves.Subposition z y} := by
     ext
     rw [Set.mem_setOf_eq, Moves.Subposition, Relation.transGen_iff]
     simp [and_comm]
   rw [this]
-  refine (finite_setOf_isOption x).union <| (finite_setOf_isOption x).biUnion fun y hy ↦ ?_
-  have := Short.isOption hy
-  exact finite_setOf_subposition y
+  refine (finite_setOf_isOption hx).union <| (finite_setOf_isOption hx).biUnion fun y hy ↦ ?_
+  exact finite_setOf_subposition (Short.isOption hx hy)
 termination_by x
 decreasing_by form_wf
 
-instance (x : G) [Short x] : Finite {y // Moves.Subposition y x} :=
-  (Short.finite_setOf_subposition x).to_subtype
-
 theorem _root_.Moves.short_iff_finite_setOf_subposition {x : G} :
-    Short x ↔ {y | Moves.Subposition y x}.Finite := by
+    IsShort x ↔ {y | Moves.Subposition y x}.Finite := by
   refine ⟨@finite_setOf_subposition _ _ x, fun h ↦ mk fun p ↦ ⟨?_, ?_⟩⟩
   on_goal 1 => refine h.subset fun y hy ↦ ?_
   on_goal 2 => refine fun y hy ↦ short_iff_finite_setOf_subposition.2 <| h.subset fun z hz ↦ ?_
@@ -107,49 +91,48 @@ theorem _root_.Moves.short_iff_finite_setOf_subposition {x : G} :
 termination_by x
 decreasing_by form_wf
 
-protected instance add (x y : G) [Short x] [Short y] : Short (x + y) := by
+protected theorem add {x y : G} (hx : IsShort x) (hy : IsShort y) : IsShort (x + y) := by
   refine Short.mk fun p ↦ ⟨?_, ?_⟩
   · change (moves p (x + y)).Finite; rw [moves_add]
-    simpa using ⟨(Short.finite_moves _ x).image _, (Short.finite_moves _ y).image _⟩
+    simpa using ⟨(Short.finite_moves _ hx).image _, (Short.finite_moves _ hy).image _⟩
   · intro z hz; change z ∈ moves p (x + y) at hz; rw [moves_add] at hz
     cases hz with
-    | inl h => obtain ⟨a, ha, rfl⟩ := h; have := Short.of_mem_moves ha; exact Short.add ..
-    | inr h => obtain ⟨b, hb, rfl⟩ := h; have := Short.of_mem_moves hb; exact Short.add ..
+    | inl h => obtain ⟨a, ha, rfl⟩ := h; exact Short.add (Short.of_mem_moves hx ha) hy
+    | inr h => obtain ⟨b, hb, rfl⟩ := h; exact Short.add hx (Short.of_mem_moves hy hb)
 termination_by (x, y)
 decreasing_by form_wf
 
-protected theorem add' {x y : G} (h1 : Short x) (h2 : Short y) : Short (x + y) := by
-  infer_instance
-
-protected instance neg (x : G) [Short x] : Short (-x) := by
+protected theorem neg {x : G} (hx : IsShort x) : IsShort (-x) := by
   rw [short_def]; intro p; constructor
   · change (moves p (-x)).Finite; rw [moves_neg]
-    simpa [← Set.image_neg_eq_neg] using (Short.finite_moves _ x).image _
+    simpa [← Set.image_neg_eq_neg] using (Short.finite_moves _ hx).image _
   · intro y hy; change y ∈ moves p (-x) at hy; rw [moves_neg] at hy
-    have h_neg_y : -y ∈ moves (-p) x := by simp [Set.mem_neg] at hy; exact hy
-    have : Short (-y) := Short.of_mem_moves h_neg_y
-    simpa using Short.neg (-y)
+    have h_neg_y : -y ∈ moves (-p) x := by rwa [Set.mem_neg] at hy
+    simpa using Short.neg (Short.of_mem_moves hx h_neg_y)
 termination_by x
 decreasing_by form_wf
 
-instance : ClosedUnderNeg (Form.Short (G := G)) where
-  neg_of h := by infer_instance
+instance : ClosedUnderNeg (IsShort (G := G)) where
+  neg_of := Short.neg
+
+@[simp]
+protected theorem neg_iff {x : G} : IsShort (-x) ↔ IsShort x := ClosedUnderNeg.neg_iff
 
 theorem short_iff_finite_setOf_subposition {x : G} :
-    Short x ↔ {y | Subposition y x}.Finite := by
+    IsShort x ↔ {y | Subposition y x}.Finite := by
   constructor <;> intro h1
-  · apply finite_setOf_subposition
+  · apply finite_setOf_subposition h1
   · exact Moves.short_iff_finite_setOf_subposition.mpr h1
 
 @[simp]
-protected instance zero : Short (0 : G) := by
+protected theorem zero : IsShort (0 : G) := by
   rw [Form.short_def]
   simp
 
 protected theorem ofSets {s t : Set G} [Small s] [Small t]
-    (hs_fin : s.Finite) (hs_short : ∀ g ∈ s, Short g)
-    (ht_fin : t.Finite) (ht_short : ∀ g ∈ t, Short g) :
-    Short !{s | t} := by
+    (hs_fin : s.Finite) (hs_short : ∀ g ∈ s, IsShort g)
+    (ht_fin : t.Finite) (ht_short : ∀ g ∈ t, IsShort g) :
+    IsShort !{s | t} := by
   rw [short_def]
   intro p
   cases p
@@ -157,7 +140,7 @@ protected theorem ofSets {s t : Set G} [Small s] [Small t]
   · exact ⟨by simpa using ht_fin, by simpa using ht_short⟩
 
 @[simp]
-protected instance star : Short (!{{0} | {0}} : G) := by
+protected theorem star : IsShort (!{{0} | {0}} : G) := by
   apply Short.ofSets
   · exact Set.finite_singleton 0
   · intro g hg
@@ -171,25 +154,25 @@ protected instance star : Short (!{{0} | {0}} : G) := by
     exact Short.zero
 
 @[simp]
-protected instance one : Short (1 : G) := by
+protected theorem one : IsShort (1 : G) := by
   rw [one_def, Form.short_def]
   simp only [moves_ofSets, Player.cases, Player.forall, Set.finite_singleton, Set.mem_singleton_iff,
              forall_eq, Short.zero, and_self, Set.finite_empty, Set.mem_empty_iff_false,
              IsEmpty.forall_iff, implies_true]
 
-protected instance sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
-  Short.add ..
+protected theorem sub {x y : GameForm} (hx : IsShort x) (hy : IsShort y) : IsShort (x - y) :=
+  Short.add hx (Short.neg hy)
 
-protected instance natCast : ∀ n : ℕ, Short (n : G)
-  | 0 => inferInstanceAs (Short (0 : G))
-  | n + 1 => have := Short.natCast n; inferInstanceAs (Short ((n + 1) : G))
+protected theorem natCast : ∀ n : ℕ, IsShort (n : G)
+  | 0 =>  Short.zero
+  | n + 1 => Short.add (Short.natCast n) Short.one
 
-protected instance ofNat (n : ℕ) [n.AtLeastTwo] : Short (ofNat(n) : G) :=
-  inferInstanceAs (Short (n : G))
+protected theorem ofNat (n : ℕ) [n.AtLeastTwo] : IsShort (ofNat(n) : G) :=
+  Short.natCast n
 
-protected instance intCast : ∀ n : ℤ, Short (n : G)
-  | .ofNat n => inferInstanceAs (Short (n : G))
-  | .negSucc n => inferInstanceAs (Short (-(n + 1 : G)))
+protected theorem intCast : ∀ n : ℤ, IsShort (n : G)
+  | .ofNat n => Short.natCast n
+  | .negSucc n => Short.neg (Short.natCast (n + 1))
 
 end Short
 end Form
@@ -199,12 +182,13 @@ namespace GameForm
 open Form
 
 theorem short_iff_birthday_finite {g : GameForm} :
-    Short g ↔ birthday g < NatOrdinal.of Ordinal.omega0 := by
+    IsShort g ↔ birthday g < NatOrdinal.of Ordinal.omega0 := by
   refine ⟨fun h ↦ ?_, ?_⟩
   · have (y : {y // IsOption y g}) : ∃ n : ℕ, birthday y.val = n := by
       rw [← NatOrdinal.lt_omega0, ← short_iff_birthday_finite]
-      exact h.isOption y.2
+      exact Short.isOption h y.prop
     choose f hf using this
+    have : Finite { y // IsOption y g } := (Short.finite_setOf_isOption h).to_subtype
     obtain ⟨n, hn⟩ := (Set.finite_range f).exists_le
     apply lt_of_le_of_lt _ (NatOrdinal.nat_lt_omega0 (n + 1))
     rw [birthday_le_iff', Nat.cast_add_one]
@@ -218,7 +202,7 @@ termination_by g
 decreasing_by form_wf
 
 theorem short_iff_birthday_nat {x : GameForm} :
-    Short x ↔ (∃ (n : ℕ), birthday x = n) := by
+    IsShort x ↔ (∃ (n : ℕ), birthday x = n) := by
   rw [short_iff_birthday_finite, NatOrdinal.lt_omega0]
 
 end GameForm

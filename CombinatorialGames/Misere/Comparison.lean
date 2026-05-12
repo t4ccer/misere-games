@@ -17,12 +17,12 @@ namespace Form
 namespace ShortUniverse
 
 theorem misereGE_iff_maintenance_proviso {U : G → Prop} [ShortUniverse U]
-    (g h : G) [h_g_short : Short g] [h_h_short : Short h] :
+    {g h : G} (h_g : IsShort g) (h_h : IsShort h) :
     g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
                Proviso U g h .right ∧ Proviso U h g .left := by
   constructor
   · intro h_ge
-    exact maintenance_proviso_of_misereGE h_g_short h_h_short h_ge
+    exact maintenance_proviso_of_misereGE h_g h_h h_ge
   · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
     exact Hereditary.misereGE_of_maintenance_proviso U h_mghr h_mghl h_pghr h_pghl
 

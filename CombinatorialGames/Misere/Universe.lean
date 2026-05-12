@@ -29,7 +29,7 @@ class ShortUniverse (A : G → Prop) extends
   ClosedUnderSum A, Hereditary A,
   ClosedUnderNeg A, ClosedUnderDicoticShort A where
   zero_mem : A 0
-  short_only (g : G) (h1 : A g) : Short g
+  short_only (g : G) (h1 : A g) : IsShort g
 
 class Universe (A : G → Prop) extends
   ClosedUnderSum A, Hereditary A,

@@ -75,14 +75,14 @@ theorem add_neg_birthday_plus_one_L (g : GameForm) (b : ℕ) (h1 : birthday g = 
     congrArg Outcome.Conjugate
       (add_birthday_plus_one_R (-g) b (by simpa [Form.birthday_neg] using h1))
 
-def RTippingPoint.aux (g : GameForm) [h1 : Short g] :
+def RTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + n) = .R := by
   let ⟨b, h2⟩ := GameForm.short_iff_birthday_nat.mp h1
   use (b + 1)
   rw [Nat.cast_add]
   exact add_birthday_plus_one_R g b h2
 
-def LTippingPoint.aux (g : GameForm) [h1 : Short g] :
+def LTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + (-n)) = .L := by
   let ⟨b, h2⟩ := GameForm.short_iff_birthday_nat.mp h1
   use (b + 1)
@@ -98,9 +98,9 @@ private theorem left_wins_second_implies_left_wins_first_add_one {g : GameForm}
     refine ⟨0, by simp, by simp⟩
   · simpa [Player.neg_left] using h1
 
-private theorem exists_add_nat_N_of_not_R (g : GameForm) [Short g] (h1 : MisereOutcome g ≠ .R) :
+private theorem exists_add_nat_N_of_not_R {g : GameForm} (h0 : IsShort g) (h1 : MisereOutcome g ≠ .R) :
     ∃ n : ℕ, MisereOutcome (g + n) = .N := by
-  let hR : ∃ n : ℕ, MisereOutcome (g + n) = .R := RTippingPoint.aux g
+  let hR : ∃ n : ℕ, MisereOutcome (g + n) = .R := RTippingPoint.aux h0
   let r : ℕ := Nat.find hR
   have hrR : MisereOutcome (g + r) = .R := Nat.find_spec hR
   have hrpos : 0 < r := by
@@ -130,24 +130,24 @@ private theorem exists_add_nat_N_of_not_R (g : GameForm) [Short g] (h1 : MisereO
   · exact False.elim ((MisereOutcome_P_iff_WinsGoingFirst.mp hn).left hright_n)
   · exact False.elim (hnotR_n hn)
 
-def NTippingPoint.aux (g : GameForm) [h1 : Short g] :
+def NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + n) = .N ∨ MisereOutcome (g + (-n)) = .N := by
   by_cases h2 : MisereOutcome g = .R
   · have h3 : MisereOutcome (-g) = .L := by simp [h2]
-    obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R (-g) (by simp [h3])
+    obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R (Short.neg h1) (by simp [h3])
     refine ⟨n, Or.inr ?_⟩
     have h4 : (MisereOutcome (-g + n)).Conjugate = .N := by
       rw [hn]
       rfl
     simpa [MisereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using h4
-  · obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R g h2
+  · obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R h1 h2
     exact ⟨n, Or.inl hn⟩
 
-noncomputable def NTippingPoint (g : GameForm) [Short g] : ℕ :=
-  Nat.find (NTippingPoint.aux g)
+noncomputable def NTippingPoint {g : GameForm} (h1 : IsShort g) : ℕ :=
+  Nat.find (NTippingPoint.aux h1)
 
 @[simp]
-theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint (-g) = NTippingPoint g := by
+theorem NTippingPoint.neg {g : GameForm} (h1 : IsShort g) : NTippingPoint (Short.neg h1) = NTippingPoint h1 := by
   unfold NTippingPoint
   apply Nat.find_congr'
   intro n
@@ -166,11 +166,11 @@ theorem NTippingPoint.neg (g : GameForm) [Short g] : NTippingPoint (-g) = NTippi
   · simpa [or_comm] using Or.imp h2.mpr h1.mpr h
   · simpa [or_comm] using Or.imp h1.mp h2.mp h
 
-noncomputable def RTippingPoint (g : GameForm) [Short g] : ℕ :=
-  Nat.find (RTippingPoint.aux g)
+noncomputable def RTippingPoint {g : GameForm} (h1 : IsShort g) : ℕ :=
+  Nat.find (RTippingPoint.aux h1)
 
-theorem RTippingPoint_iff (g : GameForm) [Short g] (n : ℕ) :
-    (RTippingPoint g = n)
+theorem RTippingPoint_iff {g : GameForm} (h1 : IsShort g) (n : ℕ) :
+    (RTippingPoint h1 = n)
      ↔ ((MisereOutcome (g + n) = .R) ∧ ∀ (x : ℕ), MisereOutcome (g + x) = .R → n ≤ x) := by
   unfold RTippingPoint
   rw [Nat.find_eq_iff]
@@ -180,11 +180,11 @@ theorem RTippingPoint_iff (g : GameForm) [Short g] (n : ℕ) :
     have h6 := h3 x h5
     omega
 
-noncomputable def LTippingPoint (g : GameForm) [Short g] : ℕ :=
-  Nat.find (LTippingPoint.aux g)
+noncomputable def LTippingPoint {g : GameForm} (h1 : IsShort g) : ℕ :=
+  Nat.find (LTippingPoint.aux h1)
 
-theorem LTippingPoint_iff (g : GameForm) [Short g] (n : ℕ) :
-    (LTippingPoint g = n)
+theorem LTippingPoint_iff {g : GameForm} (h1 : IsShort g) (n : ℕ) :
+    (LTippingPoint h1 = n)
      ↔ ((MisereOutcome (g + (-n)) = .L) ∧ ∀ (x : ℕ), MisereOutcome (g + (-x)) = .L → n ≤ x) := by
   unfold LTippingPoint
   rw [Nat.find_eq_iff]

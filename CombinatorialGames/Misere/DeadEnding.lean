@@ -225,14 +225,12 @@ protected theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
   exact IsDeadEnding.int 1
 
 structure ShortDeadEnding (g : GameForm) : Prop where
-  short : Short g
+  short : IsShort g
   dead_ending : IsDeadEnding g
 
 instance : Hereditary ShortDeadEnding where
   has_option h1 h2 :=
-  { short := by
-      have := h1.short
-      exact Short.isOption h2
+  { short := Short.isOption h1.short h2
   , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
   }
 
@@ -245,7 +243,7 @@ instance : ShortUniverse ShortDeadEnding where
   , dead_ending := IsDeadEnding.zero
   }
   closed_sum _ _ h_g h_h :=
-  { short := Short.add' h_g.short h_h.short
+  { short := Short.add h_g.short h_h.short
   , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
   }
   neg_of h :=
