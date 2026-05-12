@@ -107,42 +107,13 @@ theorem mem_adjoint_end_opposite {g gp : G} {p : Player}
         Set.mem_singleton_iff] at h1
       exact h1
 
-private instance short_zero : Short (0 : G) := by
-  rw [short_def]
-  intro p
-  simp
-
-private theorem short_ofSets {s t : Set G} [Small s] [Small t]
-    (hs_fin : s.Finite) (hs_short : ∀ g ∈ s, Short g)
-    (ht_fin : t.Finite) (ht_short : ∀ g ∈ t, Short g) :
-    Short !{s | t} := by
-  rw [short_def]
-  intro p
-  cases p
-  · exact ⟨by simpa using hs_fin, by simpa using hs_short⟩
-  · exact ⟨by simpa using ht_fin, by simpa using ht_short⟩
-
-private instance short_star : Short (!{{0} | {0}} : G) := by
-  apply short_ofSets
-  · simp
-  · intro g hg
-    simp only [Set.mem_singleton_iff] at hg
-    subst g
-    exact short_zero
-  · simp
-  · intro g hg
-    simp only [Set.mem_singleton_iff] at hg
-    subst g
-    exact short_zero
-
 instance short_adjoint (g : G) [h1 : Short g] : Short (g°) := by
   unfold Adjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
-    · simp [hleft, hright]
-      exact short_star
-    · simp [hleft, hright]
-      apply short_ofSets
+    · simp only [hleft, hright, and_self, ↓reduceIte, Short.star]
+    · simp only [hleft, hright, and_false, ↓reduceIte]
+      apply Short.ofSets
       · have : Finite (moves .right g) := Short.finite_moves .right g
         exact Set.finite_range (fun gr : moves .right g => Adjoint (gr : G))
       · intro gr hgr
@@ -150,19 +121,19 @@ instance short_adjoint (g : G) [h1 : Short g] : Short (g°) := by
         obtain ⟨gr', hgr', rfl⟩ := hgr
         haveI : Short gr' := Short.of_mem_moves hgr'
         exact short_adjoint gr'
-      · simp
+      · exact Set.finite_singleton 0
       · intro gr hgr
         simp only [Set.mem_singleton_iff] at hgr
         subst gr
-        exact short_zero
+        exact Short.zero
   · by_cases hright : IsEnd .right g
-    · simp [hleft, hright]
-      apply short_ofSets
-      · simp
+    · simp only [hleft, hright, and_true, ↓reduceIte]
+      apply Short.ofSets
+      · exact Set.finite_singleton 0
       · intro gl hgl
         simp only [Set.mem_singleton_iff] at hgl
         subst gl
-        exact short_zero
+        exact Short.zero
       · have : Finite (moves .left g) := Short.finite_moves .left g
         exact Set.finite_range (fun gl : moves .left g => Adjoint (gl : G))
       · intro gl hgl
@@ -170,8 +141,8 @@ instance short_adjoint (g : G) [h1 : Short g] : Short (g°) := by
         obtain ⟨gl', hgl', rfl⟩ := hgl
         haveI : Short gl' := Short.of_mem_moves hgl'
         exact short_adjoint gl'
-    · simp [hleft, hright]
-      apply short_ofSets
+    · simp only [hleft, hright, and_self, ↓reduceIte]
+      apply Short.ofSets
       · have : Finite (moves .right g) := Short.finite_moves .right g
         exact Set.finite_range (fun gr : moves .right g => Adjoint (gr : G))
       · intro gr hgr

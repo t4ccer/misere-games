@@ -48,7 +48,6 @@ theorem short_def {x : G} : Short x ↔ ∀ p, (Moves.moves p x).Finite ∧ ∀ 
 alias ⟨_, Short.mk⟩ := short_def
 
 namespace Short
-variable {x y : G}
 
 theorem finite_moves (p : Player) (x : G) [h : Short x] : (Moves.moves p x).Finite :=
   (short_def.1 h p).1
@@ -63,10 +62,10 @@ instance (p : Player) (x : G) [Short x] : Finite (Moves.moves p x) :=
 instance (x : G) [Short x] : Finite {y // Moves.IsOption y x} :=
   (Short.finite_setOf_isOption x).to_subtype
 
-protected theorem of_mem_moves [h : Short x] {p} (hy : y ∈ Moves.moves p x) : Short y :=
+protected theorem of_mem_moves {x y : G} [h : Short x] {p} (hy : y ∈ Moves.moves p x) : Short y :=
   (short_def.1 h p).2 y hy
 
-protected theorem isOption [Short x] (h : Moves.IsOption y x) : Short y := by
+protected theorem isOption {x y : G} [Short x] (h : Moves.IsOption y x) : Short y := by
   simp_rw [Moves.IsOption.iff_mem_union] at h
   cases h with
   | inl h => exact .of_mem_moves h
@@ -142,14 +141,62 @@ theorem short_iff_finite_setOf_subposition {x : G} :
   · apply finite_setOf_subposition
   · exact Moves.short_iff_finite_setOf_subposition.mpr h1
 
+@[simp]
+protected instance zero : Short (0 : G) := by
+  rw [Form.short_def]
+  simp
+
+protected theorem ofSets {s t : Set G} [Small s] [Small t]
+    (hs_fin : s.Finite) (hs_short : ∀ g ∈ s, Short g)
+    (ht_fin : t.Finite) (ht_short : ∀ g ∈ t, Short g) :
+    Short !{s | t} := by
+  rw [short_def]
+  intro p
+  cases p
+  · exact ⟨by simpa using hs_fin, by simpa using hs_short⟩
+  · exact ⟨by simpa using ht_fin, by simpa using ht_short⟩
+
+@[simp]
+protected instance star : Short (!{{0} | {0}} : G) := by
+  apply Short.ofSets
+  · exact Set.finite_singleton 0
+  · intro g hg
+    simp only [Set.mem_singleton_iff] at hg
+    subst g
+    exact Short.zero
+  · exact Set.finite_singleton 0
+  · intro g hg
+    simp only [Set.mem_singleton_iff] at hg
+    subst g
+    exact Short.zero
+
+@[simp]
+protected instance one : Short (1 : G) := by
+  rw [one_def, Form.short_def]
+  simp only [moves_ofSets, Player.cases, Player.forall, Set.finite_singleton, Set.mem_singleton_iff,
+             forall_eq, Short.zero, and_self, Set.finite_empty, Set.mem_empty_iff_false,
+             IsEmpty.forall_iff, implies_true]
+
+protected instance sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
+  Short.add ..
+
+protected instance natCast : ∀ n : ℕ, Short (n : G)
+  | 0 => inferInstanceAs (Short (0 : G))
+  | n + 1 => have := Short.natCast n; inferInstanceAs (Short ((n + 1) : G))
+
+protected instance ofNat (n : ℕ) [n.AtLeastTwo] : Short (ofNat(n) : G) :=
+  inferInstanceAs (Short (n : G))
+
+protected instance intCast : ∀ n : ℤ, Short (n : G)
+  | .ofNat n => inferInstanceAs (Short (n : G))
+  | .negSucc n => inferInstanceAs (Short (-(n + 1 : G)))
+
 end Short
 end Form
 
 namespace GameForm
 
 open Form
-
-variable {x y : GameForm}
 
 theorem short_iff_birthday_finite {g : GameForm} :
     Short g ↔ birthday g < NatOrdinal.of Ordinal.omega0 := by
@@ -173,32 +220,5 @@ decreasing_by form_wf
 theorem short_iff_birthday_nat {x : GameForm} :
     Short x ↔ (∃ (n : ℕ), birthday x = n) := by
   rw [short_iff_birthday_finite, NatOrdinal.lt_omega0]
-
-@[simp]
-protected instance Short.zero : Short (0 : GameForm) := by
-  rw [Form.short_def]
-  simp only [Form.moves_zero (G := GameForm), Set.finite_empty, Set.mem_empty_iff_false,
-             IsEmpty.forall_iff, implies_true, and_self]
-
-@[simp]
-protected instance Short.one : Short (1 : GameForm) := by
-  rw [one_def, Form.short_def]
-  simp only [moves_ofSets, Player.cases, Player.forall, Set.finite_singleton, Set.mem_singleton_iff,
-             forall_eq, Short.zero, and_self, Set.finite_empty, Set.mem_empty_iff_false,
-             IsEmpty.forall_iff, implies_true]
-
-protected instance Short.sub (x y : GameForm) [Short x] [Short y] : Short (x - y) :=
-  Short.add ..
-
-protected instance Short.natCast : ∀ n : ℕ, Short (n : GameForm)
-  | 0 => inferInstanceAs (Short (0 : GameForm))
-  | n + 1 => have := Short.natCast n; inferInstanceAs (Short ((n + 1) : GameForm))
-
-protected instance Short.ofNat (n : ℕ) [n.AtLeastTwo] : Short (ofNat(n) : GameForm) :=
-  inferInstanceAs (Short (n : GameForm))
-
-protected instance Short.intCast : ∀ n : ℤ, Short (n : GameForm)
-  | .ofNat n => inferInstanceAs (Short (n : GameForm))
-  | .negSucc n => inferInstanceAs (Short (-(n + 1 : GameForm)))
 
 end GameForm
