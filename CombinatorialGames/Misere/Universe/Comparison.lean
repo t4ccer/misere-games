@@ -16,7 +16,7 @@ namespace Form
 namespace Universe
 
 theorem adjoint_mem {U : G → Prop} [Universe U] (g : G) : U (g°) := by
-  unfold Adjoint
+  unfold adjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
@@ -41,7 +41,7 @@ theorem adjoint_mem {U : G → Prop} [Universe U] (g : G) : U (g°) := by
         simp only [Set.mem_singleton_iff] at hc
         rw [hc]
         exact Universe.zero_mem
-      · obtain ⟨gr, hgr⟩ := not_IsEnd_exists_move hright
+      · obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hright
         exact ⟨gr°, ⟨⟨gr, hgr⟩, rfl⟩⟩
       · exact Set.singleton_nonempty 0
   · by_cases hright : IsEnd .right g
@@ -56,7 +56,7 @@ theorem adjoint_mem {U : G → Prop} [Universe U] (g : G) : U (g°) := by
         obtain ⟨gl, hgl, rfl⟩ := hc
         exact adjoint_mem gl
       · exact Set.singleton_nonempty 0
-      · obtain ⟨gl, hgl⟩ := not_IsEnd_exists_move hleft
+      · obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hleft
         exact ⟨gl°, ⟨⟨gl, hgl⟩, rfl⟩⟩
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic
@@ -68,9 +68,9 @@ theorem adjoint_mem {U : G → Prop} [Universe U] (g : G) : U (g°) := by
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hc
         obtain ⟨gl, hgl, rfl⟩ := hc
         exact adjoint_mem gl
-      · obtain ⟨gr, hgr⟩ := not_IsEnd_exists_move hright
+      · obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hright
         exact ⟨gr°, ⟨⟨gr, hgr⟩, rfl⟩⟩
-      · obtain ⟨gl, hgl⟩ := not_IsEnd_exists_move hleft
+      · obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hleft
         exact ⟨gl°, ⟨⟨gl, hgl⟩, rfl⟩⟩
 termination_by g
 decreasing_by all_goals form_wf

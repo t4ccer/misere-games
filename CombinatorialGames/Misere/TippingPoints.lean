@@ -15,9 +15,9 @@ mutual
 private theorem right_wins_of_birthday_le (g : GameForm) (b : ℕ) (h1 : birthday g ≤ b) :
     WinsGoingFirst .right (g + b) := by
   by_cases h2 : IsEnd .right g
-  · exact WinsGoingFirst_add_of_IsEnd h2 (natCast_IsEnd_right b)
-  · obtain ⟨gr, h3⟩ := Form.not_IsEnd_exists_move h2
-    refine WinsGoingFirst_of_moves ?_
+  · exact winsGoingFirst_add_of_isEnd h2 (natCast_isEnd_right b)
+  · obtain ⟨gr, h3⟩ := not_isEnd_exists_move h2
+    refine winsGoingFirst_of_moves ?_
     refine ⟨gr + b, Form.add_right_mem_moves_add h3 b, ?_⟩
     exact not_left_wins_of_birthday_lt gr b ((Form.birthday_lt_of_mem_moves h3).trans_le h1)
 termination_by g
@@ -31,11 +31,11 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
     subst this
     simp at h1
   obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hbpos)
-  rw [not_WinsGoingFirst]
+  rw [not_winsGoingFirst_iff]
   constructor
   · intro h2
-    rw [GameForm.IsEndLike_iff] at h2
-    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [IsEnd_def]
+    rw [GameForm.isEndLike_iff_isEnd] at h2
+    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [isEnd_def]
     exact h4 (by simpa [hk] using (IsEnd.add_iff.mp h2).right)
   · intro gl h2
     rw [moves_add] at h2
@@ -48,9 +48,9 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
         apply Order.lt_add_one_iff.mp
         simpa [hk, Nat.cast_add, Nat.cast_one] using h1
       by_cases h8 : IsEnd .right g
-      · exact WinsGoingFirst_add_of_IsEnd h8 (natCast_IsEnd_right k)
-      · obtain ⟨gr, h9⟩ := Form.not_IsEnd_exists_move h8
-        refine WinsGoingFirst_of_moves ?_
+      · exact winsGoingFirst_add_of_isEnd h8 (natCast_isEnd_right k)
+      · obtain ⟨gr, h9⟩ := not_isEnd_exists_move h8
+        refine winsGoingFirst_of_moves ?_
         refine ⟨gr + k, Form.add_right_mem_moves_add h9 k, ?_⟩
         exact not_left_wins_of_birthday_lt gr k ((Form.birthday_lt_of_mem_moves h9).trans_le h7)
 termination_by g
@@ -60,7 +60,7 @@ end
 
 private theorem add_gt_birthday_R (g : GameForm) (b : ℕ) (h1 : birthday g < b) :
     MisereOutcome (g + b) = .R := by
-  exact MisereOutcome_R_iff_WinsGoingFirst.mpr
+  exact misereOutcome_R_iff_winsGoingFirst.mpr
     ⟨right_wins_of_birthday_le g b h1.le, not_left_wins_of_birthday_lt g b h1⟩
 
 theorem add_birthday_plus_one_R (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
@@ -71,18 +71,18 @@ theorem add_birthday_plus_one_R (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
 
 theorem add_neg_birthday_plus_one_L (g : GameForm) (b : ℕ) (h1 : birthday g = b) :
     MisereOutcome (g + (-(b + (1 : ℕ)))) = .L := by
-  simpa [MisereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using
+  simpa [misereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using
     congrArg Outcome.Conjugate
       (add_birthday_plus_one_R (-g) b (by simpa [Form.birthday_neg] using h1))
 
-def RTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
+theorem RTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + n) = .R := by
   let ⟨b, h2⟩ := GameForm.short_iff_birthday_nat.mp h1
   use (b + 1)
   rw [Nat.cast_add]
   exact add_birthday_plus_one_R g b h2
 
-def LTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
+theorem LTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + (-n)) = .L := by
   let ⟨b, h2⟩ := GameForm.short_iff_birthday_nat.mp h1
   use (b + 1)
@@ -91,7 +91,7 @@ def LTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
 
 private theorem left_wins_second_implies_left_wins_first_add_one {g : GameForm}
     (h1 : ¬WinsGoingFirst .right g) : WinsGoingFirst .left (g + 1) := by
-  refine WinsGoingFirst_of_moves ?_
+  refine winsGoingFirst_of_moves ?_
   refine ⟨g, ?_, ?_⟩
   · rw [moves_add, leftMoves_one]
     right
@@ -115,7 +115,7 @@ private theorem exists_add_nat_N_of_not_R {g : GameForm} (h0 : IsShort g) (h1 : 
     omega
   have hnotR_n : MisereOutcome (g + n) ≠ .R := by
     exact Nat.find_min hR (by simpa [r] using hnlt)
-  have hnotLeft_r : ¬WinsGoingFirst .left (g + r) := (MisereOutcome_R_iff_WinsGoingFirst.mp hrR).2
+  have hnotLeft_r : ¬WinsGoingFirst .left (g + r) := (misereOutcome_R_iff_winsGoingFirst.mp hrR).2
   have hright_n : WinsGoingFirst .right (g + n) := by
     by_contra h2
     have h3 : WinsGoingFirst .left ((g + n) + 1) :=
@@ -125,12 +125,12 @@ private theorem exists_add_nat_N_of_not_R {g : GameForm} (h0 : IsShort g) (h1 : 
     exact hnotLeft_r (by simpa [hnsucc] using h4)
   refine ⟨n, ?_⟩
   cases hn : MisereOutcome (g + n)
-  · exact False.elim ((MisereOutcome_L_iff_WinsGoingFirst.mp hn).right hright_n)
+  · exact False.elim ((misereOutcome_L_iff_winsGoingFirst.mp hn).right hright_n)
   · simp
-  · exact False.elim ((MisereOutcome_P_iff_WinsGoingFirst.mp hn).left hright_n)
+  · exact False.elim ((misereOutcome_P_iff_winsGoingFirst.mp hn).left hright_n)
   · exact False.elim (hnotR_n hn)
 
-def NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
+theorem NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + n) = .N ∨ MisereOutcome (g + (-n)) = .N := by
   by_cases h2 : MisereOutcome g = .R
   · have h3 : MisereOutcome (-g) = .L := by simp [h2]
@@ -139,7 +139,7 @@ def NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     have h4 : (MisereOutcome (-g + n)).Conjugate = .N := by
       rw [hn]
       rfl
-    simpa [MisereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using h4
+    simpa [misereOutcome_conjugate_neg, neg_add_rev, add_comm, add_left_comm, add_assoc] using h4
   · obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R h1 h2
     exact ⟨n, Or.inl hn⟩
 
@@ -155,9 +155,9 @@ theorem NTippingPoint.neg {g : GameForm} (h1 : IsShort g) : NTippingPoint (Short
     intro x
     constructor <;> intro hx
     · have : (MisereOutcome x).Conjugate = .N := by rw [hx]; rfl
-      simpa [MisereOutcome_conjugate_neg] using this
+      simpa [misereOutcome_conjugate_neg] using this
     · have : (MisereOutcome (-x)).Conjugate = .N := by rw [hx]; rfl
-      simpa [MisereOutcome_conjugate_neg] using this
+      simpa [misereOutcome_conjugate_neg] using this
   have h1 : MisereOutcome (g + n) = .N ↔ MisereOutcome (-g + (-n)) = .N := by
     simpa [neg_add_rev, add_comm, add_left_comm, add_assoc] using hconjN (g + n)
   have h2 : MisereOutcome (g + (-n)) = .N ↔ MisereOutcome (-g + n) = .N := by

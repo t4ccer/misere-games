@@ -15,7 +15,6 @@ public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.Small
 public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
-public import CombinatorialGames.Misere.Experimental
 public import CombinatorialGames.Misere.Hereditary
 public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.OutcomeStable

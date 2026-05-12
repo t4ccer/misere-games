@@ -35,7 +35,7 @@ private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)
     ∨ (∃ hl ∈ moves p h, MiserePlayerOutcome (hl + x) (-p) = p)
     ∨ (IsEndLike p (h + x)) := by
-  apply Or.elim ((WinsGoingFirst_iff _ _).mp (MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp h1))
+  apply Or.elim ((winsGoingFirst_iff _ _).mp (miserePlayerOutcome_eq_iff_winsGoingFirst.mp h1))
   · intro h1
     exact (Or.inr (Or.inr h1))
   · intro ⟨hxl, h1, h2⟩
@@ -72,7 +72,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
     rw [Player.neg_right] at h8
     -- By induction on X^R, since A is hereditary, we have o^L(H + X^R) = R.
     have h9 : MiserePlayerOutcome (g + xr) .left ≥ MiserePlayerOutcome (h + xr) .left := by
-      exact MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp
+      exact misereOutcome_ge_iff_miserePlayerOutcome_ge.mp
         (aux A h2 h3 h4 h5
           (Hereditary.has_option hx (IsOption.of_mem_moves h7))) .left
     have h10 : MiserePlayerOutcome (h + xr) .left = .right := by
@@ -80,7 +80,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
         simpa [h8] using h9
       exact Player.le_right_eq _ h11
     -- and hence oR(H + X) = R.
-    exact MiserePlayerOutcome_of_rightMoves (add_left_mem_moves_add h7 h) h10
+    exact miserePlayerOutcome_of_rightMoves (add_left_mem_moves_add h7 h) h10
   · -- 2. o^L(G^R + X) = R for some G^R.
     intro ⟨gr, h7, h8⟩
     rw [Player.neg_right] at h8
@@ -90,24 +90,24 @@ private theorem auxR (A : G → Prop) [Hereditary A]
       intro ⟨hr, h9, h10⟩
       -- In the first case, we have immediately that o^L(G^R + X) ≥ o^L(H^R + X),
       have h11 : MiserePlayerOutcome (gr + x) .left ≥ MiserePlayerOutcome (hr + x) .left := by
-        exact MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (h10 x hx) .left
+        exact misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (h10 x hx) .left
       -- and hence o^R(H + X) = R.
       have h12 : MiserePlayerOutcome (hr + x) .left = .right := by
         have h13 : MiserePlayerOutcome (hr + x) .left ≤ .right := by
           simpa [h8] using h11
         exact Player.le_right_eq _ h13
-      exact MiserePlayerOutcome_of_rightMoves (add_right_mem_moves_add h9 x) h12
+      exact miserePlayerOutcome_of_rightMoves (add_right_mem_moves_add h9 x) h12
     · -- or else there exists some G^RL with G^RL ≥A H
       intro ⟨grl, h9, h10⟩
       -- In the latter, we observe that o^R(G^RL + X) = R (since o^L(G^R + X) = R),
       have h11 : MiserePlayerOutcome (grl + x) .right = .right := by
         simp [MiserePlayerOutcome] at h8
-        rw [not_WinsGoingFirst] at h8
+        rw [not_winsGoingFirst_iff] at h8
         have h8 := h8.right (grl + x) (add_right_mem_moves_add h9 x)
-        rw [Player.neg_left, <-MiserePlayerOutcome_eq_iff_WinsGoingFirst] at h8
+        rw [Player.neg_left, <-miserePlayerOutcome_eq_iff_winsGoingFirst] at h8
         exact h8
       -- and so o^R(H + X) ≤ o(G^RL + X) = R.
-      have h12 := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (h10 x hx) .right
+      have h12 := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (h10 x hx) .right
       rw [h11] at h12
       simp [h12]
   · -- 3. G + X is Right end-like.
@@ -117,7 +117,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
     have ⟨h8, h9⟩ := h7
     -- By hypothesis, H is Right A-strong, and hence o^R(H + X) = R.
     have h11 := h4 h8 x hx h9
-    rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+    rwa [miserePlayerOutcome_eq_iff_winsGoingFirst]
 termination_by (x, (0 : Nat))
 decreasing_by
   all_goals
@@ -138,7 +138,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
     rw [Player.neg_left] at h8
     -- By induction on X^L, since A is hereditary, we have o^R(G + X^L) = L.
     have h9 : MiserePlayerOutcome (g + xl) .right ≥ MiserePlayerOutcome (h + xl) .right := by
-      exact MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp
+      exact misereOutcome_ge_iff_miserePlayerOutcome_ge.mp
         (aux A h2 h3 h4 h5
           (Hereditary.has_option hx (IsOption.of_mem_moves h7))) .right
     have h10 : MiserePlayerOutcome (g + xl) .right = .left := by
@@ -146,7 +146,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
         simpa [h8] using h9
       exact Player.le_left_eq _ h11
     -- and hence oL(G + X) = L.
-    exact MiserePlayerOutcome_of_leftMoves (add_left_mem_moves_add h7 g) h10
+    exact miserePlayerOutcome_of_leftMoves (add_left_mem_moves_add h7 g) h10
   · -- 2. o^R(H^L + X) = L for some H^L.
     intro ⟨hl, h7, h8⟩
     rw [Player.neg_left] at h8
@@ -156,9 +156,9 @@ private theorem auxL (A : G → Prop) [Hereditary A]
       intro ⟨gl, h9, h10⟩
       -- In the first case, we have immediately that o^R(G^L + X) ≥ o^R(H^L + X),
       have h11 : MiserePlayerOutcome (gl + x) .right ≥ MiserePlayerOutcome (hl + x) .right := by
-        exact MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (h10 x hx) .right
+        exact misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (h10 x hx) .right
       -- and hence o^L(G + X) = L.
-      refine MiserePlayerOutcome_of_leftMoves (add_right_mem_moves_add h9 x) ?_
+      refine miserePlayerOutcome_of_leftMoves (add_right_mem_moves_add h9 x) ?_
       simp [h8] at h11
       simp [h11]
     · -- or else there exists some H^LR with G ≥A H^LR
@@ -166,12 +166,12 @@ private theorem auxL (A : G → Prop) [Hereditary A]
       -- In the latter, we observe that o^L(H^LR + X) = L (since o^R(H^L + X) = L ),
       have h11 : MiserePlayerOutcome (hlr + x) .left = .left := by
         simp [MiserePlayerOutcome] at h8
-        rw [not_WinsGoingFirst] at h8
+        rw [not_winsGoingFirst_iff] at h8
         have h8 := h8.right (hlr + x) (add_right_mem_moves_add h9 x)
-        rw [Player.neg_right, <-MiserePlayerOutcome_eq_iff_WinsGoingFirst] at h8
+        rw [Player.neg_right, <-miserePlayerOutcome_eq_iff_winsGoingFirst] at h8
         exact h8
       -- and so o^L(G + X) ≥ o(H^LR + X) = L.
-      have h12 := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (h10 x hx) .left
+      have h12 := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (h10 x hx) .left
       rw [h11] at h12
       simp [h12]
   · -- 3. H + X is Left end-like.
@@ -181,7 +181,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
     have ⟨h8, h9⟩ := h7
     -- By hypothesis, G is Left A-strong, and hence o^L(G + X) = L.
     have h11 := h5 h8 x hx h9
-    rwa [MiserePlayerOutcome_eq_iff_WinsGoingFirst]
+    rwa [miserePlayerOutcome_eq_iff_winsGoingFirst]
 termination_by (x, (0 : Nat))
 decreasing_by
   all_goals
@@ -194,7 +194,7 @@ private theorem aux (A : G → Prop) [Hereditary A]
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
     (hx : A x)
     : MisereOutcome (g + x) ≥ MisereOutcome (h + x) := by
-  rw [MisereOutcome_ge_iff_MiserePlayerOutcome_ge]
+  rw [misereOutcome_ge_iff_miserePlayerOutcome_ge]
   intro p; cases p
   · cases h6 : MiserePlayerOutcome (h + x) Player.left
     · simp [auxL A hx h2 h3 h4 h5 h6]
@@ -218,24 +218,26 @@ theorem Hereditary.misereGE_of_maintenance_proviso (A : G → Prop) [Hereditary 
   intro x hx
   exact aux A h2 h3 h4 h5 hx
 
+-- TODO: Move, this doesn't require U to be hereditary
+
 theorem proviso_right_of_misereGE {U : G → Prop}
     {g h : G} (hge : g ≥m U h) :
     Proviso U g h .right := by
   intro hg_end x hx hx_end
   have hgt : MiserePlayerOutcome (g + x) .right = .right :=
-    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
-      (WinsGoingFirst_of_IsEndLike (IsEndLike.add_iff.mpr ⟨hg_end, hx_end⟩))
-  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge x hx) .right
+    miserePlayerOutcome_eq_iff_winsGoingFirst.mpr
+      (winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr ⟨hg_end, hx_end⟩))
+  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) .right
   rw [hgt] at h_cmp
-  exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp (Player.le_right_eq _ h_cmp)
+  exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp (Player.le_right_eq _ h_cmp)
 
 theorem proviso_left_of_misereGE {U : G → Prop}
     {g h : G} (hge : g ≥m U h) :
     Proviso U h g .left := by
   intro hh_end x hx hx_end
   have hht : MiserePlayerOutcome (h + x) .left = .left :=
-    MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
-      (WinsGoingFirst_of_IsEndLike (IsEndLike.add_iff.mpr ⟨hh_end, hx_end⟩))
-  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge x hx) .left
+    miserePlayerOutcome_eq_iff_winsGoingFirst.mpr
+      (winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr ⟨hh_end, hx_end⟩))
+  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) .left
   rw [hht] at h_cmp
-  exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp (Player.le_left_eq _ h_cmp)
+  exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp (Player.le_left_eq _ h_cmp)

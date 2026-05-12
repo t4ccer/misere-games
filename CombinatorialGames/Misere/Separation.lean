@@ -35,13 +35,13 @@ abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
 theorem leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
     {g h : G} (h_not_ge : ¬(g ≥m U h)) :
     LeftSeparating U g h ∨ RightSeparating U g h := by
-  rw [MisereGe] at h_not_ge
+  rw [MisereGE] at h_not_ge
   simp only [not_forall] at h_not_ge
   obtain ⟨x, hx, h_not_outcome_ge⟩ := h_not_ge
   have h_not_player_ge :
       ¬∀ p, MiserePlayerOutcome (g + x) p ≥ MiserePlayerOutcome (h + x) p := by
     intro h_player_ge
-    exact h_not_outcome_ge (MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mpr h_player_ge)
+    exact h_not_outcome_ge (misereOutcome_ge_iff_miserePlayerOutcome_ge.mpr h_player_ge)
   simp only [Player.forall, not_and_or] at h_not_player_ge
   cases h_not_player_ge with
   | inl h_left =>
@@ -51,19 +51,19 @@ theorem leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
       <;> simp [hg, hh] at h_left
       refine ⟨x, hx, ?_, ?_⟩
       · intro h_win
-        have h_out := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr h_win
+        have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
         rw [hg] at h_out
         cases h_out
-      · exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp hh
+      · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hh
   | inr h_right =>
       right
       cases hg : MiserePlayerOutcome (g + x) .right
       <;> cases hh : MiserePlayerOutcome (h + x) .right
       <;> simp [hg, hh] at h_right
       refine ⟨x, hx, ?_, ?_⟩
-      · exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp hg
+      · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hg
       · intro h_win
-        have h_out := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr h_win
+        have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
         rw [hh] at h_out
         cases h_out
 
@@ -84,7 +84,7 @@ theorem rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
   let y := rightSeparatorCandidate h x
   have hy : U y := h_candidate hx
   refine ⟨y, hy, ?_, ?_⟩
-  · apply WinsGoingFirst_of_moves
+  · apply winsGoingFirst_of_moves
     refine ⟨g + x, ?_, ?_⟩
     · apply add_left_mem_moves_add
       change x ∈ moves .right (rightSeparatorCandidate h x)
@@ -92,15 +92,15 @@ theorem rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
       rw [rightMoves_ofSets (s := rightSeparatorLeftSet h) (t := {x})]
       simp only [Set.mem_singleton_iff]
     · exact hgx
-  · rw [not_WinsGoingFirst]
+  · rw [not_winsGoingFirst_iff]
     constructor
     · intro h_end
       have hy_end : IsEndLike .right y := (IsEndLike.add_iff.mp h_end).right
       change IsEndLike .right (rightSeparatorCandidate h x) at hy_end
       unfold rightSeparatorCandidate at hy_end
-      rw [ofSets_IsEndLike_iff
+      rw [ofSets_isEndLike_iff
         (s := rightSeparatorLeftSet h) (t := {x}),
-        IsEnd_def] at hy_end
+        isEnd_def] at hy_end
       rw [rightMoves_ofSets (s := rightSeparatorLeftSet h) (t := {x})] at hy_end
       exact Set.singleton_ne_empty x hy_end
     · intro k hk
@@ -108,7 +108,7 @@ theorem rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
       cases hk with
       | inl h_h_move =>
           obtain ⟨hr, hhr, rfl⟩ := h_h_move
-          apply WinsGoingFirst_of_moves
+          apply winsGoingFirst_of_moves
           refine ⟨hr + hr°, ?_, ?_⟩
           · apply add_left_mem_moves_add
             change hr° ∈ moves .left (rightSeparatorCandidate h x)
@@ -117,7 +117,7 @@ theorem rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
             simp only [Set.mem_union, Set.mem_singleton_iff, Set.mem_range]
             right
             exact ⟨⟨hr, hhr⟩, rfl⟩
-          · exact not_WinsGoingFirst_of_MisereOutcome_P (outcome_add_adjoint_eq_P hr)
+          · exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P hr)
       | inr h_y_move =>
           obtain ⟨yr, hyr, rfl⟩ := h_y_move
           change yr ∈ moves .right (rightSeparatorCandidate h x) at hyr
@@ -154,12 +154,12 @@ theorem downlinkLeftSet_nonempty
   · rw [not_and_or] at hz
     cases hz with
     | inl hg =>
-        obtain ⟨gr, hgr⟩ := not_IsEnd_exists_move hg
+        obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hg
         exact ⟨gr°, by
           simp only [downlinkLeftSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inr ⟨⟨gr, hgr⟩, rfl⟩)⟩
     | inr hh =>
-        obtain ⟨hr, hhr⟩ := not_IsEnd_exists_move hh
+        obtain ⟨hr, hhr⟩ := not_isEnd_exists_move hh
         exact ⟨y ⟨hr, hhr⟩, by
           simp only [downlinkLeftSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inl ⟨⟨hr, hhr⟩, rfl⟩)⟩
@@ -172,12 +172,12 @@ theorem downlinkRightSet_nonempty
   · rw [not_and_or] at hz
     cases hz with
     | inl hg =>
-        obtain ⟨gl, hgl⟩ := not_IsEnd_exists_move hg
+        obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hg
         exact ⟨x ⟨gl, hgl⟩, by
           simp only [downlinkRightSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inl ⟨⟨gl, hgl⟩, rfl⟩)⟩
     | inr hh =>
-        obtain ⟨hl, hhl⟩ := not_IsEnd_exists_move hh
+        obtain ⟨hl, hhl⟩ := not_isEnd_exists_move hh
         exact ⟨hl°, by
           simp only [downlinkRightSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inr ⟨⟨hl, hhl⟩, rfl⟩)⟩
@@ -199,17 +199,17 @@ theorem downlinked_of_downlinkWitness_mem
   have hRnonempty : R.Nonempty := downlinkRightSet_nonempty g h x
   change U t at htU
   refine ⟨t, htU, ?_, ?_⟩
-  · rw [not_WinsGoingFirst]
+  · rw [not_winsGoingFirst_iff]
     constructor
     · intro hEnd
       have htEnd : IsEndLike .left t := (IsEndLike.add_iff.mp hEnd).right
       change IsEndLike .left !{L | R} at htEnd
-      rw [ofSets_IsEndLike_iff, IsEnd_def, leftMoves_ofSets] at htEnd
+      rw [ofSets_isEndLike_iff, isEnd_def, leftMoves_ofSets] at htEnd
       exact hLnonempty.ne_empty htEnd
     · intro k hk
       rw [moves_add] at hk
       rcases hk with ⟨gl, hgl, rfl⟩ | ⟨tl, htl, rfl⟩
-      · apply WinsGoingFirst_of_moves
+      · apply winsGoingFirst_of_moves
         refine ⟨gl + x ⟨gl, hgl⟩, ?_, hxLose ⟨gl, hgl⟩⟩
         apply add_left_mem_moves_add
         change x ⟨gl, hgl⟩ ∈ moves .right !{L | R}
@@ -222,26 +222,26 @@ theorem downlinked_of_downlinkWitness_mem
         · rw [← htl_eq]
           exact hyWin hr
         · rw [← htl_eq]
-          apply WinsGoingFirst_of_moves
+          apply winsGoingFirst_of_moves
           refine ⟨(gr : G) + (gr : G)°, add_right_mem_moves_add gr.prop ((gr : G)°), ?_⟩
-          exact not_WinsGoingFirst_of_MisereOutcome_P (outcome_add_adjoint_eq_P (gr : G))
+          exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P (gr : G))
         · by_cases hz : IsEnd .right g ∧ IsEnd .right h
           · simp [hz] at htl_zero
             rw [htl_zero]
-            exact WinsGoingFirst_of_IsEndLike
-              (IsEndLike.add_iff.mpr ⟨IsEnd.IsEndLike hz.left, IsEnd.IsEndLike IsEnd_zero⟩)
+            exact winsGoingFirst_of_isEndLike
+              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.left, isEndLike_of_isEnd isEnd_zero⟩)
           · simp [hz] at htl_zero
-  · rw [not_WinsGoingFirst]
+  · rw [not_winsGoingFirst_iff]
     constructor
     · intro hEnd
       have htEnd : IsEndLike .right t := (IsEndLike.add_iff.mp hEnd).right
       change IsEndLike .right !{L | R} at htEnd
-      rw [ofSets_IsEndLike_iff, IsEnd_def, rightMoves_ofSets] at htEnd
+      rw [ofSets_isEndLike_iff, isEnd_def, rightMoves_ofSets] at htEnd
       exact hRnonempty.ne_empty htEnd
     · intro k hk
       rw [moves_add] at hk
       rcases hk with ⟨hr, hhr, rfl⟩ | ⟨tr, htr, rfl⟩
-      · apply WinsGoingFirst_of_moves
+      · apply winsGoingFirst_of_moves
         refine ⟨hr + y ⟨hr, hhr⟩, ?_, hyLose ⟨hr, hhr⟩⟩
         apply add_left_mem_moves_add
         change y ⟨hr, hhr⟩ ∈ moves .left !{L | R}
@@ -254,14 +254,14 @@ theorem downlinked_of_downlinkWitness_mem
         · rw [← htr_eq]
           exact hxWin gl
         · rw [← htr_eq]
-          apply WinsGoingFirst_of_moves
+          apply winsGoingFirst_of_moves
           refine ⟨(hl : G) + (hl : G)°, add_right_mem_moves_add hl.prop ((hl : G)°), ?_⟩
-          exact not_WinsGoingFirst_of_MisereOutcome_P (outcome_add_adjoint_eq_P (hl : G))
+          exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P (hl : G))
         · by_cases hz : IsEnd .left g ∧ IsEnd .left h
           · simp [hz] at htr_zero
             rw [htr_zero]
-            exact WinsGoingFirst_of_IsEndLike
-              (IsEndLike.add_iff.mpr ⟨IsEnd.IsEndLike hz.right, IsEnd.IsEndLike IsEnd_zero⟩)
+            exact winsGoingFirst_of_isEndLike
+              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.right, isEndLike_of_isEnd isEnd_zero⟩)
           · simp [hz] at htr_zero
 
 end Separation
@@ -273,11 +273,11 @@ theorem leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U
   refine ⟨-y, ClosedUnderNeg.neg_of hy, ?_, ?_⟩
   · intro h_win
     have h_win' : WinsGoingFirst .right (h + y) := by
-      apply (WinsGoingFirst_neg_iff (h + y) .left).mp
+      apply (winsGoingFirst_neg_iff (h + y) .left).mp
       simpa [neg_add_rev, add_comm] using h_win
     exact hhy h_win'
   · have h_win : WinsGoingFirst .left (-(g + y)) :=
-      (WinsGoingFirst_neg_iff (g + y) .left).mpr hgy
+      (winsGoingFirst_neg_iff (g + y) .left).mpr hgy
     simpa [neg_add_rev, add_comm] using h_win
 
 theorem leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U]
@@ -288,10 +288,10 @@ theorem leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U
   · intro h_win
     have h_win' : WinsGoingFirst .right ((-g) + y) := by
       have h_neg : WinsGoingFirst .right (-(g + (-y))) :=
-        (WinsGoingFirst_neg_iff (g + (-y)) .right).mpr h_win
+        (winsGoingFirst_neg_iff (g + (-y)) .right).mpr h_win
       simpa [neg_add_rev, add_comm] using h_neg
     exact hg_y h_win'
-  · apply (WinsGoingFirst_neg_iff (h + (-y)) .right).mp
+  · apply (winsGoingFirst_neg_iff (h + (-y)) .right).mp
     simpa [neg_add_rev, add_comm] using hh_y
 
 namespace Separation
@@ -403,11 +403,11 @@ theorem maintenance_right_of_misereGE
     unfold MiserePlayerOutcome
     simp [hgrt]
   have hgt : MiserePlayerOutcome (g + t) .right = .right :=
-    MiserePlayerOutcome_of_rightMoves (add_right_mem_moves_add hgr t) hgrt_out
+    miserePlayerOutcome_of_rightMoves (add_right_mem_moves_add hgr t) hgrt_out
   have hht_out : MiserePlayerOutcome (h + t) .right = .left := by
     unfold MiserePlayerOutcome
     simp [hht]
-  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge t ht) .right
+  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge t ht) .right
   rw [hgt, hht_out] at h_cmp
   exact Player.left_le_right h_cmp
 
@@ -428,11 +428,11 @@ theorem maintenance_left_of_misereGE
     unfold MiserePlayerOutcome
     simp [hhlt]
   have hht : MiserePlayerOutcome (h + t) .left = .left :=
-    MiserePlayerOutcome_of_leftMoves (add_right_mem_moves_add hhl t) hhlt_out
+    miserePlayerOutcome_of_leftMoves (add_right_mem_moves_add hhl t) hhlt_out
   have hgt_out : MiserePlayerOutcome (g + t) .left = .right := by
     unfold MiserePlayerOutcome
     simp [hgt]
-  have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge t ht) .left
+  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge t ht) .left
   rw [hgt_out, hht] at h_cmp
   exact Player.left_le_right h_cmp
 

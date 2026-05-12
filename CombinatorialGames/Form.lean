@@ -38,11 +38,11 @@ class Form (G : Type (v + 1)) extends Moves G, OfSets G fun _ ↦ True, Involuti
   neg_add' (x y : G) : -(x + y) = -x + -y
   smallElemMoves' (p : Player) (x : G) : Small.{v} (moves p x)
   IsEndLike (p : Player) (x : G) : Prop
-  ofSets_IsEndLike_iff' (p : Player) (s t : Set G) [Small s] [Small t] : IsEndLike p !{s | t} ↔ moves p !{s | t} = ∅
+  ofSets_isEndLike_iff' (p : Player) (s t : Set G) [Small s] [Small t] : IsEndLike p !{s | t} ↔ moves p !{s | t} = ∅
   ofSets_add_ofSets'' (s₁ t₁ s₂ t₂ : Set G) [Small s₁] [Small t₁] [Small s₂] [Small t₂] : !{s₁ | t₁} + !{s₂ | t₂} = !{(· + !{s₂ | t₂}) '' s₁ ∪ (!{s₁ | t₁} + ·) '' s₂ | (· + !{s₂ | t₂}) '' t₁ ∪ (!{s₁ | t₁} + ·) '' t₂}
-  IsEndLike_ofEnd' (p : Player) (x : G) (h1 : moves p x = ∅) : IsEndLike p x
-  IsEndLike_add_iff' (p : Player) (x y : G) : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y
-  IsEndLike_neg_iff_neg' (p : Player) (g : G) : IsEndLike p (-g) ↔ IsEndLike (-p) g
+  isEndLike_ofEnd' (p : Player) (x : G) (h1 : moves p x = ∅) : IsEndLike p x
+  isEndLike_add_iff' (p : Player) (x y : G) : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y
+  isEndLike_neg_iff_neg' (p : Player) (g : G) : IsEndLike p (-g) ↔ IsEndLike (-p) g
 
 namespace Moves
 
@@ -109,23 +109,23 @@ export Moves (IsOption IsOption.iff_mem_union IsOption.of_mem_moves Subposition 
 
 def IsEnd {G : Type (u + 1)} [Moves G] (p : Player) (g : G) := moves p g = ∅
 
-theorem IsEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : IsEnd p g = (moves p g = ∅) := by rfl
+theorem isEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : IsEnd p g = (moves p g = ∅) := by rfl
 
-theorem not_IsEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : ¬(IsEnd p g) ↔ (moves p g ≠ ∅) := by
-  simp [IsEnd_def]
+theorem not_isEnd_def {G : Type (u + 1)} [Moves G] (p : Player) (g : G) : ¬(IsEnd p g) ↔ (moves p g ≠ ∅) := by
+  simp [isEnd_def]
 
 variable {G : Type (u + 1)} [g_form : Form G]
 
-protected theorem IsEnd.IsEndLike {p : Player} {x : G} (h1 : IsEnd p x) : IsEndLike p x :=
-  IsEndLike_ofEnd' p x h1
+theorem isEndLike_of_isEnd {p : Player} {x : G} (h1 : IsEnd p x) : IsEndLike p x :=
+  isEndLike_ofEnd' p x h1
 
 @[simp]
 protected theorem IsEndLike.add_iff {p : Player} {x y : G}
-    : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y := IsEndLike_add_iff' p x y
+    : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y := isEndLike_add_iff' p x y
 
 @[simp]
 protected theorem IsEndLike.neg_iff_neg {g : G} {p : Player} : IsEndLike p (-g) ↔ IsEndLike (-p) g :=
-  IsEndLike_neg_iff_neg' p g
+  isEndLike_neg_iff_neg' p g
 
 @[simp]
 theorem moves_neg (p : Player) (x : G) : moves p (-x) = Set.neg.neg (moves (-p) x) :=
@@ -166,7 +166,7 @@ theorem moves_zero (p : Player) : moves p (0 : G) = ∅ := by
   simp [zero_def]
 
 @[simp]
-theorem zero_IsEnd (p : Player) : IsEnd p (0 : G) := moves_zero p
+theorem isEnd_zero {p : Player} : IsEnd p (0 : G) := moves_zero p
 
 @[simp]
 theorem neg_ofSets (s t : Set G) [Small s] [Small t] : -!{s | t} = !{-t | -s} := neg_ofSets'' s t
@@ -214,27 +214,23 @@ theorem IsEnd.add_iff {g h : G} {p : Player} :
     simp only [IsEnd, moves_add, Set.union_empty_iff, Set.image_eq_empty]
     exact h1
 
-theorem IsEnd_neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
+theorem IsEnd.neg_iff_neg {g : G} {p : Player} : IsEnd p (-g) ↔ IsEnd (-p) g := by
   constructor <;> cases p
   all_goals
   · intro h1
     simp only [IsEnd, moves_neg, Set.neg_eq_empty] at *
     exact h1
 
-@[simp]
-theorem IsEnd_zero {p : Player} : IsEnd p (0 : G) := by
-  rw [IsEnd, moves_zero]
-
 theorem mem_moves_ne_zero {g gl : G} {p : Player} (h1 : gl ∈ moves p g) : g ≠ 0 := by
   intro h2
   simp only [h2, moves_zero, Set.mem_empty_iff_false] at h1
 
-theorem not_IsEnd_ne_zero {g : G} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
+theorem not_isEnd_ne_zero {g : G} {p : Player} (h1 : ¬(IsEnd p g)) : g ≠ 0 := by
   intro h2
   rw [h2] at h1
-  exact h1 IsEnd_zero
+  exact h1 isEnd_zero
 
-theorem not_IsEnd_exists_move {g : G} {p : Player}
+theorem not_isEnd_exists_move {g : G} {p : Player}
     (h1 : ¬IsEnd p g) :
     ∃ gp, gp ∈ moves p g := by
   unfold IsEnd at h1
@@ -244,8 +240,8 @@ theorem not_IsEnd_exists_move {g : G} {p : Player}
   exact Set.subset_eq_empty h4 rfl
 
 @[simp]
-theorem IsEnd.not_mem_moves {g gp : G} {p : Player} (h1 : IsEnd p g) : gp ∉ moves p g := by
-  rw [IsEnd_def] at h1
+theorem not_mem_moves_of_isEnd {g gp : G} {p : Player} (h1 : IsEnd p g) : gp ∉ moves p g := by
+  rw [isEnd_def] at h1
   simp [h1]
 
 theorem add_left_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
@@ -298,8 +294,8 @@ lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y �
 
 -- Casts
 
-@[simp, norm_cast] theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp
-@[simp, norm_cast] theorem natCast_one : ((1 : ℕ) : G) = 1 := by simp
+@[simp, norm_cast] protected theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp
+@[simp, norm_cast] protected theorem natCast_one : ((1 : ℕ) : G) = 1 := by simp
 
 theorem leftMoves_natCast_succ' : ∀ n : ℕ, moves .left (n.succ : G) = {(n : G)}
   | 0 => by simp
@@ -334,31 +330,31 @@ instance : IntCast G where
   | .ofNat n => n
   | .negSucc n => -(n + 1)
 
-@[simp, norm_cast] theorem intCast_nat (n : ℕ) : ((n : ℤ) : G) = n := rfl
+@[simp, norm_cast] protected theorem intCast_nat (n : ℕ) : ((n : ℤ) : G) = n := rfl
 
-@[simp] theorem intCast_ofNat (n : ℕ) : ((ofNat(n) : ℤ) : G) = n := rfl
+@[simp] protected theorem intCast_ofNat (n : ℕ) : ((ofNat(n) : ℤ) : G) = n := rfl
 
-@[simp] theorem intCast_negSucc (n : ℕ) : (Int.negSucc n : G) = -(n + 1) := rfl
+@[simp] protected theorem intCast_negSucc (n : ℕ) : (Int.negSucc n : G) = -(n + 1) := rfl
 
-@[simp, norm_cast] theorem intCast_zero : ((0 : ℤ) : G) = 0 := by simp
+@[simp, norm_cast] protected theorem intCast_zero : ((0 : ℤ) : G) = 0 := by simp
 
-@[simp, norm_cast] theorem intCast_one : ((1 : ℤ) : G) = 1 := by simp
+@[simp, norm_cast] protected theorem intCast_one : ((1 : ℤ) : G) = 1 := by simp
 
-@[simp, norm_cast] theorem intCast_neg (n : ℤ) : ((-n : ℤ) : G) = -(n : G) := by
+@[simp, norm_cast] protected theorem intCast_neg (n : ℤ) : ((-n : ℤ) : G) = -(n : G) := by
   cases n with
   | ofNat n =>
     induction n with
     | zero => simp
     | succ k ih => rfl
   | negSucc n =>
-    simp only [intCast_negSucc, neg_neg, Int.neg_negSucc]
+    simp only [Form.intCast_negSucc, neg_neg, Int.neg_negSucc]
     norm_cast
 
 @[simp]
 theorem leftMoves_eq_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
     : moves .left (a : G) = {((a - 1 : ℕ) : G)} := by
   obtain ⟨x, h2⟩ := Nat.exists_add_one_eq.mpr h1
-  rw [<-h2, Nat.cast_add, natCast_one, leftMoves_natCast_succ]
+  rw [<-h2, Nat.cast_add, Form.natCast_one, leftMoves_natCast_succ]
   rfl
 
 theorem leftMoves_natCast_zero_lt {a : ℕ} (h1 : 0 < a)
@@ -414,7 +410,7 @@ theorem leftMoves_intCast_le_one_ne_empty {a : ℤ} (h1 : 1 ≤ a)
 theorem rightMoves_intCast {a : ℤ} (h1 : 0 ≤ a) : moves .right (a : G) = ∅ := by
   have h2 : 0 < a + 1 := by omega
   obtain ⟨x', h_x'⟩ := (CanLift.prf a h1 : ∃ (x' : ℕ), x' = a)
-  rw [<-h_x', intCast_nat]
+  rw [<-h_x', Form.intCast_nat]
   simp only [rightMoves_natCast]
 
 @[simp]
@@ -447,26 +443,26 @@ theorem mem_moves_add_one_iff_mem_moves {g : G} {p : Player} {n : ℕ}
   · simp
 
 @[simp]
-theorem one_right_end : IsEnd .right (1 : G) := by
-  simp only [IsEnd_def, rightMoves_one]
+theorem one_isEnd_right : IsEnd .right (1 : G) := by
+  simp only [isEnd_def, rightMoves_one]
 
 @[simp]
-theorem natCast_IsEnd_right (n : ℕ) : IsEnd .right (n : G) := by
+theorem natCast_isEnd_right (n : ℕ) : IsEnd .right (n : G) := by
   induction n with
-  | zero => simp only [Nat.cast_zero, IsEnd_zero]
-  | succ k ih => simp only [IsEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
+  | zero => simp only [Nat.cast_zero, isEnd_zero]
+  | succ k ih => simp only [isEnd_def, Nat.cast_add, Nat.cast_one, moves_add, rightMoves_natCast,
                             Set.image_empty, rightMoves_one, Set.union_self]
 
 @[simp]
-theorem natCast_succ_not_IsEnd_left (n : ℕ) : ¬IsEnd .left (n.succ : G) := by
+theorem natCast_succ_not_isEnd_left (n : ℕ) : ¬IsEnd .left (n.succ : G) := by
   simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, one_def,
              IsEnd.add_iff, not_and]
   intro _
-  simp [IsEnd_def]
+  simp [isEnd_def]
 
 @[simp]
-theorem ofSets_IsEndLike_iff {p : Player} {s t : Set G} [Small s] [Small t]
-    : IsEndLike p !{s | t} ↔ IsEnd p !{s | t} := ofSets_IsEndLike_iff' p s t
+theorem ofSets_isEndLike_iff {p : Player} {s t : Set G} [Small s] [Small t]
+    : IsEndLike p !{s | t} ↔ IsEnd p !{s | t} := ofSets_isEndLike_iff' p s t
 
 theorem ofSets_add_ofSets
     (s₁ t₁ s₂ t₂ : Set G) [Small s₁] [Small t₁] [Small s₂] [Small t₂] :
@@ -485,35 +481,35 @@ theorem natCast_add_one_ofSets {n : ℕ} : ((n + 1 : ℕ) : G) = !{{(n : G)} | �
   induction n with
   | zero => simp [one_def]
   | succ k ih =>
-    rw [Nat.cast_add, ih, natCast_one, one_def, ofSets_add_ofSets]
+    rw [Nat.cast_add, ih, Form.natCast_one, one_def, ofSets_add_ofSets]
     simp only [Set.image_singleton, add_zero, Set.union_singleton, Set.image_empty, Set.union_self,
                ofSets_inj', Player.cases_inj, and_true]
-    rw [<-one_def, <-natCast_one, <-Nat.cast_add, ih]
+    rw [<-one_def, <-Form.natCast_one, <-Nat.cast_add, ih]
     simp only [Set.mem_singleton_iff, Set.insert_eq_of_mem]
 
 @[simp]
-theorem natCast_IsEndLike_iff {p : Player} {n : ℕ}
+theorem natCast_isEndLike_iff {p : Player} {n : ℕ}
     : IsEndLike p (n : G) ↔ IsEnd p (n : G) := by
   match n with
   | 0 =>
-    rw [natCast_zero]
+    rw [Form.natCast_zero]
     nth_rw 1 [zero_def]
-    simp only [IsEnd_zero, iff_true]
-    refine IsEnd.IsEndLike ?_
+    simp only [isEnd_zero, iff_true]
+    refine isEndLike_of_isEnd ?_
     rw [<-zero_def]
-    exact IsEnd_zero
+    exact isEnd_zero
   | m + 1 =>
     rw [natCast_add_one_ofSets]
     simp
 
 @[simp]
-theorem IsEndLike_right_one : IsEndLike .right (1 : G) := by
-  rw [<-natCast_one, natCast_IsEndLike_iff, natCast_one]
-  exact one_right_end
+theorem one_isEndLike_right : IsEndLike .right (1 : G) := by
+  rw [<-Form.natCast_one, natCast_isEndLike_iff, Form.natCast_one]
+  exact one_isEnd_right
 
 @[simp]
-theorem not_IsEndLike_left_one : ¬IsEndLike .left (1 : G) := by
-  rw [<-natCast_one, natCast_IsEndLike_iff, natCast_one, one_def, IsEnd_def]
+theorem not_isEndLike_left_one : ¬IsEndLike .left (1 : G) := by
+  rw [<-Form.natCast_one, natCast_isEndLike_iff, Form.natCast_one, one_def, isEnd_def]
   simp only [moves_ofSets, Player.cases, Set.singleton_ne_empty, not_false_eq_true]
 
 theorem natCast_ext {k m : ℕ}
@@ -534,7 +530,7 @@ theorem natCast_ext {k m : ℕ}
 @[simp]
 theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : G) ↔ n = 0) := by
   apply Iff.intro <;> intro h1
-  · rw [<-Form.natCast_eq_zero_iff (G := G), <-natCast_zero]
+  · rw [<-Form.natCast_eq_zero_iff (G := G), <-Form.natCast_zero]
     apply natCast_ext
     intro p gp
     apply Iff.intro <;> intro h2
@@ -542,7 +538,7 @@ theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : G) ↔ n = 0) := by
       · simp [h1] at h2
       · simp at h2
     · simp at h2
-  · simp [h1, IsEnd_def]
+  · simp [h1, isEnd_def]
 
 protected theorem natCast_injective : Function.Injective (@Nat.cast G _) := by
   intro a b h1
@@ -577,9 +573,9 @@ theorem eq_sub_one_of_mem_leftMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves 
   obtain ⟨n, rfl | rfl⟩ := n.eq_nat_or_neg
   · cases n
     · simp [moves_zero] at hx
-    · rw [intCast_nat] at hx
+    · rw [Form.intCast_nat] at hx
       simp_all
-  · simp only [intCast_neg, intCast_nat, moves_neg, Player.neg_left,
+  · simp only [Form.intCast_neg, Form.intCast_nat, moves_neg, Player.neg_left,
                rightMoves_natCast, Set.neg_empty, Set.mem_empty_iff_false] at hx
 
 theorem eq_add_one_of_mem_rightMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves .right (n : G)) :
@@ -602,14 +598,14 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves
   omega
 
 theorem succ_nat_end_right {p : Player} {n : ℕ} : IsEnd p (n.succ : G) ↔ p = .right := by
-  cases p <;> simp [IsEnd_def]
+  cases p <;> simp [isEnd_def]
 
 /-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
 theorem nat_forall_moves {n : ℕ} {P : G → Prop} (h1 : P n)
     : ∀ (p : Player), ∀ gp ∈ moves p (n.succ : G), P gp := by
   intro p; cases p
   · intro gl h_mem
-    rw [<-intCast_nat] at h_mem
+    rw [<-Form.intCast_nat] at h_mem
     rw [eq_sub_one_of_mem_leftMoves_intCast h_mem, Nat.succ_eq_add_one]
     simpa
   · intro gr h_mem

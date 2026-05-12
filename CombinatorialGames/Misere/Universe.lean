@@ -50,12 +50,12 @@ theorem Maintenance_of_subset (U : G → Prop) (pfU : G → Prop)
       apply Or.inl
       use gl
       apply And.intro h_gl
-      exact MisereGe_of_subset U h_subset gl hl h_gl_ge_hl
+      exact misereGE_of_subset U h_subset gl hl h_gl_ge_hl
     · intro ⟨hlr, h_hlr, h_g_ge_hlr⟩
       apply Or.inr
       use hlr
       apply And.intro h_hlr
-      exact MisereGe_of_subset U h_subset g hlr h_g_ge_hlr
+      exact misereGE_of_subset U h_subset g hlr h_g_ge_hlr
   · simp at h_maintenance_u ⊢
     intro hl h_hl_mem
     apply Or.elim (h_maintenance_u hl h_hl_mem)
@@ -63,11 +63,11 @@ theorem Maintenance_of_subset (U : G → Prop) (pfU : G → Prop)
       apply Or.inl
       use hr
       apply And.intro h_hr
-      exact MisereGe_of_subset U h_subset hl hr h_hl_ge_hr
+      exact misereGE_of_subset U h_subset hl hr h_hl_ge_hr
     · intro ⟨grl, h_grl, h_grl_ge_h⟩
       apply Or.inr
       use grl
       apply And.intro h_grl
-      exact MisereGe_of_subset U h_subset grl h h_grl_ge_h
+      exact misereGE_of_subset U h_subset grl h h_grl_ge_h
 
 end Form

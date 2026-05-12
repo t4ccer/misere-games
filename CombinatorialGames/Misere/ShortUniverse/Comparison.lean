@@ -15,7 +15,7 @@ namespace Form
 
 theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] {g : G} (h_g : IsShort g)
     : U (g°) := by
-  unfold Adjoint
+  unfold adjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
@@ -41,7 +41,7 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] {g
         exact ShortUniverse.zero_mem
       · have : Finite (moves .right g) := Short.finite_moves .right h_g
         exact Set.finite_range (fun gr : moves .right g => (gr : G)°)
-      · obtain ⟨gr, hgr⟩ := not_IsEnd_exists_move hright
+      · obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hright
         exact ⟨gr°, ⟨⟨gr, hgr⟩, rfl⟩⟩
       · exact Set.finite_singleton 0
       · exact Set.singleton_nonempty 0
@@ -59,7 +59,7 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] {g
       · exact Set.singleton_nonempty 0
       · have : Finite (moves .left g) := Short.finite_moves .left h_g
         exact Set.finite_range (fun gl : moves .left g => (gl : G)°)
-      · obtain ⟨gl, hgl⟩ := not_IsEnd_exists_move hleft
+      · obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hleft
         exact ⟨gl°, ⟨⟨gl, hgl⟩, rfl⟩⟩
     · simp [hleft, hright]
       apply ClosedUnderDicoticShort.closed_dicotic_short
@@ -73,11 +73,11 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] {g
         exact ShortUniverse.adjoint_mem_of_short (Short.of_mem_moves h_g hgl)
       · have : Finite (moves .right g) := Short.finite_moves .right h_g
         exact Set.finite_range (fun gr : moves .right g => (gr : G)°)
-      · obtain ⟨gr, hgr⟩ := not_IsEnd_exists_move hright
+      · obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hright
         exact ⟨gr°, ⟨⟨gr, hgr⟩, rfl⟩⟩
       · have : Finite (moves .left g) := Short.finite_moves .left h_g
         exact Set.finite_range (fun gl : moves .left g => (gl : G)°)
-      · obtain ⟨gl, hgl⟩ := not_IsEnd_exists_move hleft
+      · obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hleft
         exact ⟨gl°, ⟨⟨gl, hgl⟩, rfl⟩⟩
 termination_by g
 decreasing_by all_goals form_wf

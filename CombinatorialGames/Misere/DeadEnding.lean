@@ -19,41 +19,41 @@ def IsDeadEnd (p : Player) (g : G) : Prop :=
 termination_by g
 decreasing_by form_wf
 
-def IsDeadEnd.IsEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
+theorem isEnd_of_isDeadEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
   unfold IsDeadEnd at h1
   exact h1.left
 
-def IsDeadEnd.hereditary_def {g : G} {p : Player} (h1 : IsDeadEnd p g) :
+theorem IsDeadEnd.hereditary_def {g : G} {p : Player} (h1 : IsDeadEnd p g) :
     ∀ gp ∈ moves (-p) g, IsDeadEnd p gp := by
   unfold IsDeadEnd at h1
   exact h1.right
 
 @[simp]
-theorem IsDeadEnd.not_mem_moves {g gp : G} {p : Player} (h1 : IsDeadEnd p g) : gp ∉ moves p g := by
-  simp [h1.IsEnd]
+theorem not_mem_moves_of_isDeadEnd {g gp : G} {p : Player} (h1 : IsDeadEnd p g) : gp ∉ moves p g := by
+  simp [isEnd_of_isDeadEnd h1]
 
-theorem IsDeadEnd.mem_moves_player_eq_neg {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g)
+theorem player_eq_neg_of_isDeadEnd_mem_moves {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g)
     (h2 : gp ∈ moves p2 g) : p2 = -p1 := by
   by_cases h3 : p2 = p1
   · rw [h3] at h2
     absurd h2
-    simp only [h1, IsDeadEnd.not_mem_moves, not_false_eq_true]
+    simp only [h1, not_mem_moves_of_isDeadEnd, not_false_eq_true]
   · exact Player.ne_iff_eq_neg.mp h3
 
-theorem IsDeadEnd.hereditary {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g) (h2 : gp ∈ moves p2 g)
+theorem isDeadEnd_of_mem_moves {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g) (h2 : gp ∈ moves p2 g)
       : IsDeadEnd p1 gp := by
-  rw [IsDeadEnd.mem_moves_player_eq_neg h1 h2] at h2
+  rw [player_eq_neg_of_isDeadEnd_mem_moves h1 h2] at h2
   exact IsDeadEnd.hereditary_def h1 gp h2
 
 protected theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEnd p h) :
     IsDeadEnd p (g + h) := by
   unfold IsDeadEnd
   simp only [moves_add, Set.mem_union, Set.mem_image]
-  apply And.intro (IsEnd.add_iff.mpr ⟨IsDeadEnd.IsEnd h1, IsDeadEnd.IsEnd h2⟩)
+  apply And.intro (IsEnd.add_iff.mpr ⟨isEnd_of_isDeadEnd h1, isEnd_of_isDeadEnd h2⟩)
   intro gp h3
   apply Or.elim h3 <;> intro ⟨gpp, h3, h4⟩ <;> rw [<-h4]
-  · exact IsDeadEnd.add (IsDeadEnd.hereditary h1 h3) h2
-  · exact IsDeadEnd.add h1 (IsDeadEnd.hereditary h2 h3)
+  · exact IsDeadEnd.add (isDeadEnd_of_mem_moves h1 h3) h2
+  · exact IsDeadEnd.add h1 (isDeadEnd_of_mem_moves h2 h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
@@ -61,7 +61,7 @@ private protected theorem IsDeadEnd.neg {g : G} {p : Player} (h1 : IsDeadEnd p (
   have h0 := h1
   unfold IsDeadEnd at h1 ⊢
   have ⟨h3, h2⟩ := h1
-  apply And.intro (IsEnd_neg_iff_neg.mp h3)
+  apply And.intro (IsEnd.neg_iff_neg.mp h3)
   rw [neg_neg]
   intro gp h4
   have h5 : IsDeadEnd p (-gp) := by
@@ -80,38 +80,38 @@ protected theorem IsDeadEnd.neg_iff {g : G} {p : Player} : IsDeadEnd p (-g) ↔ 
     exact IsDeadEnd.neg h1
 
 @[simp]
-protected theorem IsDeadEnd.zero {p : Player} : IsDeadEnd p (0 : G) := by
+theorem isDeadEnd_zero {p : Player} : IsDeadEnd p (0 : G) := by
   unfold IsDeadEnd
-  simp only [zero_IsEnd, moves_zero (G := G), Set.mem_empty_iff_false,
+  simp only [isEnd_zero, moves_zero (G := G), Set.mem_empty_iff_false,
              IsEmpty.forall_iff, implies_true, and_self]
 
 @[simp]
-theorem IsDeadEnd.right_nat (n : ℕ) : IsDeadEnd .right (n : G) := by
+theorem isDeadEnd_right_natCast (n : ℕ) : IsDeadEnd .right (n : G) := by
   match n with
-  | .zero => exact IsDeadEnd.zero
-  | .succ k => unfold IsDeadEnd; simp [IsDeadEnd.right_nat k]
+  | .zero => exact isDeadEnd_zero
+  | .succ k => unfold IsDeadEnd; simp [isDeadEnd_right_natCast k]
 
 @[simp]
-theorem IsDeadEnd.right_nonneg_int (k : ℤ) (h1 : k ≥ 0) : IsDeadEnd .right (k : G) := by
+theorem isDeadEnd_right_nonneg_intCast (k : ℤ) (h1 : k ≥ 0) : IsDeadEnd .right (k : G) := by
   rw [<-Int.toNat_of_nonneg h1]
   norm_cast
-  simp only [IsDeadEnd.right_nat]
+  simp only [isDeadEnd_right_natCast]
 
 @[simp]
-theorem IsDeadEnd.left_nonpos_int (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k : G) := by
+theorem isDeadEnd_left_nonpos_intCast (k : ℤ) (h1 : k ≤ 0) : IsDeadEnd .left (k : G) := by
   rw [<-Player.neg_right, <-IsDeadEnd.neg_iff]
   norm_cast
-  exact IsDeadEnd.right_nonneg_int (-k) (by omega)
+  exact isDeadEnd_right_nonneg_intCast (-k) (by omega)
 
-protected theorem IsDeadEnd.IsPFree {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
+theorem isPFree_of_isDeadEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsPFree g := by
   unfold IsPFree
   apply And.intro
-  · have h2 := MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr (WinsGoingFirst_of_IsEnd (IsEnd h1))
+  · have h2 := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr (winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd h1))
     cases p
     · cases h3 : MiserePlayerOutcome g .right <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
     · cases h3 : MiserePlayerOutcome g .left <;> simp [MisereOutcome, Outcome.ofPlayers, h2, h3]
   · intro p' gp h_gp
-    exact IsDeadEnd.IsPFree (IsDeadEnd.hereditary h1 h_gp)
+    exact isPFree_of_isDeadEnd (isDeadEnd_of_mem_moves h1 h_gp)
 termination_by g
 decreasing_by form_wf
 
@@ -121,22 +121,20 @@ termination_by g
 decreasing_by form_wf
 
 @[simp]
-theorem IsDeadEnding.IsDeadEnd {g : G} {p : Player} (h1 : IsDeadEnding g) (h2 : IsEnd p g) :
+theorem isDeadEnd_of_isDeadEnding {g : G} {p : Player} (h1 : IsDeadEnding g) (h2 : IsEnd p g) :
     IsDeadEnd p g := by
   unfold IsDeadEnding at h1
   exact h1.left p h2
 
-@[simp]
-theorem IsDeadEnding.hereditary {g h : G} {p : Player} (h1 : IsDeadEnding g) (h2 : h ∈ moves p g) :
+theorem isDeadEnding_of_mem_moves {g h : G} {p : Player} (h1 : IsDeadEnding g) (h2 : h ∈ moves p g) :
     IsDeadEnding h := by
   unfold IsDeadEnding at h1
   exact h1.right p h h2
 
-@[simp]
-theorem IsDeadEnding.IsOption {g g' : G} (h1 : IsDeadEnding g) (h2 : Moves.IsOption g' g)
+theorem isDeadEnding_of_isOption {g g' : G} (h1 : IsDeadEnding g) (h2 : Moves.IsOption g' g)
     : IsDeadEnding g' := by
   rw [isOption_iff_mem_union, Set.mem_union] at h2
-  apply Or.elim h2 <;> exact fun h2 => hereditary h1 h2
+  apply Or.elim h2 <;> exact fun h2 => isDeadEnding_of_mem_moves h1 h2
 
 end Form
 
@@ -147,12 +145,12 @@ open Form.Misere.Outcome
 
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereOutcome g = Outcome.ofPlayer p := by
-  rw [MisereOutcome_eq_player_iff]
-  apply And.intro (WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd h2))
-  simp only [not_WinsGoingFirst, neg_neg, GameForm.IsEndLike_iff]
-  apply And.intro (zero_not_both_end h1 (IsDeadEnd.IsEnd h2))
+  rw [misereOutcome_eq_player_iff]
+  apply And.intro (winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd h2))
+  simp only [not_winsGoingFirst_iff, neg_neg, isEndLike_iff_isEnd]
+  apply And.intro (zero_not_both_end h1 (isEnd_of_isDeadEnd h2))
   intro gr h4
-  exact WinsGoingFirst_of_IsEnd (IsDeadEnd.IsEnd (IsDeadEnd.hereditary h2 h4))
+  exact winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h2 h4))
 
 theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereOutcome g = .L := lemma3.aux h1 h2
@@ -168,11 +166,11 @@ theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEndi
   constructor <;> intro p
   · intro h3
     have ⟨h4, h5⟩ := IsEnd.add_iff.mp h3
-    exact IsDeadEnd.add (IsDeadEnding.IsDeadEnd h1 h4) (IsDeadEnding.IsDeadEnd h2 h5)
+    exact IsDeadEnd.add (isDeadEnd_of_isDeadEnding h1 h4) (isDeadEnd_of_isDeadEnding h2 h5)
   · intro gp h3
     apply Or.elim h3 <;> intro ⟨g', h3, h4⟩ <;> rw [<-h4]
-    · exact IsDeadEnding.add (IsDeadEnding.hereditary h1 h3) h2
-    · exact IsDeadEnding.add h1 (IsDeadEnding.hereditary h2 h3)
+    · exact IsDeadEnding.add (isDeadEnding_of_mem_moves h1 h3) h2
+    · exact IsDeadEnding.add h1 (isDeadEnding_of_mem_moves h2 h3)
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
@@ -181,7 +179,7 @@ private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g
   obtain ⟨h1, h2⟩ := h1
   apply And.intro
   · intro p h3
-    rw [<-neg_neg p, <-IsEnd_neg_iff_neg] at h3
+    rw [<-neg_neg p, <-IsEnd.neg_iff_neg] at h3
     have h4 := IsDeadEnd.neg_iff.mp (h1 (-p) h3)
     rwa [neg_neg] at h4
   · intro p gp h3
@@ -196,33 +194,33 @@ instance : ClosedUnderNeg (IsDeadEnding (G := GameForm)) where
     exact IsDeadEnding.neg h
 
 @[simp]
-protected theorem IsDeadEnding.zero : IsDeadEnding (0 : GameForm) := by
+theorem isDeadEnding_zero : IsDeadEnding (0 : GameForm) := by
   unfold IsDeadEnding IsDeadEnd
   simp
 
 @[simp]
-protected theorem IsDeadEnding.nat (n : ℕ) : IsDeadEnding (n : GameForm) := by
+theorem isDeadEnding_natCast (n : ℕ) : IsDeadEnding (n : GameForm) := by
   match n with
-  | .zero => exact IsDeadEnding.zero
+  | .zero => exact isDeadEnding_zero
   | .succ k =>
     unfold IsDeadEnding
-    refine And.intro ?_ (nat_forall_moves (IsDeadEnding.nat k))
+    refine And.intro ?_ (nat_forall_moves (isDeadEnding_natCast k))
     intro p h
-    simp only [succ_nat_end_right.mp h, IsDeadEnd.right_nat k.succ]
+    simp only [succ_nat_end_right.mp h, isDeadEnd_right_natCast k.succ]
 
 @[simp]
-protected theorem IsDeadEnding.int (k : ℤ) : IsDeadEnding (k : GameForm) := by
+theorem isDeadEnding_intCast (k : ℤ) : IsDeadEnding (k : GameForm) := by
   match k with
-  | .ofNat n => exact IsDeadEnding.nat n
+  | .ofNat n => exact isDeadEnding_natCast n
   | .negSucc n =>
-    rw [Int.negSucc_eq, intCast_neg, ClosedUnderNeg.neg_iff (A := IsDeadEnding)]
+    rw [Int.negSucc_eq, Form.intCast_neg, ClosedUnderNeg.neg_iff (A := IsDeadEnding)]
     norm_cast
-    exact IsDeadEnding.nat (n + 1)
+    exact isDeadEnding_natCast (n + 1)
 
 @[simp]
-protected theorem IsDeadEnding.one : IsDeadEnding (1 : GameForm) := by
-  rw [<-intCast_one]
-  exact IsDeadEnding.int 1
+theorem isDeadEnding_one : IsDeadEnding (1 : GameForm) := by
+  rw [<-Form.intCast_one]
+  exact isDeadEnding_intCast 1
 
 structure ShortDeadEnding (g : GameForm) : Prop where
   short : IsShort g
@@ -231,7 +229,7 @@ structure ShortDeadEnding (g : GameForm) : Prop where
 instance : Hereditary ShortDeadEnding where
   has_option h1 h2 :=
   { short := Short.isOption h1.short h2
-  , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
+  , dead_ending := isDeadEnding_of_isOption h1.dead_ending h2
   }
 
 instance : ShortUniverse ShortDeadEnding where
@@ -240,7 +238,7 @@ instance : ShortUniverse ShortDeadEnding where
       rw [short_def]
       intro p
       simp
-  , dead_ending := IsDeadEnding.zero
+  , dead_ending := isDeadEnding_zero
   }
   closed_sum _ _ h_g h_h :=
   { short := Short.add h_g.short h_h.short
@@ -262,7 +260,7 @@ instance : ShortUniverse ShortDeadEnding where
   , dead_ending := by
       unfold IsDeadEnding
       apply And.intro <;> intro p
-      · cases p <;> intro h1 <;> simp only [IsEnd_def, moves_ofSets, Player.cases] at h1
+      · cases p <;> intro h1 <;> simp only [isEnd_def, moves_ofSets, Player.cases] at h1
         · simp only [h1, Set.not_nonempty_empty] at hb'
         · simp only [h1, Set.not_nonempty_empty] at hc'
       · cases p <;> simp only [moves_ofSets, Player.cases] <;> intro gp hgp

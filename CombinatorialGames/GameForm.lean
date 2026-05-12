@@ -325,9 +325,9 @@ instance : Form GameForm where
   moves_add' := private moves_add'
   moves_small' := instSmallElemMoves
   IsEndLike p x := moves p x = ∅
-  IsEndLike_ofEnd' _ _ h1 := h1
-  IsEndLike_add_iff' p x y := by simp [moves_add']
-  IsEndLike_neg_iff_neg' p g := by
+  isEndLike_ofEnd' _ _ h1 := h1
+  isEndLike_add_iff' p x y := by simp [moves_add']
+  isEndLike_neg_iff_neg' p g := by
     constructor <;> cases p
     all_goals
     · intro h1
@@ -356,16 +356,16 @@ instance : Form GameForm where
   neg_ofSets'' := neg_ofSets
   neg_add' := private neg_add'
   smallElemMoves' := instSmallElemMoves
-  ofSets_IsEndLike_iff' p s t _ _ := Eq.congr_right rfl
+  ofSets_isEndLike_iff' p s t _ _ := Eq.congr_right rfl
   ofSets_add_ofSets'' := ofSets_add_ofSets
 
 @[simp]
-theorem IsEndLike_iff {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
-  simp only [IsEndLike, IsEnd_def]
+theorem isEndLike_iff_isEnd {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by
+  simp only [IsEndLike, isEnd_def]
 
 theorem leftEnd_rightEnd_eq_zero {g : GameForm} (h1 : IsEnd .left g) (h2 : IsEnd .right g) :
     g = 0 := by
-  rw [IsEnd_def] at h1 h2
+  rw [isEnd_def] at h1 h2
   rw [zero_def]
   ext p
   cases p

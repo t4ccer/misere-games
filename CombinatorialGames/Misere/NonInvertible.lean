@@ -12,6 +12,7 @@ import Mathlib.Data.Set.Finite.Range
 open GameForm
 open Form
 open Form.Misere.Outcome
+open Misere.Adjoint
 
 public section
 
@@ -58,7 +59,7 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
         have h_gl : IsShort gl := Short.of_mem_moves h_g h4
         exact Adjoint.short_adjoint h_gl
 
-theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
+theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
     (h2 : ¬(IsEnd .left g)) : ¬(g ≥m A h) := by
   let t := !{ Set.range fun hr : moves .right h => (hr : GameForm)°
@@ -66,42 +67,42 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
 
   -- First consider H + T
   have h3 : MisereOutcome (h + t) ≥ Outcome.P := by
-    apply MisereOutcome_ge_P_of_not_WinsGoingFirst_right
-    rw [WinsGoingFirst_iff]
-    simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff, GameForm.IsEndLike_iff]
+    apply misereOutcome_ge_P_of_not_winsGoingFirst_right
+    rw [winsGoingFirst_iff]
+    simp only [moves_add, Set.mem_union, Set.mem_image, not_or, not_and, IsEnd.add_iff, isEndLike_iff_isEnd]
     apply And.intro (fun h3 => by
-      simp [t, Set.singleton_ne_empty, not_false_eq_true, IsEnd_def])
+      simp [t, Set.singleton_ne_empty, not_false_eq_true, isEnd_def])
     simp [Player.neg_right, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
-      refine WinsGoingFirst_left_of_move_MisereOutcome_P ?_ (Misere.Adjoint.outcome_add_adjoint_eq_P hr)
+      refine winsGoingFirst_left_of_move_misereOutcome_P ?_ (misereOutcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
       simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
-      apply WinsGoingFirst_add_of_IsEnd h1
+      apply winsGoingFirst_add_of_isEnd h1
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, IsEnd_def]
+      simp only [h3, GameForm.leftMoves_ofSets, isEnd_def]
   -- Next consider G + T
   have h4 : MisereOutcome (g + t) ≤ Outcome.N := by
-    apply MisereOutcome_le_N_of_WinsGoingFirst_right
-    apply WinsGoingFirst_of_moves
+    apply misereOutcome_le_N_of_winsGoingFirst_right
+    apply winsGoingFirst_of_moves
     -- Right has a move to G + { | (G^L)° }
     use (g + !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°})
     constructor
     · refine add_left_mem_moves_add ?_ g
       simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
-    · rw [not_WinsGoingFirst]
-      simp only [IsEnd_def, GameForm.IsEndLike_iff, Player.neg_right, moves_add, GameForm.moves_ofSets,
+    · rw [not_winsGoingFirst_iff]
+      simp only [isEnd_def, isEndLike_iff_isEnd, Player.neg_right, moves_add, GameForm.moves_ofSets,
                  Player.cases, Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
                  Player.neg_left, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
-      rw [IsEnd_def] at h2
+      rw [isEnd_def] at h2
       apply And.intro h2
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
-      apply WinsGoingFirst_of_moves
+      apply winsGoingFirst_of_moves
       -- There must be at least one such option, by the assumption on G;
       -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
@@ -111,9 +112,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       constructor
       · apply Or.inr
         use gl
-      · apply not_WinsGoingFirst_of_MisereOutcome_P
-        exact Misere.Adjoint.outcome_add_adjoint_eq_P gl
-  unfold MisereGe
+      · exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P gl)
   intro h5
   have h6 : MisereOutcome (g + t) ≥ Outcome.P :=
     Preorder.le_trans
@@ -125,14 +124,14 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
                        ne_eq, not_false_eq_true, not_true_eq_false, or_false, or_self, or_true,
                        reduceCtorEq] at h4 h6
 
-alias theorem6_6 := leftEnd_not_leftEnd_not_ge
+alias theorem6_6 := not_misereGE_of_isEnd_left_not_isEnd_left
 
-theorem ClosedUnderNeg.rightEnd_not_rightEnd_not_ge {A : GameForm → Prop} [ClosedUnderNeg A]
+theorem ClosedUnderNeg.not_misereGE_of_isEnd_right_not_isEnd_right {A : GameForm → Prop} [ClosedUnderNeg A]
     {g h : GameForm} (h0 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-h)))
     (h1 : IsEnd .right h) (h2 : ¬(IsEnd .right g)) : ¬(h ≥m A g) := by
-  have h3 : IsEnd .left (-h) := IsEnd_neg_iff_neg.mpr h1
-  have h4 : ¬(IsEnd .left (-g)) := IsEnd_neg_iff_neg.not.mpr h2
-  have h5 : ¬((-g) ≥m A (-h)) := leftEnd_not_leftEnd_not_ge h0 h3 h4
+  have h3 : IsEnd .left (-h) := IsEnd.neg_iff_neg.mpr h1
+  have h4 : ¬(IsEnd .left (-g)) := IsEnd.neg_iff_neg.not.mpr h2
+  have h5 : ¬((-g) ≥m A (-h)) := not_misereGE_of_isEnd_left_not_isEnd_left h0 h3 h4
   exact (ClosedUnderNeg.neg_ge_neg_iff h g).not.mp h5
 
 class EqZeroIdentical (A : GameForm → Prop) extends (ClosedUnderNeg A) where
@@ -144,32 +143,32 @@ instance : EqZeroIdentical AnyGame where
 instance : EqZeroIdentical IsShort where
   has_T_g_zero h_g := short_auxT h_g Short.zero
 
-theorem EqZeroIdentical.ne_zero_not_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
+theorem EqZeroIdentical.not_misereEQ_zero_of_ne_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) (h1 : g ≠ 0) : ¬(g =m A 0) := by
   obtain ⟨p, h2⟩ := GameForm.ne_zero_not_end h1
   cases p
-  · have h3 := leftEnd_not_leftEnd_not_ge (has_T_g_zero h0) IsEnd_zero h2
-    exact not_MisereEq_of_not_MisereGe h3
+  · have h3 := not_misereGE_of_isEnd_left_not_isEnd_left (has_T_g_zero h0) isEnd_zero h2
+    exact not_misereEQ_of_not_misereGE h3
   · intro h3
     have h4 : A (-g) := ClosedUnderNeg.neg_iff.mpr h0
     have h5 : A (leftEnd_not_leftEnd_not_ge.auxT (-g) (-0)) := by
       rw [neg_zero]
       exact has_T_g_zero h4
-    exact not_MisereEq_of_not_MisereGe
-            (ClosedUnderNeg.rightEnd_not_rightEnd_not_ge h5 IsEnd_zero h2)
-            (MisereEq_symm h3)
+    exact not_misereEQ_of_not_misereGE
+            (ClosedUnderNeg.not_misereGE_of_isEnd_right_not_isEnd_right h5 isEnd_zero h2)
+            (MisereEQ.symm h3)
 
-theorem EqZeroIdentical.eq_zero_iff_identical_zero {A : GameForm → Prop} [EqZeroIdentical A]
+theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) : (g =m A 0 ↔ g = 0) := by
   constructor <;> intro h2
   · by_contra h3
-    exact ne_zero_not_eq_zero h0 h3 h2
+    exact not_misereEQ_zero_of_ne_zero h0 h3 h2
   · rw [h2]
     intro _
     exact congrFun rfl
 
-theorem Transfinite.eq_zero_iff_identical_zero {g : GameForm} :
-    (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero trivial
+theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
+    (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial
 
-theorem Short.eq_zero_iff_identical_zero {g : GameForm} (h_g : IsShort g) :
-    (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.eq_zero_iff_identical_zero h_g
+theorem Short.misereEQ_zero_iff_eq_zero {g : GameForm} (h_g : IsShort g) :
+    (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero h_g
