@@ -13,9 +13,7 @@ public section
 
 namespace Form
 
-private instance hereditary_of_closedUnderFollower {A : G → Prop} [ClosedUnderFollower A] :
-    Hereditary A where
-  has_option hA hopt := ClosedUnderFollower.closed_follower _ hA _ hopt
+namespace ShortUniverse
 
 theorem misere_ge_iff_maintenance_and_proviso {U : G → Prop} [ShortUniverse U]
     (g h : G) [Short g] [Short h] :
@@ -25,6 +23,8 @@ theorem misere_ge_iff_maintenance_and_proviso {U : G → Prop} [ShortUniverse U]
   · exact misere_ge_imp_maintenance_and_proviso g h
   · intro hmp
     exact Hereditary.MisereGe U hmp.1 hmp.2.1 hmp.2.2.1 hmp.2.2.2
+
+end ShortUniverse
 
 namespace Universe
 

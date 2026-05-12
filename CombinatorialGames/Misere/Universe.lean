@@ -15,9 +15,6 @@ public section
 class ClosedUnderSum (A : G → Prop) [Add G] where
   closed_sum (g h : G) (h1 : A g) (h2 : A h) : A (g + h)
 
-class ClosedUnderFollower (A : G → Prop) where
-  closed_follower (g : G) (h1 : A g) : ∀g', IsOption g' g → A g'
-
 class ClosedUnderDicotic (A : G → Prop) where
   closed_dicotic (B C : Set G) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
     (HBnonempty : B.Nonempty) (HCnonempty : C.Nonempty)
@@ -29,13 +26,13 @@ class ClosedUnderDicoticShort (A : G → Prop) where
     (hCfin : C.Finite) (HCnonempty : C.Nonempty) [Small B] [Small C] : A !{B | C}
 
 class ShortUniverse (A : G → Prop) extends
-  ClosedUnderSum A, ClosedUnderFollower A,
+  ClosedUnderSum A, Hereditary A,
   ClosedUnderNeg A, ClosedUnderDicoticShort A where
   zero_mem : A 0
   short_only (g : G) (h1 : A g) : Short g
 
 class Universe (A : G → Prop) extends
-  ClosedUnderSum A, ClosedUnderFollower A,
+  ClosedUnderSum A, Hereditary A,
   ClosedUnderNeg A, ClosedUnderDicotic A where
   zero_mem : A 0
 

@@ -175,7 +175,7 @@ class DeadEnding (A : GameForm → Prop) where
   dead_ending (g : GameForm) : IsDeadEnding g
 
 theorem theorem4 {A : GameForm → Prop} [ClosedUnderNeg A] [ClosedUnderSum A]
-    [ClosedUnderFollower A] [DeadEnding A] [NoP A] (g : GameForm) (h1 : A g) :
+    [Hereditary A] [DeadEnding A] [NoP A] (g : GameForm) (h1 : A g) :
     (g + (-g)) =m A 0 := by
   sorry
 

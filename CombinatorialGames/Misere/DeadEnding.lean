@@ -228,6 +228,14 @@ structure ShortDeadEnding (g : GameForm) : Prop where
   short : Short g
   dead_ending : IsDeadEnding g
 
+instance : Hereditary ShortDeadEnding where
+  has_option h1 h2 :=
+  { short := by
+      have := h1.short
+      exact Short.isOption h2
+  , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
+  }
+
 instance : ShortUniverse ShortDeadEnding where
   zero_mem :=
   { short := by
@@ -239,12 +247,6 @@ instance : ShortUniverse ShortDeadEnding where
   closed_sum _ _ h_g h_h :=
   { short := Short.add' h_g.short h_h.short
   , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
-  }
-  closed_follower g h1 g' h2 :=
-  { short := by
-      have := h1.short
-      exact Short.isOption h2
-  , dead_ending := IsDeadEnding.IsOption h1.dead_ending h2
   }
   neg_of h :=
   { short := ClosedUnderNeg.neg_iff.mpr h.short
