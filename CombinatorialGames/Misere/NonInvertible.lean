@@ -6,12 +6,10 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Form.Misere.Outcome
-public import CombinatorialGames.GameForm.Adjoint
-public import CombinatorialGames.GameForm.Misere.Adjoint
+public import CombinatorialGames.Form.Misere.Adjoint
 import Mathlib.Data.Set.Finite.Range
 
 open GameForm
-open GameForm.Adjoint
 open Form
 open Form.Misere.Outcome
 
@@ -43,7 +41,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
     · obtain ⟨gp', h3, h4⟩ := h3
       rw [<-h4]
       have _ : Short gp' := Short.of_mem_moves h3
-      exact short_adjoint gp'
+      exact Adjoint.short_adjoint gp'
     · rw [h3, short_def]
       intro p
       change (moves p _).Finite ∧ ∀ y ∈ moves p _, Short y
@@ -58,7 +56,7 @@ instance short_auxT {g h : GameForm} [h1 : Short g] [h2 : Short h]
                    exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
         intro gl h4
         have _ : Short gl := Short.of_mem_moves h4
-        exact short_adjoint gl
+        exact Adjoint.short_adjoint gl
 
 theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
@@ -77,7 +75,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
-      refine WinsGoingFirst_left_of_move_MisereOutcome_P ?_ (GameForm.Misere.Adjoint.MisereOutcome_add_adjoint_P hr)
+      refine WinsGoingFirst_left_of_move_MisereOutcome_P ?_ (Misere.Adjoint.outcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
       simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
       exists hr
@@ -114,7 +112,7 @@ theorem leftEnd_not_leftEnd_not_ge {A : GameForm → Prop} {g h : GameForm}
       · apply Or.inr
         use gl
       · apply not_WinsGoingFirst_of_MisereOutcome_P
-        exact GameForm.Misere.Adjoint.MisereOutcome_add_adjoint_P gl
+        exact Misere.Adjoint.outcome_add_adjoint_eq_P gl
   unfold MisereGe
   intro h5
   have h6 : MisereOutcome (g + t) ≥ Outcome.P :=

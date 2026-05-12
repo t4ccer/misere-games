@@ -1,7 +1,7 @@
 module
 
-public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.GameForm
 
 open Form
 open Form.Misere.Outcome
@@ -522,82 +522,3 @@ theorem IsEnd_right_MisereOutcome {g : GameForm} (h1 : A g) (h2 : IsEnd .right g
     : MisereOutcome g = .N ∨ MisereOutcome g = .R := IsEnd_MisereOutcome h1 h2
 
 end PFree
-
--- augmented form versions
-
-private def IsSpecial_aug (g : AugmentedForm) : Prop :=
-  ¬IsEndLike Player.right g
-  ∧ ∀ gr ∈ moves .right g,
-      (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial_aug grl)
-  termination_by g
-  decreasing_by form_wf
-
-private lemma special_implies_not_right_wins_aug { g : AugmentedForm } (h1: IsSpecial_aug g) :
-    ¬WinsGoingFirst .right g := by
-  unfold IsSpecial_aug at h1
-  obtain ⟨h_not_right_EndLike, h2⟩ := h1
-  -- 0. g is not Right end-like, so Right does not win immediately going first
-  rw [not_WinsGoingFirst]
-  apply And.intro h_not_right_EndLike
-  -- 1. consider any right move gr of g
-  intro gr h_gr_mem_right
-  -- 2. since g is special, we have two cases:
-  obtain h_outcome_eq_L | h4 := h2 gr h_gr_mem_right
-  · -- 3. gr has outcome L
-    -- 4. then Left wins
-    exact (MisereOutcome_L_iff_WinsGoingFirst.mp h_outcome_eq_L).left
-  · -- 5. there exists a left move grl of gr that is special
-    obtain ⟨grl, h_grl_mem_left, h_grl_special⟩ := h4
-    -- 6. by induction, right does not win going first on grl, so Left wins
-    have h_not_right_grl : ¬WinsGoingFirst .right grl :=
-      special_implies_not_right_wins_aug h_grl_special
-    apply WinsGoingFirst_of_moves
-    use grl, h_grl_mem_left, h_not_right_grl
-termination_by g
-decreasing_by form_wf
-
-private lemma add_one_not_right_wins_implies_special_aug {g : AugmentedForm} (h1 : IsPFree g) (h2 :
-    ¬WinsGoingFirst .right (g + (1 : GameForm))) : IsSpecial_aug g := by
-      /- proof strategy:
-        0. Right does not win going first on g+1 (by h2), which means g+1
-        cannot be Right end-like.
-        1. Since g+1 is not Right end-like, g cannot be Right end-like
-        (EndLike_add_iff).
-        2. Let gr be an arbitrary Right move of g.
-        3. Since gr is a Right move of g, we know that gr+1 is a Right move of
-        g+1.
-        4. Since Right does not win g+1 going first (by h2), we know that Left
-        must win gr+1 going first.
-        5. Since 1 is not Left end-like, gr+1 is not Left end-like
-        (EndLike_add_iff), so there must exist some winning move for Left from
-        gr+1.
-        6. This winning move is either to gr (by playing on 1), or to some
-        grl+1, where grl is a Left move of gr.
-        7. Assume first that the winning move is to gr (by playing on 1):
-          8. Since this is a winning move for Left (from gr+1), it follows that
-          gr must have outcome L or P.
-          9. Since g is p-free (h1), we know that gr is p-free.
-          10. So, gr must have outcome L.
-        11. Assume instead now that the winning move is to some grl+1:
-          12. Since this move is winning for Left (from gr+1), we know that
-          Right does not win going first on grl+1.
-          13. Since grl is p-free (h1), we know that grl is p-free.
-          14. By induction, we must have grl.IsSpecial.
-      -/
-  sorry
-
-theorem add_one_outcome_ne_P_aug {g : AugmentedForm} (h1 : IsPFree g) : MisereOutcome (g + (1 : GameForm)) ≠ .P := by
-  /- proof strategy:
-      (same as for GameForm from before)
-      0. Assume for a contradiction that g+1 has outcome P.
-      1. This means that Right does not win g+1 going first.
-      2. By add_one_P_gives_special, we know that g.IsSpecial.
-      3. By SpecialImpliesWin, we know that Right does not win g going first.
-      4. We will now show that Left wins g+1 going first.
-      5. Left can play on g+1 to g (by playing on 1).
-      6. We know that Right does not win g going first, and so Left wins g+1
-      going first (by playing on 1 to leave g).
-      7. But we assumed that g+1 had outcome P, which means Left does not win
-      g+1 going first: this is a contradiction.
-  -/
-  sorry

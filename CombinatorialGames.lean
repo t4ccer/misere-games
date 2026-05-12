@@ -1,8 +1,6 @@
 module
 
 public import CombinatorialGames.AugmentedForm
-public import CombinatorialGames.AugmentedForm.Adjoint
-public import CombinatorialGames.AugmentedForm.Misere.Adjoint
 public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
@@ -12,9 +10,7 @@ public import CombinatorialGames.Form.Misere.Adjoint
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Form.Short
 public import CombinatorialGames.GameForm
-public import CombinatorialGames.GameForm.Adjoint
 public import CombinatorialGames.GameForm.Birthday
-public import CombinatorialGames.GameForm.Misere.Adjoint
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.Small
