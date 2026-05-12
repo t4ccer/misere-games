@@ -13,8 +13,8 @@ public section
 
 namespace Form
 
-theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U]
-    (g : G) [Short g] : U (g°) := by
+theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] (g : G) [Short g]
+    : U (g°) := by
   unfold Adjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
@@ -166,70 +166,11 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
   · exact hRfin
   · exact Separation.downlinkRightSet_nonempty g h x
 
-instance ShortUniverse.instComparisonSet {U : G → Prop} [ShortUniverse U] :
-    Separation.ComparisonSet U where
+instance {U : G → Prop} [ShortUniverse U] : Separation.ComparisonSet U where
   legal := Short
-  legal_moves hg hmove := Short.of_mem_moves hmove
+  legal_moves _ hmove := Short.of_mem_moves hmove
   legal_neg _ := inferInstance
-  rightSeparatorCandidate_mem hh hx := by
-    haveI : Short _ := hh
-    exact rightSeparatorCandidate_mem_shortUniverse hx
-  downlinkWitness_mem hg hh hxU hyU := by
-    haveI : Short _ := hg
-    haveI : Short _ := hh
-    exact downlinkWitness_mem_shortUniverse hxU hyU
-
-theorem rightSeparating_of_leftSeparating
-    {U : G → Prop} [ShortUniverse U] {g h : G}
-    [Short g] [Short h]
-    (h_left_sep : LeftSeparating U g h) :
-    RightSeparating U g h := by
-  exact Separation.ComparisonSet.rightSeparating_of_leftSeparating
-    (U := U) inferInstance h_left_sep
-
-theorem leftSeparating_of_rightSeparating_of_not_misere_ge
-    {U : G → Prop} [ShortUniverse U] {g h : G}
-    [Short g] [Short h]
-    (h_not_ge : ¬(g ≥m U h))
-    (h_right_sep : RightSeparating U g h) :
-    LeftSeparating U g h := by
-  exact Separation.ComparisonSet.leftSeparating_of_rightSeparating_of_not_misere_ge
-    (U := U) inferInstance h_not_ge h_right_sep
-
-theorem left_and_right_separating_of_not_misere_ge {U : G → Prop} [ShortUniverse U]
-    {g h : G} [Short g] [Short h]
-    (h_not_ge : ¬(g ≥m U h)) :
-    LeftSeparating U g h ∧ RightSeparating U g h := by
-  exact Separation.ComparisonSet.left_and_right_separating_of_not_misere_ge
-    (U := U) inferInstance inferInstance h_not_ge
-
-theorem downlinked_of_not_exists_left_right_misere_ge {U : G → Prop} [ShortUniverse U]
-    {g h : G} [Short g] [Short h]
-    (h_left : ¬∃ gl ∈ moves .left g, gl ≥m U h)
-    (h_right : ¬∃ hr ∈ moves .right h, g ≥m U hr) :
-    Downlinked U g h := by
-  exact Separation.ComparisonSet.downlinked_of_not_exists_left_right_misere_ge
-    (U := U) inferInstance inferInstance h_left h_right
-
-theorem misere_ge_imp_maintenance_right {U : G → Prop} [ShortUniverse U]
-    {g h : G} [Short g] [Short h] (hge : g ≥m U h) :
-    Maintenance U g h .right := by
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_right
-    (U := U) inferInstance inferInstance hge
-
-theorem misere_ge_imp_maintenance_left {U : G → Prop} [ShortUniverse U]
-    {g h : G} [Short g] [Short h] (hge : g ≥m U h) :
-    Maintenance U g h .left := by
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_left
-    (U := U) inferInstance inferInstance hge
-
-theorem misere_ge_imp_maintenance_and_proviso {U : G → Prop} [ShortUniverse U]
-    (g h : G) [Short g] [Short h] :
-    g ≥m U h →
-      Maintenance U g h .right ∧ Maintenance U g h .left ∧
-      Proviso U g h .right ∧ Proviso U h g .left := by
-  intro hge
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_and_proviso
-    (U := U) inferInstance inferInstance hge
+  rightSeparatorCandidate_mem _ hx := private rightSeparatorCandidate_mem_shortUniverse hx
+  downlinkWitness_mem _ _ hxU hyU := private downlinkWitness_mem_shortUniverse hxU hyU
 
 end Form

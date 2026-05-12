@@ -16,13 +16,14 @@ namespace Form
 namespace ShortUniverse
 
 theorem misere_ge_iff_maintenance_and_proviso {U : G → Prop} [ShortUniverse U]
-    (g h : G) [Short g] [Short h] :
+    (g h : G) [h_g_short : Short g] [h_h_short : Short h] :
     g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
                Proviso U g h .right ∧ Proviso U h g .left := by
   constructor
-  · exact misere_ge_imp_maintenance_and_proviso g h
-  · intro hmp
-    exact Hereditary.MisereGe U hmp.1 hmp.2.1 hmp.2.2.1 hmp.2.2.2
+  · intro h_ge
+    exact Separation.ComparisonSet.misere_ge_imp_maintenance_and_proviso h_g_short h_h_short h_ge
+  · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
+    exact Hereditary.MisereGe U h_mghr h_mghl h_pghr h_pghl
 
 end ShortUniverse
 
@@ -33,9 +34,10 @@ theorem misere_ge_iff_maintenance_and_proviso {U : G → Prop} [Universe U]
     g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
                Proviso U g h .right ∧ Proviso U h g .left := by
   constructor
-  · exact misere_ge_imp_maintenance_and_proviso g h
-  · intro hmp
-    exact Hereditary.MisereGe U hmp.1 hmp.2.1 hmp.2.2.1 hmp.2.2.2
+  · intro h_ge
+    exact Separation.ComparisonSet.misere_ge_imp_maintenance_and_proviso trivial trivial h_ge
+  · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
+    exact Hereditary.MisereGe U h_mghr h_mghl h_pghr h_pghl
 
 end Universe
 

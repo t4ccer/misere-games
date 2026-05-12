@@ -75,7 +75,7 @@ theorem adjoint_mem {U : G → Prop} [Universe U] (g : G) : U (g°) := by
 termination_by g
 decreasing_by all_goals form_wf
 
-theorem rightSeparatorCandidate_mem {U : G → Prop} [Universe U]
+private theorem rightSeparatorCandidate_mem {U : G → Prop} [Universe U]
     {h x : G} (hx : U x) : U (Separation.rightSeparatorCandidate h x) := by
   unfold Separation.rightSeparatorCandidate
   apply ClosedUnderDicotic.closed_dicotic
@@ -94,7 +94,7 @@ theorem rightSeparatorCandidate_mem {U : G → Prop} [Universe U]
   · exact ⟨0, Or.inl rfl⟩
   · exact Set.singleton_nonempty x
 
-theorem downlinkWitness_mem {U : G → Prop} [Universe U]
+private theorem downlinkWitness_mem {U : G → Prop} [Universe U]
     {g h : G} {x : moves .left g → G} {y : moves .right h → G}
     [Small (Separation.downlinkLeftSet g h y)]
     [Small (Separation.downlinkRightSet g h x)]
@@ -129,63 +129,12 @@ theorem downlinkWitness_mem {U : G → Prop} [Universe U]
   · exact Separation.downlinkLeftSet_nonempty g h y
   · exact Separation.downlinkRightSet_nonempty g h x
 
-instance instComparisonSet {U : G → Prop} [Universe U] :
-    Separation.ComparisonSet U where
+instance {U : G → Prop} [Universe U] : Separation.ComparisonSet U where
   legal := fun _ => True
   legal_moves _ _ := trivial
   legal_neg _ := trivial
-  rightSeparatorCandidate_mem _ hx := rightSeparatorCandidate_mem hx
-  downlinkWitness_mem _ _ hxU hyU := downlinkWitness_mem hxU hyU
-
-theorem rightSeparating_of_leftSeparating
-    {U : G → Prop} [Universe U] {g h : G}
-    (h_left_sep : LeftSeparating U g h) :
-    RightSeparating U g h := by
-  exact Separation.ComparisonSet.rightSeparating_of_leftSeparating
-    (U := U) trivial h_left_sep
-
-theorem leftSeparating_of_rightSeparating_of_not_misere_ge
-    {U : G → Prop} [Universe U] {g h : G}
-    (h_not_ge : ¬(g ≥m U h))
-    (h_right_sep : RightSeparating U g h) :
-    LeftSeparating U g h := by
-  exact Separation.ComparisonSet.leftSeparating_of_rightSeparating_of_not_misere_ge
-    (U := U) trivial h_not_ge h_right_sep
-
-theorem left_and_right_separating_of_not_misere_ge {U : G → Prop} [Universe U]
-    {g h : G} (h_not_ge : ¬(g ≥m U h)) :
-    LeftSeparating U g h ∧ RightSeparating U g h := by
-  exact Separation.ComparisonSet.left_and_right_separating_of_not_misere_ge
-    (U := U) trivial trivial h_not_ge
-
-theorem downlinked_of_not_exists_left_right_misere_ge {U : G → Prop} [Universe U]
-    {g h : G}
-    (h_left : ¬∃ gl ∈ moves .left g, gl ≥m U h)
-    (h_right : ¬∃ hr ∈ moves .right h, g ≥m U hr) :
-    Downlinked U g h := by
-  exact Separation.ComparisonSet.downlinked_of_not_exists_left_right_misere_ge
-    (U := U) trivial trivial h_left h_right
-
-theorem misere_ge_imp_maintenance_right {U : G → Prop} [Universe U]
-    {g h : G} (hge : g ≥m U h) :
-    Maintenance U g h .right := by
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_right
-    (U := U) trivial trivial hge
-
-theorem misere_ge_imp_maintenance_left {U : G → Prop} [Universe U]
-    {g h : G} (hge : g ≥m U h) :
-    Maintenance U g h .left := by
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_left
-    (U := U) trivial trivial hge
-
-theorem misere_ge_imp_maintenance_and_proviso {U : G → Prop} [Universe U]
-    (g h : G) :
-    g ≥m U h →
-      Maintenance U g h .right ∧ Maintenance U g h .left ∧
-      Proviso U g h .right ∧ Proviso U h g .left := by
-  intro hge
-  exact Separation.ComparisonSet.misere_ge_imp_maintenance_and_proviso
-    (U := U) trivial trivial hge
+  rightSeparatorCandidate_mem _ hx := private rightSeparatorCandidate_mem hx
+  downlinkWitness_mem _ _ hxU hyU := private downlinkWitness_mem hxU hyU
 
 end Universe
 
