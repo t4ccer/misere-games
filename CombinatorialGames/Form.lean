@@ -294,6 +294,8 @@ theorem exists_moves_add {p : Player} {P : G → Prop} {x y : G} :
 lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y ∪ moves .right y := by
   simp [IsOption, Moves.IsOption', Player.exists]
 
+@[simp] theorem not_isOption_zero (g : G) : ¬IsOption g 0 := by simp [IsOption, Moves.IsOption']
+
 -- Casts
 
 @[simp, norm_cast] theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp

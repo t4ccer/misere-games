@@ -108,6 +108,43 @@ theorem birthday_add (g h : G) : birthday (g + h) = birthday g + birthday h := b
 termination_by (g, h)
 decreasing_by form_wf
 
+@[simp]
+theorem birthday_ofSets (s t : Set G) [Small.{u} s] [Small.{u} t] :
+    birthday !{s | t} = max (sSup (succ ∘ birthday '' s)) (sSup (succ ∘ birthday '' t)) := by
+  rw [birthday_eq_max]
+  rw [leftMoves_ofSets, rightMoves_ofSets]
+  simp only [iSup, succ_eq_add_one, Function.comp_apply, image_eq_range]
+
+@[simp]
+theorem birthday_ofSets_const (s : Set G) [Small.{u} s] :
+    birthday !{fun _ ↦ s} = sSup (succ ∘ birthday '' s) := by
+  rw [ofSets_eq_ofSets_cases, birthday_ofSets]
+  exact max_eq_left le_rfl
+
+@[simp]
+theorem birthday_zero : birthday (0 : G) = 0 := by
+  unfold birthday
+  simp [iSup_eq_zero_iff]
+
+@[simp]
+theorem birthday_one : birthday (1 : G) = 1 := by simp [one_def]
+
+@[simp]
+theorem birthday_natCast (n : ℕ) : birthday (n : G) = n := by
+  induction n with
+  | zero => simp only [Nat.cast_zero, birthday_zero]
+  | succ k ih => simpa only [Nat.cast_add, Nat.cast_one, birthday_add, birthday_one, add_left_inj]
+
+@[simp]
+theorem birthday_ofNat (n : ℕ) [n.AtLeastTwo] : birthday (ofNat(n) : G) = n := by
+  simp only [OfNat.ofNat, birthday_natCast]
+
+@[simp]
+theorem birthday_intCast (k : ℤ) : birthday (k : G) = k.natAbs := by
+  match k with
+  | Int.ofNat n => simp
+  | Int.negSucc n => simpa using add_comm (G := NatOrdinal) 1 n
+
 open Lean Meta Elab Tactic in
 elab "gameform_birthday" : tactic => do
   Lean.Elab.Tactic.withMainContext do
