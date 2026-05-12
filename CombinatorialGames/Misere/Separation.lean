@@ -32,36 +32,7 @@ abbrev LeftSeparating (A : G → Prop) (g h : G) : Prop :=
 abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .right g h
 
-theorem Downlinked.not_exists_left_right_misere_ge {A : G → Prop} {g h : G}
-    (h_downlinked : Downlinked A g h) :
-    (¬∃ gl ∈ moves .left g, gl ≥m A h) ∧
-      (¬∃ hr ∈ moves .right h, g ≥m A hr) := by
-  obtain ⟨t, ht, hgt, hht⟩ := h_downlinked
-  constructor
-  · rintro ⟨gl, hgl, hge⟩
-    rw [not_WinsGoingFirst] at hgt
-    have hgl_out : MiserePlayerOutcome (gl + t) .right = .right :=
-      MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
-        (hgt.right (gl + t) (add_right_mem_moves_add hgl t))
-    have hht_out : MiserePlayerOutcome (h + t) .right = .left := by
-      unfold MiserePlayerOutcome
-      simp [hht]
-    have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge t ht) .right
-    rw [hgl_out, hht_out] at h_cmp
-    exact Player.left_le_right h_cmp
-  · rintro ⟨hr, hhr, hge⟩
-    rw [not_WinsGoingFirst] at hht
-    have hhr_out : MiserePlayerOutcome (hr + t) .left = .left :=
-      MiserePlayerOutcome_eq_iff_WinsGoingFirst.mpr
-        (hht.right (hr + t) (add_right_mem_moves_add hhr t))
-    have hgt_out : MiserePlayerOutcome (g + t) .left = .right := by
-      unfold MiserePlayerOutcome
-      simp [hgt]
-    have h_cmp := MisereOutcome_ge_iff_MiserePlayerOutcome_ge.mp (hge t ht) .left
-    rw [hgt_out, hhr_out] at h_cmp
-    exact Player.left_le_right h_cmp
-
-theorem leftSeparating_or_rightSeparating_of_not_misere_ge {U : G → Prop}
+theorem leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
     {g h : G} (h_not_ge : ¬(g ≥m U h)) :
     LeftSeparating U g h ∨ RightSeparating U g h := by
   rw [MisereGe] at h_not_ge
@@ -252,7 +223,7 @@ theorem downlinked_of_downlinkWitness_mem
           exact hyWin hr
         · rw [← htl_eq]
           apply WinsGoingFirst_of_moves
-          refine ⟨(gr : G) + (gr : G)°, add_right_mem_moves_add gr.2 ((gr : G)°), ?_⟩
+          refine ⟨(gr : G) + (gr : G)°, add_right_mem_moves_add gr.prop ((gr : G)°), ?_⟩
           exact not_WinsGoingFirst_of_MisereOutcome_P (outcome_add_adjoint_eq_P (gr : G))
         · by_cases hz : IsEnd .right g ∧ IsEnd .right h
           · simp [hz] at htl_zero
@@ -284,7 +255,7 @@ theorem downlinked_of_downlinkWitness_mem
           exact hxWin gl
         · rw [← htr_eq]
           apply WinsGoingFirst_of_moves
-          refine ⟨(hl : G) + (hl : G)°, add_right_mem_moves_add hl.2 ((hl : G)°), ?_⟩
+          refine ⟨(hl : G) + (hl : G)°, add_right_mem_moves_add hl.prop ((hl : G)°), ?_⟩
           exact not_WinsGoingFirst_of_MisereOutcome_P (outcome_add_adjoint_eq_P (hl : G))
         · by_cases hz : IsEnd .left g ∧ IsEnd .left h
           · simp [hz] at htr_zero
@@ -326,30 +297,30 @@ theorem leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U
 namespace Separation
 
 class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
-  legal : G → Prop
-  legal_moves {g g' : G} {p : Player} : legal g → g' ∈ moves p g → legal g'
-  legal_neg {g : G} : legal g → legal (-g)
+  Legal : G → Prop
+  legal_moves {g g' : G} {p : Player} : Legal g → g' ∈ moves p g → Legal g'
+  legal_neg {g : G} : Legal g → Legal (-g)
   rightSeparatorCandidate_mem {h x : G} :
-    legal h → A x → A (rightSeparatorCandidate h x)
+    Legal h → A x → A (rightSeparatorCandidate h x)
   downlinkWitness_mem {g h : G} {x : moves .left g → G} {y : moves .right h → G}
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] :
-    legal g → legal h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
+    Legal g → Legal h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
       A (downlinkWitness g h x y)
 
 namespace ComparisonSet
 
 theorem rightSeparating_of_leftSeparating
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hh : legal U h)
+    (hh : Legal U h)
     (h_left_sep : LeftSeparating U g h) :
     RightSeparating U g h := by
   refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep
   intro x hx
   exact rightSeparatorCandidate_mem hh hx
 
-theorem leftSeparating_of_rightSeparating_of_not_misere_ge
+theorem leftSeparating_of_rightSeparating_not_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g)
+    (hg : Legal U g)
     (h_not_ge : ¬(g ≥m U h))
     (h_right_sep : RightSeparating U g h) :
     LeftSeparating U g h := by
@@ -362,21 +333,21 @@ theorem leftSeparating_of_rightSeparating_of_not_misere_ge
       (legal_neg hg) h_left_sep_neg
   exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
 
-theorem left_and_right_separating_of_not_misere_ge
+theorem leftSeparating_rightSeparating_of_not_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g) (hh : legal U h) (h_not_ge : ¬(g ≥m U h)) :
+    (hg : Legal U g) (hh : Legal U h) (h_not_ge : ¬(g ≥m U h)) :
     LeftSeparating U g h ∧ RightSeparating U g h := by
-  cases leftSeparating_or_rightSeparating_of_not_misere_ge h_not_ge with
+  cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
   | inl h_left =>
       exact ⟨h_left, rightSeparating_of_leftSeparating
         hh h_left⟩
   | inr h_right =>
-      exact ⟨leftSeparating_of_rightSeparating_of_not_misere_ge
+      exact ⟨leftSeparating_of_rightSeparating_not_misereGE
         hg h_not_ge h_right, h_right⟩
 
-theorem downlinked_of_not_exists_left_right_misere_ge
+theorem downlinked_of_not_exists_moves_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g) (hh : legal U h)
+    (hg : Legal U g) (hh : Legal U h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m U h)
     (h_right : ¬∃ hr ∈ moves .right h, g ≥m U hr) :
     Downlinked U g h := by
@@ -386,17 +357,17 @@ theorem downlinked_of_not_exists_left_right_misere_ge
     intro gl
     have h_not_ge : ¬((gl : G) ≥m U h) := by
       intro hge
-      exact h_left ⟨gl, gl.2, hge⟩
-    exact (left_and_right_separating_of_not_misere_ge
-      (legal_moves hg gl.2) hh h_not_ge).left
+      exact h_left ⟨gl, gl.prop, hge⟩
+    exact (leftSeparating_rightSeparating_of_not_misereGE
+      (legal_moves hg gl.prop) hh h_not_ge).left
   have h_right_sep :
       ∀ hr : moves .right h, RightSeparating U g (hr : G) := by
     intro hr
     have h_not_ge : ¬(g ≥m U (hr : G)) := by
       intro hge
-      exact h_right ⟨hr, hr.2, hge⟩
-    exact (left_and_right_separating_of_not_misere_ge
-      hg (legal_moves hh hr.2) h_not_ge).right
+      exact h_right ⟨hr, hr.prop, hge⟩
+    exact (leftSeparating_rightSeparating_of_not_misereGE
+      hg (legal_moves hh hr.prop) h_not_ge).right
   choose x hxU hxLose hxWin using h_left_sep
   choose y hyU hyWin hyLose using h_right_sep
   let L : Set G := downlinkLeftSet g h y
@@ -415,14 +386,14 @@ theorem downlinked_of_not_exists_left_right_misere_ge
     downlinkWitness_mem hg hh hxU hyU
   exact downlinked_of_downlinkWitness_mem htU hxLose hxWin hyWin hyLose
 
-theorem misere_ge_imp_maintenance_right
+theorem maintenance_right_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g) (hh : legal U h) (hge : g ≥m U h) :
+    (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
     Maintenance U g h .right := by
   intro gr hgr
   by_contra h_not
   have h_downlinked : Downlinked U gr h := by
-    apply downlinked_of_not_exists_left_right_misere_ge (legal_moves hg hgr) hh
+    apply downlinked_of_not_exists_moves_misereGE (legal_moves hg hgr) hh
     · intro h_exists
       exact h_not (Or.inr h_exists)
     · intro h_exists
@@ -440,14 +411,14 @@ theorem misere_ge_imp_maintenance_right
   rw [hgt, hht_out] at h_cmp
   exact Player.left_le_right h_cmp
 
-theorem misere_ge_imp_maintenance_left
+theorem maintenance_left_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g) (hh : legal U h) (hge : g ≥m U h) :
+    (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
     Maintenance U g h .left := by
   intro hl hhl
   by_contra h_not
   have h_downlinked : Downlinked U g hl := by
-    apply downlinked_of_not_exists_left_right_misere_ge hg (legal_moves hh hhl)
+    apply downlinked_of_not_exists_moves_misereGE hg (legal_moves hh hhl)
     · intro h_exists
       exact h_not (Or.inl h_exists)
     · intro h_exists
@@ -465,17 +436,17 @@ theorem misere_ge_imp_maintenance_left
   rw [hgt_out, hht] at h_cmp
   exact Player.left_le_right h_cmp
 
-theorem misere_ge_imp_maintenance_and_proviso
+theorem maintenance_proviso_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : legal U g) (hh : legal U h) :
+    (hg : Legal U g) (hh : Legal U h) :
     g ≥m U h →
       Maintenance U g h .right ∧ Maintenance U g h .left ∧
       Proviso U g h .right ∧ Proviso U h g .left := by
   intro hge
-  exact ⟨misere_ge_imp_maintenance_right hg hh hge,
-    misere_ge_imp_maintenance_left hg hh hge,
-    misere_ge_imp_proviso_right hge,
-    misere_ge_imp_proviso_left hge⟩
+  exact ⟨maintenance_right_of_misereGE hg hh hge,
+    maintenance_left_of_misereGE hg hh hge,
+    proviso_right_of_misereGE hge,
+    proviso_left_of_misereGE hge⟩
 
 end ComparisonSet
 

@@ -5,7 +5,7 @@ public import CombinatorialGames.Misere.Hereditary
 
 universe u
 
-variable {G : Type (u + 1)} [Form G] [OfSets G fun _ ↦ True]
+variable {G : Type (u + 1)} [Form G]
 
 open Form
 open Form.Misere.Outcome
@@ -38,7 +38,6 @@ class Universe (A : G → Prop) extends
 
 namespace Form
 
-omit [OfSets G fun _ ↦ True] in
 theorem Maintenance_of_subset (U : G → Prop) (pfU : G → Prop)
     (h_subset : ∀g, pfU g → U g) (g h : G) {p : Player}
     (h_maintenance_u : Maintenance U g h p) : Maintenance pfU g h p := by

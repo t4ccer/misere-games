@@ -21,12 +21,10 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] (g
     · simp [hleft, hright]
       apply ClosedUnderDicoticShort.closed_dicotic_short
       · intro b hb
-        simp only [Set.mem_singleton_iff] at hb
-        rw [hb]
+        rw [Set.mem_singleton_iff.mp hb]
         exact ShortUniverse.zero_mem
       · intro c hc
-        simp only [Set.mem_singleton_iff] at hc
-        rw [hc]
+        rw [Set.mem_singleton_iff.mp hc]
         exact ShortUniverse.zero_mem
       · exact Set.finite_singleton 0
       · exact Set.singleton_nonempty 0
@@ -40,8 +38,7 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] (g
         haveI : Short gr := Short.of_mem_moves hgr
         exact ShortUniverse.adjoint_mem_of_short gr
       · intro c hc
-        simp only [Set.mem_singleton_iff] at hc
-        rw [hc]
+        rw [Set.mem_singleton_iff.mp hc]
         exact ShortUniverse.zero_mem
       · have : Finite (moves .right g) := Short.finite_moves .right g
         exact Set.finite_range (fun gr : moves .right g => (gr : G)°)
@@ -53,8 +50,7 @@ theorem ShortUniverse.adjoint_mem_of_short {U : G → Prop} [ShortUniverse U] (g
     · simp [hleft, hright]
       apply ClosedUnderDicoticShort.closed_dicotic_short
       · intro b hb
-        simp only [Set.mem_singleton_iff] at hb
-        rw [hb]
+        rw [Set.mem_singleton_iff.mp hb]
         exact ShortUniverse.zero_mem
       · intro c hc
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hc
@@ -103,7 +99,7 @@ private theorem rightSeparatorCandidate_mem_shortUniverse {U : G → Prop} [Shor
         exact ShortUniverse.zero_mem
     | inr hb_adjoint =>
         obtain ⟨hr, rfl⟩ := hb_adjoint
-        haveI : Short (hr : G) := Short.of_mem_moves hr.2
+        haveI : Short (hr : G) := Short.of_mem_moves hr.prop
         exact ShortUniverse.adjoint_mem_of_short (hr : G)
   · intro c hc
     simp only [Set.mem_singleton_iff] at hc
@@ -142,7 +138,7 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
       Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨hr, rfl⟩ | ⟨gr, rfl⟩) | ha0
     · exact hyU hr
-    · haveI : Short (gr : G) := Short.of_mem_moves gr.2
+    · haveI : Short (gr : G) := Short.of_mem_moves gr.prop
       exact ShortUniverse.adjoint_mem_of_short (gr : G)
     · by_cases hz : IsEnd .right g ∧ IsEnd .right h
       · simp [hz] at ha0
@@ -154,7 +150,7 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
       Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨gl, rfl⟩ | ⟨hl, rfl⟩) | ha0
     · exact hxU gl
-    · haveI : Short (hl : G) := Short.of_mem_moves hl.2
+    · haveI : Short (hl : G) := Short.of_mem_moves hl.prop
       exact ShortUniverse.adjoint_mem_of_short (hl : G)
     · by_cases hz : IsEnd .left g ∧ IsEnd .left h
       · simp [hz] at ha0
@@ -167,7 +163,7 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
   · exact Separation.downlinkRightSet_nonempty g h x
 
 instance {U : G → Prop} [ShortUniverse U] : Separation.ComparisonSet U where
-  legal := Short
+  Legal := Short
   legal_moves _ hmove := Short.of_mem_moves hmove
   legal_neg _ := inferInstance
   rightSeparatorCandidate_mem _ hx := private rightSeparatorCandidate_mem_shortUniverse hx

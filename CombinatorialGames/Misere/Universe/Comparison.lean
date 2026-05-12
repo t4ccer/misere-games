@@ -130,7 +130,7 @@ private theorem downlinkWitness_mem {U : G → Prop} [Universe U]
   · exact Separation.downlinkRightSet_nonempty g h x
 
 instance {U : G → Prop} [Universe U] : Separation.ComparisonSet U where
-  legal := fun _ => True
+  Legal := fun _ => True
   legal_moves _ _ := trivial
   legal_neg _ := trivial
   rightSeparatorCandidate_mem _ hx := private rightSeparatorCandidate_mem hx

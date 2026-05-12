@@ -210,7 +210,7 @@ theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
   have h0' : 0 ≤ a + 1 := Int.le_add_one h0
   have h0'' : 0 < a + 1 := Int.le_iff_lt_add_one.mp h0
   refine MisereGe_antisymm ?_ ?_
-  · apply Hereditary.MisereGe PFreeDeadEnding
+  · apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
     · simpa [Maintenance, h0'] using int_ordered (a + 1) 0 h0'
     · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left]
       intro hl h_hl
@@ -220,7 +220,7 @@ theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
       simp [h_hl]
     · simp [Proviso, IsEnd_def]
     · simp [Proviso, IsEnd_def, h0]
-  · apply Hereditary.MisereGe PFreeDeadEnding
+  · apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
     · simp [Maintenance, h0']
     · simp [Maintenance, h0'']
     · simp [Proviso, Strong]
@@ -236,7 +236,7 @@ theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
 
 private theorem reduction_ab_int.auxL {a b : ℤ} (h0 : 0 ≤ a) (h2 : 1 ≤ b) (h3 : b ≤ a + 2)
     : (!{{(a : GameForm)} | {(b : GameForm)}}) ≥m PFreeDeadEnding (!{{(a : GameForm)} | {(1 : GameForm)}}) := by
-  apply Hereditary.MisereGe PFreeDeadEnding
+  apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
   · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
     refine Or.inr ⟨((b - 1) : ℤ), leftMoves_intCast_zero_lt h2, ?_⟩
     exact MisereGe_rw_right (reduction_a_one_int h0) (int_ordered (a + 1) (b - 1) (by omega))
@@ -246,7 +246,7 @@ private theorem reduction_ab_int.auxL {a b : ℤ} (h0 : 0 ≤ a) (h2 : 1 ≤ b) 
 
 private theorem reduction_ab_int.auxR (a : ℤ) {b : ℤ} (h0 : 1 ≤ b)
     : (!{{(a : GameForm)} | {(1 : GameForm)}}) ≥m PFreeDeadEnding (!{{(a : GameForm)} | {(b : GameForm)}}) := by
-  apply Hereditary.MisereGe PFreeDeadEnding
+  apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
   · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
     apply Or.inl
     rw [<-intCast_one]
@@ -294,7 +294,7 @@ theorem PFreeDeadEnding_Proviso_iff_DeadEnding_Proviso {g h : GameForm} {p : Pla
 
 private theorem reduction_ab_between_int_left.aux {a b : ℤ} (h0 : 0 ≤ a) (h1 : a + 2 ≤ b)
     : !{{(a : GameForm)}|{(b : GameForm)}} ≥m PFreeDeadEnding !{{((b - 2 : ℤ) : GameForm)}|{1}} := by
-  apply Hereditary.MisereGe PFreeDeadEnding
+  apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
   · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left, forall_eq]
     refine Or.inr ⟨(b - 1 : ℤ), leftMoves_intCast_zero_lt (by omega), ?_⟩
     have h2 := reduction_ab_int (b - 2) 1 (by omega) Int.le_rfl (by omega)
@@ -323,7 +323,7 @@ theorem reduction_ab_between_int_right {a b : ℤ} (h0 : 0 ≤ a) (h1 : 1 ≤ b)
 
 private theorem reduction_a_eq_neg_ba_c.aux {a b : ℤ} (h1 : 0 ≤ a) (h2 : 1 ≤ b)
     : !{{-(b : GameForm)} | {((a + 1 : ℤ) : GameForm)}} ≥m PFreeDeadEnding (a : GameForm) := by
-  apply Hereditary.MisereGe PFreeDeadEnding
+  apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
   · simp [Maintenance]
     apply Or.inr
     use a
@@ -375,7 +375,7 @@ theorem reduction_a_eq_neg_ba_c {a b c : ℤ} (h1 : 1 ≤ a) (h2 : 1 ≤ b) (h3 
   rw [intCast_nat] at h6
   refine MisereEq_trans ?_ h6
   refine MisereGe_antisymm ?_ ?_
-  · apply Hereditary.MisereGe PFreeDeadEnding
+  · apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
     · simp only [Maintenance, moves_ofSets, Player.cases, Set.mem_singleton_iff,
                  exists_eq_left, forall_eq]
       apply Or.inr
@@ -391,7 +391,7 @@ theorem reduction_a_eq_neg_ba_c {a b c : ℤ} (h1 : 1 ≤ a) (h2 : 1 ≤ b) (h3 
       norm_cast
     · simp [Proviso, IsEnd_def]
     · simp [Proviso, IsEnd_def]
-  · apply Hereditary.MisereGe PFreeDeadEnding
+  · apply Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
     · simp only [Maintenance, moves_ofSets, Player.cases, Set.mem_singleton_iff, intCast_neg,
                  exists_eq_left, forall_eq]
       apply Or.inl

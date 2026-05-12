@@ -210,7 +210,7 @@ decreasing_by
 
 end
 
-theorem Hereditary.MisereGe (A : G → Prop) [Hereditary A]
+theorem Hereditary.misereGE_of_maintenance_proviso (A : G → Prop) [Hereditary A]
     {g h : G}
     (h2 : Maintenance A g h .right) (h3 : Maintenance A g h .left)
     (h4 : Proviso A g h .right) (h5 : Proviso A h g .left)
@@ -218,7 +218,7 @@ theorem Hereditary.MisereGe (A : G → Prop) [Hereditary A]
   intro x hx
   exact aux A h2 h3 h4 h5 hx
 
-theorem misere_ge_imp_proviso_right {U : G → Prop}
+theorem proviso_right_of_misereGE {U : G → Prop}
     {g h : G} (hge : g ≥m U h) :
     Proviso U g h .right := by
   intro hg_end x hx hx_end
@@ -229,7 +229,7 @@ theorem misere_ge_imp_proviso_right {U : G → Prop}
   rw [hgt] at h_cmp
   exact MiserePlayerOutcome_eq_iff_WinsGoingFirst.mp (Player.le_right_eq _ h_cmp)
 
-theorem misere_ge_imp_proviso_left {U : G → Prop}
+theorem proviso_left_of_misereGE {U : G → Prop}
     {g h : G} (hge : g ≥m U h) :
     Proviso U h g .left := by
   intro hh_end x hx hx_end
