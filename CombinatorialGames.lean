@@ -1,7 +1,6 @@
 module
 
 public import CombinatorialGames.AugmentedForm
-public import CombinatorialGames.AugmentedForm.Misere.Outcome
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
