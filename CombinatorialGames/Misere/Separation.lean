@@ -235,7 +235,7 @@ abbrev downlinkRightSet (g h : G) (x : moves .left g → G) : Set G :=
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
 This constructs the following game form, which is a trivial generalisation of a
 construction by [Siegel (Proof of Lemma 5.10 on p.
-215][siegel:GeneralDeadendingUniverse:2025] for short forms:
+215)][siegel:GeneralDeadendingUniverse:2025] for short forms:
 $$
 T=
 \begin{cases}

@@ -36,7 +36,7 @@ $$
 
 [Siegel (Definition 3.2 on p. 228)][siegel:CanonicalPartizan:2015] originally
 defined this just for short game forms, which was a partizan analogue to the
-impartial _mate_ due to [Conway (p. 147)][conway:OnNumbersGames:2001].
+impartial _mate_ due to [Conway (p. 147)][conway:NumbersAndGames:2001].
 
 -/
 @[expose] noncomputable def adjoint {G : Type (u + 1)} [Form G] (g : G) : G :=
