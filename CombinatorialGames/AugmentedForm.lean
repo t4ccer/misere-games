@@ -16,7 +16,10 @@ universe u
 /-!
 # Augmented Form
 
-This module defines `AugmentedForm`, which apart from ordianry moves may also have tombstones as defined in [Siegel, "On the general dead-ending universe of partizan games" (Definition 5.1 on p. 212)][siegelGeneralDeadendingUniverse2025].
+This module defines `AugmentedForm`, which apart from ordinary moves may also
+have tombstones as defined in [Siegel, "On the general dead-ending universe of
+partizan games" (Definition 5.1 on p.
+212)][siegel:GeneralDeadendingUniverse:2025].
 
 The main result is `AugmentedForm.instForm`
 -/
