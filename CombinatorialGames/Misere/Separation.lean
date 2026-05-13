@@ -8,6 +8,23 @@ module
 public import CombinatorialGames.Form.Misere.Adjoint
 public import CombinatorialGames.Misere.Hereditary
 
+/-!
+# Separation and downlinking
+
+This file defines downlinked and separated pairs of forms, and develops the
+machinery necessary to prove that $G\ge_\mathcal{U}H$ implies that both
+`Form.Maintenance` and `Form.Proviso` are satisfied.
+
+Here, $G$ and $H$ will always refer to arbitrary forms (possibly augmented,
+possibly not), $\mathcal{A}$ to an arbitrary set of forms, and $\mathcal{U}$ to
+a universe (which may or may not be `Short`).
+
+## References
+
+* [A. N. Siegel, *On the general dead-ending universe of partizan games*
+(Section 5 on pp. 207–222)][siegel:GeneralDeadendingUniverse:2025]
+-/
+
 universe u
 
 variable {G : Type (u + 1)} [Form G]
@@ -20,10 +37,27 @@ public section
 
 namespace Form
 
+/--
+We say $G$ is _downlinked_ to $H$ (with respect to $\mathcal{A}$) if there
+exists some $T\in\mathcal{A}$ with $\operatorname{o_L}(G+T)=\mathscr{R}$ and
+$\operatorname{o_R}(H+T)=\mathscr{L}$.
+
+This generalises the definition given by [Siegel (Definition 5.9 on p.
+214)][siegel:GeneralDeadendingUniverse:2025], where all forms were short, and
+the sets were short universes.
+-/
 @[expose] def Downlinked (A : G → Prop) (g h : G) : Prop :=
   ∃ t, A t ∧ ¬WinsGoingFirst .left (g + t) ∧
     ¬WinsGoingFirst .right (h + t)
 
+
+/--
+If there exists some $X\in\mathcal{A}$ whereby
+$\operatorname{o_L}(G+X)=\mathscr{R}$ and
+$\operatorname{o_L}(H+X)=\mathscr{L}$, then we say that $G$ and $H$ are _Left
+separated_ (with respect to $\mathcal{A}$). (See `LeftSeparating` and
+`RightSeparating`.)
+-/
 @[expose] def Separating (A : G → Prop) (p : Player) (g h : G) : Prop :=
   match p with
   | .left => ∃ x, A x ∧ ¬WinsGoingFirst .left (g + x) ∧
@@ -31,15 +65,47 @@ namespace Form
   | .right => ∃ x, A x ∧ WinsGoingFirst .right (g + x) ∧
       ¬WinsGoingFirst .right (h + x)
 
+/--
+There exists some $X\in\mathcal{A}$ whereby
+$\operatorname{o_L}(G+X)=\mathscr{R}$ and
+$\operatorname{o_L}(H+X)=\mathscr{L}$. (See `Separating`.)
+-/
 abbrev LeftSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .left g h
 
+/--
+There exists some $X\in\mathcal{A}$ whereby
+$\operatorname{o_R}(G+X)=\mathscr{R}$ and
+$\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
+-/
 abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .right g h
 
-theorem leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
+/--
+If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be at least one of
+`LeftSeparating` and `RightSeparating`. When $\mathcal{A}$ is a universe,
+`leftSeparating_rightSeparating_of_not_misereGE` proves that in fact $G$ and
+$H$ must always be both.
+-/
+lemma leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
     {g h : G} (h_not_ge : ¬(g ≥m U h)) :
     LeftSeparating U g h ∨ RightSeparating U g h := by
+      /-
+        At a lower level, the proof could be understood as follows. We know
+        that ¬(g ≥ h), and so there exists some x with ¬(o(g+x) ≥ o(h+x)).
+        Given our four outcomes classes, the only possibilites for
+        (o(g+x),o(h+x)) are:
+
+        - (N,L)
+        - (P,L)
+        - (R,L)
+        - (P,N)
+        - (R,N)
+        - (N,P)
+        - (R,P)
+
+        In each of these cases, it is trivial to check the required condition.
+      -/
   rw [MisereGE] at h_not_ge
   simp only [not_forall] at h_not_ge
   obtain ⟨x, hx, h_not_outcome_ge⟩ := h_not_ge
@@ -74,13 +140,32 @@ theorem leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
 
 namespace Separation
 
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+Given $H$, this constructs the set of games $\{0,(H^\mathcal{R})^\circ\}$,
+which will act as Left's set of options in the construction of
+`rightSeparatorCandidate`.
+-/
 abbrev rightSeparatorLeftSet (h : G) : Set G :=
   {0} ∪ Set.range (fun hr : moves .right h => (hr : G)°)
 
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+Given forms $H$ and $X$, this constructs the form
+$\form<0,(H^\mathcal{R})^\circ>[X]$, which is used by
+`leftSeparating_rightSeparating_of_not_misereGE` to show that $G$ and $H$ must
+be both `LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
+-/
 noncomputable abbrev rightSeparatorCandidate (h x : G) : G :=
   !{rightSeparatorLeftSet h | {x}}
 
-theorem rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+If $G$ and $H$ are `LeftSeparating`, and
+$\form<0,(H^\mathcal{R})^\circ>[X]\in\mathcal{A}$ for every $X\in\mathcal{A}$,
+then $G$ and $H$ are `RightSeparating`.
+-/
+lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
     {U : G → Prop} {g h : G}
     (h_candidate : ∀ {x : G}, U x → U (rightSeparatorCandidate h x))
     (h_left_sep : LeftSeparating U g h) :
@@ -146,12 +231,37 @@ abbrev downlinkLeftSet (g h : G) (y : moves .right h → G) : Set G :=
 abbrev downlinkRightSet (g h : G) (x : moves .left g → G) : Set G :=
   Set.range x ∪ Set.range (fun hl : moves .left h => (hl : G)°) ∪ downlinkZeroRight g h
 
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+This constructs the following game form, which is a trivial generalisation of a
+construction by [Siegel (Proof of Lemma 5.10 on p.
+215][siegel:GeneralDeadendingUniverse:2025] for short forms:
+$$
+T=
+\begin{cases}
+*
+& \text{if neither }G\text{ nor }H\text{ has any ordinary options},\\
+\form<0>[(H^\mathcal{L})^\circ]
+& \text{if }G\text{ has no ordinary options and }H\text{ has no ordinary Right options},\\
+\form<(G^\mathcal{R})^\circ>[0]
+& \text{if }H\text{ has no ordinary options and }G\text{ has no ordinary Left options},\\
+\form<Y_j,(G^\mathcal{R})^\circ>[X_i,(H^\mathcal{L})^\circ]
+& \text{otherwise}.
+\end{cases}
+$$
+
+(Note that the $X_i$ and $Y_j$ are chosen as a function of the Left and Right
+options of $G$ and $H$ respectively.)
+-/
 noncomputable abbrev downlinkWitness
     (g h : G) (x : moves .left g → G) (y : moves .right h → G)
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] : G :=
   !{downlinkLeftSet g h y | downlinkRightSet g h x}
 
-theorem downlinkLeftSet_nonempty
+/--
+By construction, `downlinkWitness` cannot be a Left end.
+-/
+lemma downlinkLeftSet_nonempty
     (g h : G) (y : moves .right h → G) :
     (downlinkLeftSet g h y).Nonempty := by
   by_cases hz : IsEnd .right g ∧ IsEnd .right h
@@ -169,7 +279,10 @@ theorem downlinkLeftSet_nonempty
           simp only [downlinkLeftSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inl ⟨⟨hr, hhr⟩, rfl⟩)⟩
 
-theorem downlinkRightSet_nonempty
+/--
+By construction, `downlinkWitness` cannot be a Right end.
+-/
+lemma downlinkRightSet_nonempty
     (g h : G) (x : moves .left g → G) :
     (downlinkRightSet g h x).Nonempty := by
   by_cases hz : IsEnd .left g ∧ IsEnd .left h
@@ -187,7 +300,7 @@ theorem downlinkRightSet_nonempty
           simp only [downlinkRightSet, Set.mem_union, Set.mem_range]
           exact Or.inl (Or.inr ⟨⟨hl, hhl⟩, rfl⟩)⟩
 
-theorem downlinked_of_downlinkWitness_mem
+private lemma downlinked_of_downlinkWitness_mem
     {U : G → Prop} {g h : G}
     {x : moves .left g → G} {y : moves .right h → G}
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)]
@@ -271,7 +384,11 @@ theorem downlinked_of_downlinkWitness_mem
 
 end Separation
 
-theorem leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U]
+/--
+If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
+must be `LeftSeparating`.
+-/
+lemma leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U]
     {g h : G} (h_right_sep : RightSeparating U g h) :
     LeftSeparating U (-h) (-g) := by
   obtain ⟨y, hy, hgy, hhy⟩ := h_right_sep
@@ -285,7 +402,11 @@ theorem leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U
       (winsGoingFirst_neg_iff (g + y) .left).mpr hgy
     simpa [neg_add_rev, add_comm] using h_win
 
-theorem leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U]
+/--
+If $\overline{H}$ and $\overline{G}$ are `RightSeparating`, then $G$ and $H$
+must be `LeftSeparating`.
+-/
+lemma leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U]
     {g h : G} (h_right_sep : RightSeparating U (-h) (-g)) :
     LeftSeparating U g h := by
   obtain ⟨y, hy, hh_y, hg_y⟩ := h_right_sep
@@ -301,6 +422,17 @@ theorem leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U
 
 namespace Separation
 
+/--
+This is an interface used to show that $G\ge_\mathcal{U}H$ implies
+`Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`)
+for both `Universe` and `ShortUniverse` simultaneously.
+
+The `Legal` predicate dictates what game forms are admissible for comparison
+modulo the set. For example, in a `ShortUniverse`, we would write `Legal :=
+IsShort`. We require the set of legal forms to be hereditary and closed
+under conjugation. The final two fields assert that our separating and downlink
+constructions are always elements of `A`.
+-/
 class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
   Legal : G → Prop
   legal_moves {g g' : G} {p : Player} : Legal g → g' ∈ moves p g → Legal g'
@@ -314,7 +446,12 @@ class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
 
 namespace ComparisonSet
 
-theorem rightSeparating_of_leftSeparating
+/-
+Note the discrepancy in hypotheses with the analogous
+`leftSeparating_of_rightSeparating_not_misereGE`; this is due to the additional
+one-sided structure imposed on `ComparisonSet`.
+-/
+private lemma rightSeparating_of_leftSeparating
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hh : Legal U h)
     (h_left_sep : LeftSeparating U g h) :
@@ -323,7 +460,11 @@ theorem rightSeparating_of_leftSeparating
   intro x hx
   exact rightSeparatorCandidate_mem hh hx
 
-theorem leftSeparating_of_rightSeparating_not_misereGE
+/-
+If $G\ngeq_\mathcal{U}H$, and $G$ and $H$ are `RightSeparating`, then they must
+also be `LeftSeparating`.
+-/
+private lemma leftSeparating_of_rightSeparating_not_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g)
     (h_not_ge : ¬(g ≥m U h))
@@ -338,7 +479,13 @@ theorem leftSeparating_of_rightSeparating_not_misereGE
       (legal_neg hg) h_left_sep_neg
   exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
 
-theorem leftSeparating_rightSeparating_of_not_misereGE
+/--
+If $G\ngeq_\mathcal{U}H$, then $G$ and $H$ must be both `LeftSeparating` and
+`RightSeparating`. This generalises a result of [Siegel (Lemma 5.8 on p.
+214)][siegel:GeneralDeadendingUniverse:2025], which proved it only for short
+augmented forms and short universes.
+-/
+lemma leftSeparating_rightSeparating_of_not_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h) (h_not_ge : ¬(g ≥m U h)) :
     LeftSeparating U g h ∧ RightSeparating U g h := by
@@ -350,7 +497,14 @@ theorem leftSeparating_rightSeparating_of_not_misereGE
       exact ⟨leftSeparating_of_rightSeparating_not_misereGE
         hg h_not_ge h_right, h_right⟩
 
-theorem downlinked_of_not_exists_moves_misereGE
+/--
+If $\nexists G^L$ such that $G^L\ge_\mathcal{U}H$, and $\nexists H^R$ such that
+$G\ge_\mathcal{U}H^R$, then $G$ must be downlinked to $H$.
+
+This is a transfinite generalisation of one half of a result of [Siegel (Lemma
+5.10 on p. 214)][siegel:GeneralDeadendingUniverse:2025].
+-/
+lemma downlinked_of_not_exists_moves_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m U h)
@@ -391,7 +545,7 @@ theorem downlinked_of_not_exists_moves_misereGE
     downlinkWitness_mem hg hh hxU hyU
   exact downlinked_of_downlinkWitness_mem htU hxLose hxWin hyWin hyLose
 
-theorem maintenance_right_of_misereGE
+private lemma maintenance_right_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
     Maintenance U g h .right := by
@@ -416,7 +570,7 @@ theorem maintenance_right_of_misereGE
   rw [hgt, hht_out] at h_cmp
   exact Player.left_le_right h_cmp
 
-theorem maintenance_left_of_misereGE
+private lemma maintenance_left_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
     Maintenance U g h .left := by
@@ -441,6 +595,10 @@ theorem maintenance_left_of_misereGE
   rw [hgt_out, hht] at h_cmp
   exact Player.left_le_right h_cmp
 
+/--
+If $G\ge_\mathcal{U}H$, then $G$ and $H$ must satisfy both the
+`Form.Maintenance` and the `Form.Proviso`.
+-/
 theorem maintenance_proviso_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h) :
