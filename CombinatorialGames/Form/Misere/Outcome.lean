@@ -371,7 +371,7 @@ theorem misereOutcome_ge_iff_miserePlayerOutcome_ge {g h : G}
     · exact (Player.left_le_right h3).elim
 
 /--
-Misere equality modulo set `A`
+Restricted misère equality, modulo a set `A`.
 -/
 @[expose] def MisereEQ (A : G → Prop) (g h : G) : Prop :=
   ∀ (x : G), A x → MisereOutcome (g + x) = MisereOutcome (h + x)
@@ -404,7 +404,7 @@ theorem MisereEQ.trans {A : G → Prop} {g h k : G} (h1 : g =m A h) (h2 : h =m A
   exact cast (congrArg (Eq (MisereOutcome (g + x))) (h2 x h3)) (h1 x h3)
 
 /--
-Misere inequality modulo set `A`
+The restricted misère inequality, modulo a set `A`.
 -/
 @[expose] def MisereGE (A : G → Prop) (g h : G) : Prop :=
   ∀ x, (A x → MisereOutcome (g + x) ≥ MisereOutcome (h + x))

@@ -15,9 +15,29 @@ namespace Form
 
 open Classical in
 /--
-Adjoint of a position as defined in [Siegel, "Combinatorial Game Theory" (Definition 6.3 on p. 270)][siegelCombinatorialGameTheory2013]
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+This extends the notion of the
+_adjoint_ of a short augmented form, as defined by
+[Siegel (Definition 5.6 on p. 214)][siegel:GeneralDeadendingUniverse:2025], to
+transfinite forms:
+$$
+G^\circ =
+\begin{cases}
+*
+& \text{if } G \text{ has no ordinary options},\\
+\form<\left(G^\mathcal{R}\right)^\circ>[0]
+& \text{if} G \text{ has ordinary Right options, but no ordinary Left options},\\
+\form<0>[\left(G^\mathcal{L}\right)^\circ]
+& \text{if} G \text{ has ordinary Left options, but no ordinary Right options},\\
+\form<\left(G^\mathcal{R}\right)^\circ>[\left(G^\mathcal{L}\right)^\circ]
+& \text{otherwise}.
+\end{cases}
+$$
 
-$$G^{\circ} = \begin{cases} * & \; \text{if} \; G = 0 \\ \left\{ \left( G^R \right)^{\circ} \mid 0 \right\} & \; \text{if} \; G \not= 0 \; \text{and} \; G \; \text{is a Left end} \\ \left\{ 0 \mid \left( G^L \right)^{\circ} \right\} & \; \text{if} \; G \not= 0 \; \text{and} \; G \; \text{is a Right end} \\ \left\{ \left( G^R \right)^{\circ} \mid \left( G^L \right)^{\circ} \right\} & \; \text{otherwise} \end{cases}$$
+[Siegel (Definition 3.2 on p. 228)][siegel:CanonicalPartizan:2015] originally
+defined this just for short game forms, which was a partizan analogue to the
+impartial _mate_ due to [Conway (p. 147)][conway:OnNumbersGames:2001].
+
 -/
 @[expose] noncomputable def adjoint {G : Type (u + 1)} [Form G] (g : G) : G :=
   have := moves_small.{u} .left g

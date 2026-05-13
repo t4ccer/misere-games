@@ -22,7 +22,7 @@ instance : ClosedUnderNeg AnyGame where
   neg_of _ := trivial
 
 /--
-Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegelCombinatorialGameTheory2013]
+Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegel:CombinatorialGameTheory:2013]
 
 $$T = \left\{ \left( H^R \right)^{\circ} \mid \left\{ \cdot \mid \left( G^L \right)^{\circ} \right\} \right\}$$
 -/
@@ -68,7 +68,7 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
         exact Adjoint.short_adjoint h_gl
 
 /--
-Generalizaton of [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegelCombinatorialGameTheory2013]
+Generalizaton of [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegel:CombinatorialGameTheory:2013]
 -/
 theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
@@ -168,7 +168,7 @@ theorem EqZeroIdentical.not_misereEQ_zero_of_ne_zero {A : GameForm → Prop} [Eq
             (MisereEQ.symm h3)
 
 /--
-Generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+Generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
 -/
 theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) : (g =m A 0 ↔ g = 0) := by
@@ -180,13 +180,13 @@ theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZer
     exact congrFun rfl
 
 /--
-[Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+[Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
 -/
 theorem Short.misereEQ_zero_iff_eq_zero {g : GameForm} (h_g : IsShort g) :
     (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero h_g
 
 /--
-Transfinite generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegelCombinatorialGameTheory2013]
+Transfinite generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
 -/
 theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
     (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial

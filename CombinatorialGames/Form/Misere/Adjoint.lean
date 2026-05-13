@@ -20,7 +20,13 @@ public section
 namespace Form.Misere.Adjoint
 
 /--
-[Siegel, "Combinatorial Game Theory" (Proposition 6.4 on p. 270)][siegelCombinatorialGameTheory2013]
+[Siegel, (Proposition 3.3 on p. 228)][siegel:CanonicalPartizan:2015] showed
+that, for every short game form $G$, the sum $G+G^\circ$ is always a
+$\mathscr{P}$-position. (See also [Siegel, (Proposition 6.4 on p.
+270)][siegel:CombinatorialGameTheory:2013].) [Siegel, (Proposition 5.7 on p.
+214)][siegel:GeneralDeadendingUniverse:2025] later extended this result to
+short augmented forms. The present result generalises further to transfinite
+augmented forms.
 -/
 theorem misereOutcome_add_adjoint_eq_P (g : G) : MisereOutcome (g + g°) = Outcome.P := by
   apply misereOutcome_P_of_miserePlayerOutcome_neg
