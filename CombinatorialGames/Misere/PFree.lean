@@ -33,9 +33,8 @@ class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
 class HasInt (A : GameForm → Prop) extends HasNat A where
   has_int (n : ℤ) : A (n : GameForm)
 
-@[simp]
 theorem has_one {A : GameForm → Prop} [HasNat A] : A 1 := by
-  rw [<-Form.natCast_one]
+  rw [<-Nat.cast_one]
   exact HasNat.has_nat 1
 
 class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where

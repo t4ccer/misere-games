@@ -41,10 +41,10 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
   change (moves p _).Finite ∧ ∀ y ∈ moves p _, IsShort y
   constructor
   · cases p
-    · simp only [GameForm.moves_ofSets, Player.cases]
+    · simp only [moves_ofSets, Player.cases]
       have : Finite (moves .right h) := Short.finite_moves .right h_h
       exact Set.finite_range (fun hr : moves .right h => (hr : GameForm)°)
-    · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_singleton]
+    · simp only [moves_ofSets, Player.cases, Set.finite_singleton]
   · intro gp h3
     cases p <;> simp at h3
     · obtain ⟨gp', h3, h4⟩ := h3
@@ -55,13 +55,13 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
       intro p
       change (moves p _).Finite ∧ ∀ y ∈ moves p _, IsShort y
       constructor <;> cases p
-      · simp only [GameForm.moves_ofSets, Player.cases, Set.finite_empty]
-      · simp only [GameForm.moves_ofSets, Player.cases]
+      · simp only [moves_ofSets, Player.cases, Set.finite_empty]
+      · simp only [moves_ofSets, Player.cases]
         have : Finite (moves .left g) := Short.finite_moves .left h_g
         exact Set.finite_range (fun gl : moves .left g => (gl : GameForm)°)
-      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_empty_iff_false,
+      · simp only [moves_ofSets, Player.cases, Set.mem_empty_iff_false,
                    IsEmpty.forall_iff, implies_true]
-      · simp only [GameForm.moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
+      · simp only [moves_ofSets, Player.cases, Set.mem_range, Subtype.exists,
                    exists_prop, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
         intro gl h4
         have h_gl : IsShort gl := Short.of_mem_moves h_g h4
@@ -89,13 +89,13 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
     · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
       refine winsGoingFirst_left_of_move_misereOutcome_P ?_ (misereOutcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
-      simp only [t, GameForm.leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
+      simp only [t, leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
       exists hr
     · -- If instead Right moves to H + { | (G^L)°}, then Left wins outright,
       -- since (by the assumption on H) both components are Left ends
       apply winsGoingFirst_add_of_isEnd h1
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff] at h3
-      simp only [h3, GameForm.leftMoves_ofSets, isEnd_def]
+      simp only [t, rightMoves_ofSets, Set.mem_singleton_iff] at h3
+      simp only [h3, leftMoves_ofSets, isEnd_def]
   -- Next consider G + T
   have h4 : MisereOutcome (g + t) ≤ Outcome.N := by
     apply misereOutcome_le_N_of_winsGoingFirst_right
@@ -104,9 +104,9 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
     use (g + !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°})
     constructor
     · refine add_left_mem_moves_add ?_ g
-      simp only [t, GameForm.rightMoves_ofSets, Set.mem_singleton_iff]
+      simp only [t, rightMoves_ofSets, Set.mem_singleton_iff]
     · rw [not_winsGoingFirst_iff]
-      simp only [isEnd_def, isEndLike_iff_isEnd, Player.neg_right, moves_add, GameForm.moves_ofSets,
+      simp only [isEnd_def, isEndLike_iff_isEnd, Player.neg_right, moves_add, moves_ofSets,
                  Player.cases, Set.image_empty, Set.union_empty, Set.image_eq_empty, Set.mem_image,
                  Player.neg_left, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
       rw [isEnd_def] at h2
@@ -117,7 +117,7 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
       -- There must be at least one such option, by the assumption on G;
       -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
-      simp only [Player.neg_right, moves_add, GameForm.moves_ofSets, Player.cases,
+      simp only [Player.neg_right, moves_add, moves_ofSets, Player.cases,
                  Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
                  exists_exists_and_eq_and]
       constructor

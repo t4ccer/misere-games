@@ -24,7 +24,7 @@ universe u
 
 namespace GameForm
 
-open Form (IsShort short_def)
+open Form
 
 /-! ### Star -/
 
@@ -35,10 +35,6 @@ open Form (IsShort short_def)
 @[inherit_doc] notation "⋆" => star
 recommended_spelling "star" for "⋆" in [«term⋆»]
 
-@[simp] theorem leftMoves_star : ⋆ᴸ = {0} := moves_ofSets ..
-@[simp] theorem rightMoves_star : ⋆ᴿ = {0} := moves_ofSets ..
-
--- TODO: remove the above theorems
 @[simp] theorem moves_star (p : Player) : Form.moves p ⋆ = {0} := moves_ofSets ..
 
 @[simp] theorem neg_star : -⋆ = ⋆ := by simp [star]

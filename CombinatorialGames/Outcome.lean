@@ -89,7 +89,6 @@ theorem L_ge (o : Outcome) : Outcome.L ≥ o := by
   cases o
   all_goals simp [instLE, LT.lt]
 
-@[simp]
 theorem ge_P_ge_N_eq_L {o : Outcome} (hp : o ≥ Outcome.P) (hn : o ≥ Outcome.N)
     : o = Outcome.L := by
   cases o

@@ -89,20 +89,17 @@ scoped notation:max x:max "ᴿ" => moves Player.right x
 
 instance instSmallElemMoves (p : Player) (x : GameForm.{u}) : Small.{u} (moves p x) := x.dest.2 p
 
-@[simp]
-theorem moves_ofSets (p) (st : Player → Set GameForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
+private theorem moves_ofSets (p) (st : Player → Set GameForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
     moves p !{st} = st p := by
   dsimp [ofSets]; ext; simp only [moves, moves', QPF.Fix.dest_mk]
 
 @[simp]
 theorem ofSets_moves (x : GameForm) : !{fun p => moves p x} = x := x.mk_dest
 
-@[simp]
-theorem leftMoves_ofSets (s t : Set GameForm) [Small.{u} s] [Small.{u} t] : !{s | t}ᴸ = s :=
+private theorem leftMoves_ofSets (s t : Set GameForm) [Small.{u} s] [Small.{u} t] : !{s | t}ᴸ = s :=
   moves_ofSets ..
 
-@[simp]
-theorem rightMoves_ofSets (s t : Set GameForm) [Small.{u} s] [Small.{u} t] : !{s | t}ᴿ = t :=
+private theorem rightMoves_ofSets (s t : Set GameForm) [Small.{u} s] [Small.{u} t] : !{s | t}ᴿ = t :=
   moves_ofSets ..
 
 @[simp]
@@ -117,15 +114,14 @@ theorem ext {x y : GameForm.{u}} (h : ∀ p, moves p x = moves p y) :
   rw [← ofSets_moves x, ← ofSets_moves y]
   simp_rw [funext h]
 
-@[simp]
-theorem ofSets_inj' {st₁ st₂ : Player → Set GameForm}
+private theorem ofSets_inj' {st₁ st₂ : Player → Set GameForm}
     [Small (st₁ .left)] [Small (st₁ .right)] [Small (st₂ .left)] [Small (st₂ .right)] :
     !{st₁} = !{st₂} ↔ st₁ = st₂ := by
   simp_rw [GameForm.ext_iff, moves_ofSets, funext_iff]
 
 theorem ofSets_inj {s₁ s₂ t₁ t₂ : Set GameForm} [Small s₁] [Small s₂] [Small t₁] [Small t₂] :
     !{s₁ | t₁} = !{s₂ | t₂} ↔ s₁ = s₂ ∧ t₁ = t₂ := by
-  simp
+  simp only [ofSets_inj', Player.cases_inj]
 
 instance (x : GameForm.{u}) : Small.{u} {y // IsOption y x} :=
   inferInstanceAs (Small (⋃ p, moves p x))
@@ -175,12 +171,12 @@ theorem ofSetsRecOn_ofSets {motive : GameForm.{u} → Sort*}
     ofSetsRecOn !{s | t} mk = mk _ _ (fun y _ ↦ ofSetsRecOn y mk) (fun y _ ↦ ofSetsRecOn y mk) := by
   rw [ofSetsRecOn, cast_eq_iff_heq, moveRecOn_eq]
   congr
-  any_goals simp
+  any_goals simp [moves_ofSets]
   all_goals
     refine Function.hfunext rfl fun x _ h ↦ ?_
     cases h
     refine Function.hfunext ?_ fun _ _ _ ↦ ?_
-    · simp
+    · simp [moves_ofSets]
     · rw [ofSetsRecOn, cast_heq_iff_heq, heq_cast_iff_heq]
 
 private def neg' (x : GameForm) : GameForm :=
@@ -196,15 +192,14 @@ private theorem neg_ofSets'' (s t : Set GameForm) [Small s] [Small t] :
     -!{s | t} = !{Neg.neg '' t | Neg.neg '' s} := by
   change neg' _ = _
   rw [neg']
-  simp [Neg.neg, Set.ext_iff]
+  simp [Neg.neg, Set.ext_iff, moves_ofSets, ofSets_inj']
 
 instance : InvolutiveNeg GameForm where
   neg_neg x := by
     refine ofSetsRecOn x ?_
-    aesop (add simp [neg_ofSets''])
+    aesop (add simp [neg_ofSets'', ofSets_inj'])
 
-@[simp]
-theorem neg_ofSets (s t : Set GameForm) [Small s] [Small t] : -!{s | t} = !{-t | -s} := by
+private theorem neg_ofSets (s t : Set GameForm) [Small s] [Small t] : -!{s | t} = !{-t | -s} := by
   simp_rw [neg_ofSets'', Set.image_neg_eq_neg]
 
 theorem neg_ofSets' (st : Player → Set GameForm) [Small (st .left)] [Small (st .right)] :
@@ -212,8 +207,7 @@ theorem neg_ofSets' (st : Player → Set GameForm) [Small (st .left)] [Small (st
   rw [ofSets_eq_ofSets_cases, ofSets_eq_ofSets_cases fun _ ↦ -_, neg_ofSets]
   rfl
 
-@[simp]
-theorem neg_ofSets_const (s : Set GameForm) [Small s] :
+private theorem neg_ofSets_const (s : Set GameForm) [Small s] :
     -!{fun _ ↦ s} = !{fun _ ↦ -s} := by
   simp only [neg_ofSets']
 
@@ -244,7 +238,7 @@ theorem add_eq (x y : GameForm) : x + y =
     !{(· + y) '' xᴸ ∪ (x + ·) '' yᴸ | (· + y) '' xᴿ ∪ (x + ·) '' yᴿ} := by
   change add' _ _ = _
   rw [add']
-  simp [HAdd.hAdd, Add.add, Set.ext_iff]
+  simp [HAdd.hAdd, Add.add, Set.ext_iff, ofSets_inj']
 
 theorem add_eq' (x y : GameForm) : x + y =
     !{fun p ↦ (· + y) '' moves p x ∪ (x + ·) '' moves p y} := by
@@ -256,7 +250,7 @@ theorem ofSets_add_ofSets
       !{(· + !{s₂ | t₂}) '' s₁ ∪ (!{s₁ | t₁} + ·) '' s₂ |
         (· + !{s₂ | t₂}) '' t₁ ∪ (!{s₁ | t₁} + ·) '' t₂} := by
   rw [add_eq]
-  simp
+  simp only [moves_ofSets, Player.cases]
 
 theorem ofSets_add_ofSets' (st₁ st₂ : Player → Set GameForm)
     [Small (st₁ .left)] [Small (st₂ .left)] [Small (st₁ .right)] [Small (st₂ .right)] :
@@ -333,13 +327,13 @@ instance : Form GameForm where
     · intro h1
       simp only [moves_neg', Player.neg_left, Player.neg_right, Set.neg_eq_empty] at h1 ⊢
       exact h1
-  moves_ofSets' := moves_ofSets
+  moves_ofSets' := private moves_ofSets
   add_zero' x := by
     refine moveRecOn x ?_
     intro y h1
     simp only [Player.forall] at h1
     ext p z
-    have moves_zero' : moves p (!{fun x ↦ ∅} : GameForm) = ∅ := by cases p <;> simp
+    have moves_zero' : moves p (!{fun x ↦ ∅} : GameForm) = ∅ := by cases p <;> simp [moves_ofSets]
     rw [moves_add', moves_zero', Set.image_empty, Set.union_empty, Set.mem_image]
     cases p
     all_goals
@@ -351,9 +345,9 @@ instance : Form GameForm where
         use z, a
         simp_all only
   add_eq_zero_iff' x y := by
-    constructor <;> simp_all [GameForm.ext_iff, moves_add']
-  ofSets_inj'' := ofSets_inj'
-  neg_ofSets'' := neg_ofSets
+    constructor <;> simp_all [GameForm.ext_iff, moves_add', moves_ofSets]
+  ofSets_inj'' := private ofSets_inj'
+  neg_ofSets'' := private neg_ofSets
   neg_add' := private neg_add'
   smallElemMoves' := instSmallElemMoves
   ofSets_isEndLike_iff' p s t _ _ := Eq.congr_right rfl

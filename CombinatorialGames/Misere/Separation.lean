@@ -186,12 +186,7 @@ lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
     constructor
     · intro h_end
       have hy_end : IsEndLike .right y := (IsEndLike.add_iff.mp h_end).right
-      change IsEndLike .right (rightSeparatorCandidate h x) at hy_end
-      unfold rightSeparatorCandidate at hy_end
-      rw [ofSets_isEndLike_iff
-        (s := rightSeparatorLeftSet h) (t := {x}),
-        isEnd_def] at hy_end
-      rw [rightMoves_ofSets (s := rightSeparatorLeftSet h) (t := {x})] at hy_end
+      rw [ofSets_isEndLike_iff, isEnd_def, rightMoves_ofSets] at hy_end
       exact Set.singleton_ne_empty x hy_end
     · intro k hk
       rw [moves_add] at hk

@@ -83,7 +83,6 @@ theorem not_winsGoingFirst_iff {g : G} {p : Player}
   rw [winsGoingFirst_iff]
   simp only [not_or, not_exists, not_and, not_not]
 
-@[simp]
 theorem winsGoingFirst_zero (p : Player) : WinsGoingFirst p (0 : G) :=
   winsGoingFirst_of_isEnd isEnd_zero
 
@@ -261,7 +260,7 @@ theorem misereOutcome_N_iff_winsGoingFirst {g : G} :
 @[simp]
 theorem miserePlayerOutcome_zero (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
   unfold MiserePlayerOutcome
-  simp only [winsGoingFirst_zero, ↓reduceIte]
+  simp only [isEnd_zero, winsGoingFirst_of_isEnd, ↓reduceIte]
 
 @[simp]
 theorem misereOutcome_zero_N : MisereOutcome (0 : G) = .N := by
@@ -495,7 +494,6 @@ theorem neg_int_misereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : G) =
   have h2 := pos_int_misereOutcome_R (G := G) (Int.neg_pos.mpr h1)
   rwa [Form.intCast_neg, misereOutcome_neg_R_iff_misereOutcome] at h2
 
-@[simp]
 theorem zero_int_misereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : G) = .N := by
   rw [h1, Form.intCast_ofNat, Nat.cast_zero, misereOutcome_zero_N]
 

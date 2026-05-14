@@ -109,8 +109,7 @@ def ofSetsWithTombs (st : Player → Set AugmentedForm) (tomb : Player → Prop)
 instance : OfSets AugmentedForm fun _ ↦ True where
   ofSets st _ := ofSetsWithTombs st (fun _ => False)
 
-@[simp]
-private theorem moves_ofSets (p) (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
+private theorem moves_ofSets' (p) (st : Player → Set AugmentedForm) [Small.{u} (st .left)] [Small.{u} (st .right)] :
     moves p !{st} = st p := by
   dsimp [ofSets, ofSetsWithTombs, moves]; rw [moves', QPF.Fix.dest_mk]
 
@@ -302,7 +301,7 @@ theorem toGameForm_moves_mem' {g gp : AugmentedForm} {p : Player} (h1 : gp ∈ m
   unfold toGameForm
   cases p
   all_goals
-  · simp only [GameForm.moves_ofSets, Set.mem_range, Subtype.exists]
+  · simp only [leftMoves_ofSets, rightMoves_ofSets, Set.mem_range, Subtype.exists]
     use gp, h1
     rw [toGameForm]
 
@@ -312,7 +311,7 @@ theorem toGameForm_ofGameForm (g : GameForm) :
   ext p gp
   constructor <;> intro h1
   · unfold ofGameForm toGameForm at h1
-    simp only [GameForm.moves_ofSets, Player.cases] at h1
+    simp only [moves_ofSets, Player.cases] at h1
     cases p
     all_goals
     · simp only [Set.mem_range, Subtype.exists, moves_ofSetsWithTombs, exists_prop] at h1
@@ -320,7 +319,7 @@ theorem toGameForm_ofGameForm (g : GameForm) :
       simp only [<-h3, <-h4, toGameForm_ofGameForm g3]
       exact h2
   · unfold ofGameForm toGameForm
-    simp only [GameForm.moves_ofSets, Player.cases]
+    simp only [moves_ofSets, Player.cases]
     cases p
     all_goals
     · simp only [Set.mem_range, Subtype.exists, moves_ofSetsWithTombs, exists_prop]
@@ -337,7 +336,7 @@ theorem ofGameForm_toGameForm (g : AugmentedForm) (h1 : TombstoneFree g) :
   · simp only [moves_ofSetsWithTombs, Set.mem_range, Subtype.exists, exists_prop]
     constructor <;> intro h2
     · unfold toGameForm ofGameForm at h2
-      simp only [GameForm.moves_ofSets, Player.cases] at h2
+      simp only [moves_ofSets, Player.cases] at h2
       cases p
       all_goals
       · simp only [Set.mem_range, Subtype.exists] at h2
@@ -432,11 +431,11 @@ theorem ofGameForm_exists_preimage {a : AugmentedForm} (h1 : TombstoneFree a)
     refine Eq.symm (Set.ext ?_)
     intro al
     constructor <;> intro h2
-    · simp only [Set.mem_range, Subtype.exists, GameForm.moves_ofSets, exists_prop]
+    · simp only [Set.mem_range, Subtype.exists, moves_ofSets, exists_prop]
       use (toGameForm al (TombstoneFree.moves h1 p al h2))
       simp only [ofGameForm_toGameForm, and_true]
       use al, h2
-    · simp only [Set.mem_range, Subtype.exists, GameForm.moves_ofSets, exists_prop] at h2
+    · simp only [Set.mem_range, Subtype.exists, moves_ofSets, exists_prop] at h2
       obtain ⟨g1, ⟨g2, h6, h7⟩, h5⟩ := h2
       simp only [<-h5, <-h7, ofGameForm_toGameForm, h6]
   · simp only [h1, hasTombstone_ofSetsWithTombs, TombstoneFree.not_hasTombstone, implies_true]
@@ -459,7 +458,7 @@ theorem ofGameForm_add (g h : GameForm) : ofGameForm (g + h) = ofGameForm g + of
   refine ext ?_ (by simp only [hasTombstone_ofSetsWithTombs, implies_true])
   intro p
   simp only [moves_ofSetsWithTombs, Set.range_eq_iff, Set.mem_union, Set.mem_image, Subtype.forall,
-             GameForm.moves_ofSets, Subtype.exists, exists_prop]
+             moves_ofSets, Subtype.exists, exists_prop]
   constructor
   · intro ghp h3
     apply Or.elim h3 <;> intro ⟨x, h3, h4⟩ <;> rw [<-h4]
@@ -582,18 +581,18 @@ theorem not_hasTombstone_zero' (p : Player) : ¬(!{fun _ => ∅} : AugmentedForm
 theorem add_eq_zero_iff {x y : AugmentedForm}
     : x + y = !{fun _ => ∅} ↔ x = !{fun _ => ∅} ∧ y = !{fun _ => ∅} := by
   constructor
-    <;> simp [AugmentedForm.ext_iff, EndLike, isEnd_def, hasTombstone_add']
+    <;> simp [AugmentedForm.ext_iff, EndLike, isEnd_def, hasTombstone_add', moves_ofSets']
     <;> tauto
 
 private lemma hasTombstone_add_zero' (g : AugmentedForm) (p : Player)
     : (g + !{fun _ => ∅}).hasTombstone p ↔ g.hasTombstone p := by
-  simp [hasTombstone_add', EndLike, isEnd_def]
+  simp [hasTombstone_add', EndLike, isEnd_def, moves_ofSets']
 
 private lemma add_zero' (x : AugmentedForm) : x + !{fun _ ↦ ∅} = x := by
   refine moveRecOn x ?_
   intro x ih
   ext
-  · aesop
+  · aesop (add simp [moves_ofSets'])
   · exact hasTombstone_add_zero' x _
 
 noncomputable instance : Form AugmentedForm where
@@ -619,7 +618,7 @@ noncomputable instance : Form AugmentedForm where
     · intro h1
       simp only [moves_neg', Player.neg_left, Player.neg_right, Set.neg_eq_empty, isEnd_def] at h1 ⊢
       exact h1
-  moves_ofSets' := private moves_ofSets
+  moves_ofSets' := private moves_ofSets'
   add_zero' := private add_zero'
   add_eq_zero_iff' _ _ := private add_eq_zero_iff
   ofSets_inj'' := by
@@ -632,7 +631,7 @@ noncomputable instance : Form AugmentedForm where
     ext p x
     · cases p
       all_goals
-      · simp
+      · simp [moves_ofSets']
         apply Iff.intro
         · intro ⟨y, h1, h2⟩
           rwa [<-h2, <-neg'_eq, neg_neg]
@@ -688,12 +687,6 @@ theorem hasTombstone_neg_iff {g : AugmentedForm} {p : Player}
 theorem hasTombstone_add {x y : AugmentedForm} {p : Player} :
     (x + y).hasTombstone p ↔ ((x.hasTombstone p ∧ IsEndLike p y) ∨ (y.hasTombstone p ∧ IsEndLike p x)) := by
   exact hasTombstone_add'
-
-@[simp]
-lemma isEndLike_add_iff {g h : AugmentedForm} {p : Player} :
-    IsEndLike p (g + h) ↔ (IsEndLike p g ∧ IsEndLike p h) := by
-  simp only [AugmentedForm.hasTombstone_add, Form.IsEnd.add_iff, IsEndLike_iff]
-  tauto
 
 lemma not_isEndLike_iff {g : AugmentedForm} {p : Player}
     : ¬IsEndLike p g ↔ ¬hasTombstone p g ∧ ¬IsEnd p g := by

@@ -76,12 +76,12 @@ instance : DecidableLE Player := by
   simp only [DecidableLE, DecidableRel, LE.le]
   infer_instance
 
-@[simp]
+@[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
 theorem le_right_eq (p : Player) (h1 : p ≤ .right) : p = .right := by
   simp only [LE.le, reduceCtorEq, and_false, or_false] at h1
   exact h1
 
-@[simp]
+@[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
 theorem le_left_eq (p : Player) (h1 : .left ≤ p) : p = .left := by
   simp only [LE.le, reduceCtorEq, true_and, false_or] at h1
   exact h1
@@ -94,7 +94,7 @@ theorem right_le (p : Player) : .right ≤ p := by
 theorem le_left (p : Player) : p ≤ .left := by
   cases p <;> simp only [LE.le, reduceCtorEq, and_self, or_false, or_true, and_true]
 
-@[simp]
+@[simp, nolint simpNF] -- Infinite recursion
 theorem left_le_right (h1 : Player.left ≤ Player.right) : False := by
   simp only [LE.le, reduceCtorEq, and_false, or_self] at h1
 

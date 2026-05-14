@@ -115,7 +115,6 @@ decreasing_by form_wf
 instance : ClosedUnderNeg (IsShort (G := G)) where
   neg_of := Short.neg
 
-@[simp]
 protected theorem neg_iff {x : G} : IsShort (-x) ↔ IsShort x := ClosedUnderNeg.neg_iff
 
 theorem short_iff_finite_setOf_subposition {x : G} :
