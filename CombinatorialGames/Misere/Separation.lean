@@ -288,72 +288,49 @@ private lemma downlinked_of_downlinkWitness_mem
   have hRnonempty : R.Nonempty := downlinkOptions_nonempty .right h g x
   change A t at htA
   refine ⟨t, htA, ?_, ?_⟩
-  · rw [not_winsGoingFirst_iff]
-    constructor
-    · intro hEnd
-      have htEnd : IsEndLike .left t := (IsEndLike.add_iff.mp hEnd).right
-      change IsEndLike .left !{L | R} at htEnd
-      rw [ofSets_isEndLike_iff, isEnd_def, leftMoves_ofSets] at htEnd
-      exact hLnonempty.ne_empty htEnd
-    · intro k hk
-      rw [moves_add] at hk
-      rcases hk with ⟨gl, hgl, rfl⟩ | ⟨tl, htl, rfl⟩
-      · apply winsGoingFirst_of_moves
-        refine ⟨gl + x ⟨gl, hgl⟩, ?_, hxLose ⟨gl, hgl⟩⟩
-        apply add_left_mem_moves_add
-        change x ⟨gl, hgl⟩ ∈ moves .right !{L | R}
-        rw [rightMoves_ofSets]
-        simp [R, downlinkRightSet]
-      · change tl ∈ moves .left !{L | R} at htl
-        rw [leftMoves_ofSets] at htl
-        simp only [L, downlinkLeftSet, downlinkOptions, downlinkZero, Set.mem_union,
-          Set.mem_range] at htl
-        rcases htl with (⟨hr, htl_eq⟩ | ⟨gr, htl_eq⟩) | htl_zero
-        · rw [← htl_eq]
-          exact hyWin hr
-        · rw [← htl_eq]
-          apply winsGoingFirst_of_moves
-          refine ⟨(gr : G) + (gr : G)°, add_right_mem_moves_add gr.prop ((gr : G)°), ?_⟩
-          exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P (gr : G))
-        · by_cases hz : IsEnd .right g ∧ IsEnd .right h
-          · simp [hz] at htl_zero
-            rw [htl_zero]
-            exact winsGoingFirst_of_isEndLike
-              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.left, isEndLike_of_isEnd isEnd_zero⟩)
-          · simp [hz] at htl_zero
-  · rw [not_winsGoingFirst_iff]
-    constructor
-    · intro hEnd
-      have htEnd : IsEndLike .right t := (IsEndLike.add_iff.mp hEnd).right
-      change IsEndLike .right !{L | R} at htEnd
-      rw [ofSets_isEndLike_iff, isEnd_def, rightMoves_ofSets] at htEnd
-      exact hRnonempty.ne_empty htEnd
-    · intro k hk
-      rw [moves_add] at hk
-      rcases hk with ⟨hr, hhr, rfl⟩ | ⟨tr, htr, rfl⟩
-      · apply winsGoingFirst_of_moves
-        refine ⟨hr + y ⟨hr, hhr⟩, ?_, hyLose ⟨hr, hhr⟩⟩
-        apply add_left_mem_moves_add
-        change y ⟨hr, hhr⟩ ∈ moves .left !{L | R}
-        rw [leftMoves_ofSets]
-        simp [L, downlinkLeftSet]
-      · change tr ∈ moves .right !{L | R} at htr
-        rw [rightMoves_ofSets] at htr
-        simp only [R, downlinkRightSet, downlinkOptions, downlinkZero, Set.mem_union,
-          Set.mem_range] at htr
-        rcases htr with (⟨gl, htr_eq⟩ | ⟨hl, htr_eq⟩) | htr_zero
-        · rw [← htr_eq]
-          exact hxWin gl
-        · rw [← htr_eq]
-          apply winsGoingFirst_of_moves
-          refine ⟨(hl : G) + (hl : G)°, add_right_mem_moves_add hl.prop ((hl : G)°), ?_⟩
-          exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P (hl : G))
-        · by_cases hz : IsEnd .left h ∧ IsEnd .left g
-          · simp [hz] at htr_zero
-            rw [htr_zero]
-            exact winsGoingFirst_of_isEndLike
-              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.left, isEndLike_of_isEnd isEnd_zero⟩)
-          · simp [hz] at htr_zero
+  all_goals
+    rw [not_winsGoingFirst_iff]
+    refine ⟨?_, ?_⟩
+  · intro hEnd
+    apply hLnonempty.ne_empty
+    simpa [t, L, ofSets_isEndLike_iff, isEnd_def] using
+      (IsEndLike.add_iff.mp hEnd).right
+  · rw [moves_add]
+    rintro k (⟨gl, hgl, rfl⟩ | ⟨tl, htl, rfl⟩)
+    · exact winsGoingFirst_of_moves ⟨gl + x ⟨gl, hgl⟩,
+        add_left_mem_moves_add (by simp [t, R, downlinkRightSet, downlinkOptions]) gl,
+        hxLose ⟨gl, hgl⟩⟩
+    · simp [t, L, downlinkLeftSet, downlinkOptions, downlinkZero] at htl
+      rcases htl with (⟨hr, hhr, rfl⟩ | ⟨gr, hgr, rfl⟩) | htl_zero
+      · exact hyWin ⟨hr, hhr⟩
+      · exact winsGoingFirst_of_moves ⟨gr + gr°,
+          add_right_mem_moves_add hgr (gr°),
+          not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P gr)⟩
+      · by_cases hz : IsEnd .right g ∧ IsEnd .right h
+        all_goals simp [hz] at htl_zero
+        simpa [htl_zero] using
+          (winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hz.left, isEnd_zero⟩) :
+            WinsGoingFirst .right (g + 0))
+  · intro hEnd
+    apply hRnonempty.ne_empty
+    simpa [t, R, ofSets_isEndLike_iff, isEnd_def] using
+      (IsEndLike.add_iff.mp hEnd).right
+  · rw [moves_add]
+    rintro k (⟨hr, hhr, rfl⟩ | ⟨tr, htr, rfl⟩)
+    · exact winsGoingFirst_of_moves ⟨hr + y ⟨hr, hhr⟩,
+        add_left_mem_moves_add (by simp [t, L, downlinkLeftSet, downlinkOptions]) hr,
+        hyLose ⟨hr, hhr⟩⟩
+    · simp [t, R, downlinkRightSet, downlinkOptions, downlinkZero] at htr
+      rcases htr with (⟨gl, hgl, rfl⟩ | ⟨hl, hhl, rfl⟩) | htr_zero
+      · exact hxWin ⟨gl, hgl⟩
+      · exact winsGoingFirst_of_moves ⟨hl + hl°,
+          add_right_mem_moves_add hhl (hl°),
+          not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P hl)⟩
+      · by_cases hz : IsEnd .left h ∧ IsEnd .left g
+        all_goals simp [hz] at htr_zero
+        simpa [htr_zero] using
+          (winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hz.left, isEnd_zero⟩) :
+            WinsGoingFirst .left (h + 0))
 
 end Separation
 
