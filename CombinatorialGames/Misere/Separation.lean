@@ -217,19 +217,37 @@ lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
           rw [hyr]
           exact hhx
 
-open Classical in
-abbrev downlinkZeroLeft (g h : G) : Set G :=
-  if IsEnd .right g ∧ IsEnd .right h then {0} else ∅
+open Classical
 
-open Classical in
-abbrev downlinkZeroRight (g h : G) : Set G :=
-  if IsEnd .left g ∧ IsEnd .left h then {0} else ∅
+public abbrev downlinkZero (p : Player) (g h : G) : Set G :=
+  if IsEnd (-p) g ∧ IsEnd (-p) h then {0} else ∅
+
+public abbrev downlinkOptions (p : Player) (g h : G) (z : moves (-p) h → G) : Set G :=
+  Set.range z ∪ Set.range (fun gp : moves (-p) g => (gp : G)°) ∪ downlinkZero p g h
 
 abbrev downlinkLeftSet (g h : G) (y : moves .right h → G) : Set G :=
-  Set.range y ∪ Set.range (fun gr : moves .right g => (gr : G)°) ∪ downlinkZeroLeft g h
+  downlinkOptions .left g h y
 
 abbrev downlinkRightSet (g h : G) (x : moves .left g → G) : Set G :=
-  Set.range x ∪ Set.range (fun hl : moves .left h => (hl : G)°) ∪ downlinkZeroRight g h
+  downlinkOptions .right h g x
+
+lemma downlinkOptions_nonempty
+    (p : Player) (g h : G) (z : moves (-p) h → G) :
+    (downlinkOptions p g h z).Nonempty := by
+  by_cases hz : IsEnd (-p) g ∧ IsEnd (-p) h
+  · exact ⟨0, by simp [downlinkOptions, downlinkZero, hz]⟩
+  · rw [not_and_or] at hz
+    cases hz with
+    | inl hg =>
+        obtain ⟨gp, hgp⟩ := not_isEnd_exists_move hg
+        exact ⟨gp°, by
+          simp only [downlinkOptions, Set.mem_union, Set.mem_range]
+          exact Or.inl (Or.inr ⟨⟨gp, hgp⟩, rfl⟩)⟩
+    | inr hh =>
+        obtain ⟨hp, hhp⟩ := not_isEnd_exists_move hh
+        exact ⟨z ⟨hp, hhp⟩, by
+          simp only [downlinkOptions, Set.mem_union, Set.mem_range]
+          exact Or.inl (Or.inl ⟨⟨hp, hhp⟩, rfl⟩)⟩
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
@@ -258,48 +276,6 @@ noncomputable abbrev downlinkWitness
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] : G :=
   !{downlinkLeftSet g h y | downlinkRightSet g h x}
 
-/--
-By construction, `downlinkWitness` cannot be a Left end.
--/
-lemma downlinkLeftSet_nonempty
-    (g h : G) (y : moves .right h → G) :
-    (downlinkLeftSet g h y).Nonempty := by
-  by_cases hz : IsEnd .right g ∧ IsEnd .right h
-  · exact ⟨0, by simp [downlinkLeftSet, downlinkZeroLeft, hz]⟩
-  · rw [not_and_or] at hz
-    cases hz with
-    | inl hg =>
-        obtain ⟨gr, hgr⟩ := not_isEnd_exists_move hg
-        exact ⟨gr°, by
-          simp only [downlinkLeftSet, Set.mem_union, Set.mem_range]
-          exact Or.inl (Or.inr ⟨⟨gr, hgr⟩, rfl⟩)⟩
-    | inr hh =>
-        obtain ⟨hr, hhr⟩ := not_isEnd_exists_move hh
-        exact ⟨y ⟨hr, hhr⟩, by
-          simp only [downlinkLeftSet, Set.mem_union, Set.mem_range]
-          exact Or.inl (Or.inl ⟨⟨hr, hhr⟩, rfl⟩)⟩
-
-/--
-By construction, `downlinkWitness` cannot be a Right end.
--/
-lemma downlinkRightSet_nonempty
-    (g h : G) (x : moves .left g → G) :
-    (downlinkRightSet g h x).Nonempty := by
-  by_cases hz : IsEnd .left g ∧ IsEnd .left h
-  · exact ⟨0, by simp [downlinkRightSet, downlinkZeroRight, hz]⟩
-  · rw [not_and_or] at hz
-    cases hz with
-    | inl hg =>
-        obtain ⟨gl, hgl⟩ := not_isEnd_exists_move hg
-        exact ⟨x ⟨gl, hgl⟩, by
-          simp only [downlinkRightSet, Set.mem_union, Set.mem_range]
-          exact Or.inl (Or.inl ⟨⟨gl, hgl⟩, rfl⟩)⟩
-    | inr hh =>
-        obtain ⟨hl, hhl⟩ := not_isEnd_exists_move hh
-        exact ⟨hl°, by
-          simp only [downlinkRightSet, Set.mem_union, Set.mem_range]
-          exact Or.inl (Or.inr ⟨⟨hl, hhl⟩, rfl⟩)⟩
-
 private lemma downlinked_of_downlinkWitness_mem
     {U : G → Prop} {g h : G}
     {x : moves .left g → G} {y : moves .right h → G}
@@ -313,8 +289,8 @@ private lemma downlinked_of_downlinkWitness_mem
   let L := downlinkLeftSet g h y
   let R := downlinkRightSet g h x
   let t : G := !{L | R}
-  have hLnonempty : L.Nonempty := downlinkLeftSet_nonempty g h y
-  have hRnonempty : R.Nonempty := downlinkRightSet_nonempty g h x
+  have hLnonempty : L.Nonempty := downlinkOptions_nonempty .left g h y
+  have hRnonempty : R.Nonempty := downlinkOptions_nonempty .right h g x
   change U t at htU
   refine ⟨t, htU, ?_, ?_⟩
   · rw [not_winsGoingFirst_iff]
@@ -335,7 +311,8 @@ private lemma downlinked_of_downlinkWitness_mem
         simp [R, downlinkRightSet]
       · change tl ∈ moves .left !{L | R} at htl
         rw [leftMoves_ofSets] at htl
-        simp only [L, downlinkLeftSet, downlinkZeroLeft, Set.mem_union, Set.mem_range] at htl
+        simp only [L, downlinkLeftSet, downlinkOptions, downlinkZero, Set.mem_union,
+          Set.mem_range] at htl
         rcases htl with (⟨hr, htl_eq⟩ | ⟨gr, htl_eq⟩) | htl_zero
         · rw [← htl_eq]
           exact hyWin hr
@@ -367,7 +344,8 @@ private lemma downlinked_of_downlinkWitness_mem
         simp [L, downlinkLeftSet]
       · change tr ∈ moves .right !{L | R} at htr
         rw [rightMoves_ofSets] at htr
-        simp only [R, downlinkRightSet, downlinkZeroRight, Set.mem_union, Set.mem_range] at htr
+        simp only [R, downlinkRightSet, downlinkOptions, downlinkZero, Set.mem_union,
+          Set.mem_range] at htr
         rcases htr with (⟨gl, htr_eq⟩ | ⟨hl, htr_eq⟩) | htr_zero
         · rw [← htr_eq]
           exact hxWin gl
@@ -375,11 +353,11 @@ private lemma downlinked_of_downlinkWitness_mem
           apply winsGoingFirst_of_moves
           refine ⟨(hl : G) + (hl : G)°, add_right_mem_moves_add hl.prop ((hl : G)°), ?_⟩
           exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P (hl : G))
-        · by_cases hz : IsEnd .left g ∧ IsEnd .left h
+        · by_cases hz : IsEnd .left h ∧ IsEnd .left g
           · simp [hz] at htr_zero
             rw [htr_zero]
             exact winsGoingFirst_of_isEndLike
-              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.right, isEndLike_of_isEnd isEnd_zero⟩)
+              (IsEndLike.add_iff.mpr ⟨isEndLike_of_isEnd hz.left, isEndLike_of_isEnd isEnd_zero⟩)
           · simp [hz] at htr_zero
 
 end Separation
@@ -409,16 +387,7 @@ must be `LeftSeparating`.
 lemma leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U]
     {g h : G} (h_right_sep : RightSeparating U (-h) (-g)) :
     LeftSeparating U g h := by
-  obtain ⟨y, hy, hh_y, hg_y⟩ := h_right_sep
-  refine ⟨-y, ClosedUnderNeg.neg_of hy, ?_, ?_⟩
-  · intro h_win
-    have h_win' : WinsGoingFirst .right ((-g) + y) := by
-      have h_neg : WinsGoingFirst .right (-(g + (-y))) :=
-        (winsGoingFirst_neg_iff (g + (-y)) .right).mpr h_win
-      simpa [neg_add_rev, add_comm] using h_neg
-    exact hg_y h_win'
-  · apply (winsGoingFirst_neg_iff (h + (-y)) .right).mp
-    simpa [neg_add_rev, add_comm] using hh_y
+  simpa using (leftSeparating_neg_of_rightSeparating h_right_sep)
 
 namespace Separation
 
@@ -531,14 +500,14 @@ lemma downlinked_of_not_exists_moves_misereGE
   choose y hyU hyWin hyLose using h_right_sep
   let L : Set G := downlinkLeftSet g h y
   let R : Set G := downlinkRightSet g h x
-  haveI : Small.{u} (downlinkZeroLeft g h) := by
+  haveI : Small.{u} (downlinkZero .left g h) := by
     by_cases hz : IsEnd .right g ∧ IsEnd .right h
-    · simpa [downlinkZeroLeft, hz] using (inferInstance : Small.{u} ({0} : Set G))
-    · simpa [downlinkZeroLeft, hz] using (inferInstance : Small.{u} (∅ : Set G))
-  haveI : Small.{u} (downlinkZeroRight g h) := by
-    by_cases hz : IsEnd .left g ∧ IsEnd .left h
-    · simpa [downlinkZeroRight, hz] using (inferInstance : Small.{u} ({0} : Set G))
-    · simpa [downlinkZeroRight, hz] using (inferInstance : Small.{u} (∅ : Set G))
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({0} : Set G))
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} (∅ : Set G))
+  haveI : Small.{u} (downlinkZero .right h g) := by
+    by_cases hz : IsEnd .left h ∧ IsEnd .left g
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({0} : Set G))
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} (∅ : Set G))
   haveI : Small.{u} L := inferInstance
   haveI : Small.{u} R := inferInstance
   have htU : U (downlinkWitness g h x y) :=

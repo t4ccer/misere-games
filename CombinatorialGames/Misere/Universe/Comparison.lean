@@ -110,8 +110,8 @@ private theorem downlinkWitness_mem {U : G → Prop} [Universe U]
   change U !{L | R}
   apply ClosedUnderDicotic.closed_dicotic
   · intro a ha
-    simp only [L, Separation.downlinkLeftSet, Separation.downlinkZeroLeft,
-      Set.mem_union, Set.mem_range] at ha
+    simp only [L, Separation.downlinkLeftSet, Separation.downlinkOptions,
+      Separation.downlinkZero, Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨hr, rfl⟩ | ⟨gr, rfl⟩) | ha0
     · exact hyU hr
     · exact adjoint_mem (gr : G)
@@ -121,18 +121,18 @@ private theorem downlinkWitness_mem {U : G → Prop} [Universe U]
         exact Universe.zero_mem
       · simp [hz] at ha0
   · intro a ha
-    simp only [R, Separation.downlinkRightSet, Separation.downlinkZeroRight,
-      Set.mem_union, Set.mem_range] at ha
+    simp only [R, Separation.downlinkRightSet, Separation.downlinkOptions,
+      Separation.downlinkZero, Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨gl, rfl⟩ | ⟨hl, rfl⟩) | ha0
     · exact hxU gl
     · exact adjoint_mem (hl : G)
-    · by_cases hz : IsEnd .left g ∧ IsEnd .left h
+    · by_cases hz : IsEnd .left h ∧ IsEnd .left g
       · simp [hz] at ha0
         rw [ha0]
         exact Universe.zero_mem
       · simp [hz] at ha0
-  · exact Separation.downlinkLeftSet_nonempty g h y
-  · exact Separation.downlinkRightSet_nonempty g h x
+  · exact Separation.downlinkOptions_nonempty .left g h y
+  · exact Separation.downlinkOptions_nonempty .right h g x
 
 instance {U : G → Prop} [Universe U] : Separation.ComparisonSet U where
   Legal := fun _ => True

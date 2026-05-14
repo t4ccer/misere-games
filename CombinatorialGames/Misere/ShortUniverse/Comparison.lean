@@ -128,19 +128,19 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
     exact ((Set.finite_range y).union
       (Set.finite_range (fun gr : moves .right g => (gr : G)°))).union
       (by
-        unfold Separation.downlinkZeroLeft
+        unfold Separation.downlinkZero
         by_cases hz : IsEnd .right g ∧ IsEnd .right h <;> simp [hz])
   have hRfin : R.Finite := by
     exact ((Set.finite_range x).union
       (Set.finite_range (fun hl : moves .left h => (hl : G)°))).union
       (by
-        unfold Separation.downlinkZeroRight
-        by_cases hz : IsEnd .left g ∧ IsEnd .left h <;> simp [hz])
+        unfold Separation.downlinkZero
+        by_cases hz : IsEnd .left g ∧ IsEnd .left h <;> simp [hz, and_comm])
   change U !{L | R}
   apply ClosedUnderDicoticShort.closed_dicotic_short
   · intro a ha
-    simp only [L, Separation.downlinkLeftSet, Separation.downlinkZeroLeft,
-      Set.mem_union, Set.mem_range] at ha
+    simp only [L, Separation.downlinkLeftSet, Separation.downlinkOptions,
+      Separation.downlinkZero, Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨hr, rfl⟩ | ⟨gr, rfl⟩) | ha0
     · exact hyU hr
     · exact ShortUniverse.adjoint_mem_of_short (Short.of_mem_moves h_g gr.prop)
@@ -150,20 +150,20 @@ private theorem downlinkWitness_mem_shortUniverse {U : G → Prop} [ShortUnivers
         exact ShortUniverse.zero_mem
       · simp [hz] at ha0
   · intro a ha
-    simp only [R, Separation.downlinkRightSet, Separation.downlinkZeroRight,
-      Set.mem_union, Set.mem_range] at ha
+    simp only [R, Separation.downlinkRightSet, Separation.downlinkOptions,
+      Separation.downlinkZero, Set.mem_union, Set.mem_range] at ha
     rcases ha with (⟨gl, rfl⟩ | ⟨hl, rfl⟩) | ha0
     · exact hxU gl
     · exact ShortUniverse.adjoint_mem_of_short (Short.of_mem_moves h_h hl.prop)
-    · by_cases hz : IsEnd .left g ∧ IsEnd .left h
+    · by_cases hz : IsEnd .left h ∧ IsEnd .left g
       · simp [hz] at ha0
         rw [ha0]
         exact ShortUniverse.zero_mem
       · simp [hz] at ha0
   · exact hLfin
-  · exact Separation.downlinkLeftSet_nonempty g h y
+  · exact Separation.downlinkOptions_nonempty .left g h y
   · exact hRfin
-  · exact Separation.downlinkRightSet_nonempty g h x
+  · exact Separation.downlinkOptions_nonempty .right h g x
 
 instance {U : G → Prop} [ShortUniverse U] : Separation.ComparisonSet U where
   Legal := IsShort
