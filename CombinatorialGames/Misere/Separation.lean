@@ -251,18 +251,18 @@ lemma downlinkOptions_nonempty
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
-This constructs the following game form, which is a trivial generalisation of a
-construction by [Siegel (Proof of Lemma 5.10 on p.
-215)][siegel:GeneralDeadendingUniverse:2025] for short forms:
+This constructs the following game form, which is similar to a construction by
+[Siegel (Proof of Lemma 5.10 on p. 215)][siegel:GeneralDeadendingUniverse:2025]
+for short forms:
 $$
 T=
 \begin{cases}
 *
 & \text{if neither }G\text{ nor }H\text{ has any ordinary options},\\
-\form<0>[(H^\mathcal{L})^\circ]
-& \text{if }G\text{ has no ordinary options and }H\text{ has no ordinary Right options},\\
-\form<(G^\mathcal{R})^\circ>[0]
-& \text{if }H\text{ has no ordinary options and }G\text{ has no ordinary Left options},\\
+\form<0>[X_i,(H^\mathcal{L})^\circ]
+& \text{if }G,H\text{ are both Right ends but not both Left ends},\\
+\form<Y_j,(G^\mathcal{R})^\circ>[0]
+& \text{if }G,H\text{ are both Left ends but not both Right ends},\\
 \form<Y_j,(G^\mathcal{R})^\circ>[X_i,(H^\mathcal{L})^\circ]
 & \text{otherwise}.
 \end{cases}
