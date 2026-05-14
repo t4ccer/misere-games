@@ -19,20 +19,20 @@ namespace Form
 
 variable {G : Type (u + 1)} [Form G]
 
-@[expose] def Maintenance (U : G → Prop) (g h : G) (p : Player) : Prop :=
+@[expose] def Maintenance (A : G → Prop) (g h : G) (p : Player) : Prop :=
   match p with
   | .right => ∀ gr ∈ moves .right g,
-      (∃ hr ∈ moves .right h, gr ≥m U hr) ∨
-      (∃ grl ∈ moves .left gr, grl ≥m U h)
+      (∃ hr ∈ moves .right h, gr ≥m A hr) ∨
+      (∃ grl ∈ moves .left gr, grl ≥m A h)
   | .left => ∀ hl ∈ moves .left h,
-      (∃ gl ∈ moves .left g, gl ≥m U hl) ∨
-      (∃ hlr ∈ moves .right hl, g ≥m U hlr)
+      (∃ gl ∈ moves .left g, gl ≥m A hl) ∨
+      (∃ hlr ∈ moves .right hl, g ≥m A hlr)
 
-@[expose] def Strong (U : G → Prop) (g : G) (p : Player) : Prop :=
-  ∀ x, U x → IsEndLike p x → WinsGoingFirst p (g + x)
+@[expose] def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
+  ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
 
-@[expose] def Proviso (U : G → Prop) (g h : G) (p : Player) : Prop :=
-  IsEndLike p g → Strong U h p
+@[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
+  IsEndLike p g → Strong A h p
 
 class Hereditary (A : G → Prop) where
   has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
@@ -216,11 +216,11 @@ decreasing_by
 
 end
 
--- TODO: Move, this doesn't require U to be hereditary
+-- TODO: Move, this doesn't require the set to be hereditary
 
-theorem proviso_right_of_misereGE {U : G → Prop}
-    {g h : G} (hge : g ≥m U h) :
-    Proviso U g h .right := by
+theorem proviso_right_of_misereGE {A : G → Prop}
+    {g h : G} (hge : g ≥m A h) :
+    Proviso A g h .right := by
   intro hg_end x hx hx_end
   have hgt : MiserePlayerOutcome (g + x) .right = .right :=
     miserePlayerOutcome_eq_iff_winsGoingFirst.mpr
@@ -229,9 +229,9 @@ theorem proviso_right_of_misereGE {U : G → Prop}
   rw [hgt] at h_cmp
   exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp (Player.le_right_eq _ h_cmp)
 
-theorem proviso_left_of_misereGE {U : G → Prop}
-    {g h : G} (hge : g ≥m U h) :
-    Proviso U h g .left := by
+theorem proviso_left_of_misereGE {A : G → Prop}
+    {g h : G} (hge : g ≥m A h) :
+    Proviso A h g .left := by
   intro hh_end x hx hx_end
   have hht : MiserePlayerOutcome (h + x) .left = .left :=
     miserePlayerOutcome_eq_iff_winsGoingFirst.mpr

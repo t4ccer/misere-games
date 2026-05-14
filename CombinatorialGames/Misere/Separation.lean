@@ -87,9 +87,9 @@ If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be at least one of
 `leftSeparating_rightSeparating_of_not_misereGE` proves that in fact $G$ and
 $H$ must always be both.
 -/
-lemma leftSeparating_or_rightSeparating_of_not_misereGE {U : G → Prop}
-    {g h : G} (h_not_ge : ¬(g ≥m U h)) :
-    LeftSeparating U g h ∨ RightSeparating U g h := by
+lemma leftSeparating_or_rightSeparating_of_not_misereGE {A : G → Prop}
+    {g h : G} (h_not_ge : ¬(g ≥m A h)) :
+    LeftSeparating A g h ∨ RightSeparating A g h := by
       /-
         At a lower level, the proof could be understood as follows. We know
         that ¬(g ≥ h), and so there exists some x with ¬(o(g+x) ≥ o(h+x)).
@@ -166,13 +166,13 @@ $\form<0,(H^\mathcal{R})^\circ>[X]\in\mathcal{A}$ for every $X\in\mathcal{A}$,
 then $G$ and $H$ are `RightSeparating`.
 -/
 lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
-    {U : G → Prop} {g h : G}
-    (h_candidate : ∀ {x : G}, U x → U (rightSeparatorCandidate h x))
-    (h_left_sep : LeftSeparating U g h) :
-    RightSeparating U g h := by
+    {A : G → Prop} {g h : G}
+    (h_candidate : ∀ {x : G}, A x → A (rightSeparatorCandidate h x))
+    (h_left_sep : LeftSeparating A g h) :
+    RightSeparating A g h := by
   obtain ⟨x, hx, hgx, hhx⟩ := h_left_sep
   let y := rightSeparatorCandidate h x
-  have hy : U y := h_candidate hx
+  have hy : A y := h_candidate hx
   refine ⟨y, hy, ?_, ?_⟩
   · apply winsGoingFirst_of_moves
     refine ⟨g + x, ?_, ?_⟩
@@ -277,22 +277,22 @@ noncomputable abbrev downlinkWitness
   !{downlinkLeftSet g h y | downlinkRightSet g h x}
 
 private lemma downlinked_of_downlinkWitness_mem
-    {U : G → Prop} {g h : G}
+    {A : G → Prop} {g h : G}
     {x : moves .left g → G} {y : moves .right h → G}
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)]
-    (htU : U (downlinkWitness g h x y))
+    (htA : A (downlinkWitness g h x y))
     (hxLose : ∀ gl : moves .left g, ¬WinsGoingFirst .left ((gl : G) + x gl))
     (hxWin : ∀ gl : moves .left g, WinsGoingFirst .left (h + x gl))
     (hyWin : ∀ hr : moves .right h, WinsGoingFirst .right (g + y hr))
     (hyLose : ∀ hr : moves .right h, ¬WinsGoingFirst .right ((hr : G) + y hr)) :
-    Downlinked U g h := by
+    Downlinked A g h := by
   let L := downlinkLeftSet g h y
   let R := downlinkRightSet g h x
   let t : G := !{L | R}
   have hLnonempty : L.Nonempty := downlinkOptions_nonempty .left g h y
   have hRnonempty : R.Nonempty := downlinkOptions_nonempty .right h g x
-  change U t at htU
-  refine ⟨t, htU, ?_, ?_⟩
+  change A t at htA
+  refine ⟨t, htA, ?_, ?_⟩
   · rw [not_winsGoingFirst_iff]
     constructor
     · intro hEnd
@@ -366,9 +366,9 @@ end Separation
 If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
 must be `LeftSeparating`.
 -/
-lemma leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U]
-    {g h : G} (h_right_sep : RightSeparating U g h) :
-    LeftSeparating U (-h) (-g) := by
+lemma leftSeparating_neg_of_rightSeparating {A : G → Prop} [ClosedUnderNeg A]
+    {g h : G} (h_right_sep : RightSeparating A g h) :
+    LeftSeparating A (-h) (-g) := by
   obtain ⟨y, hy, hgy, hhy⟩ := h_right_sep
   refine ⟨-y, ClosedUnderNeg.neg_of hy, ?_, ?_⟩
   · intro h_win
@@ -384,9 +384,9 @@ lemma leftSeparating_neg_of_rightSeparating {U : G → Prop} [ClosedUnderNeg U]
 If $\overline{H}$ and $\overline{G}$ are `RightSeparating`, then $G$ and $H$
 must be `LeftSeparating`.
 -/
-lemma leftSeparating_of_rightSeparating_neg {U : G → Prop} [ClosedUnderNeg U]
-    {g h : G} (h_right_sep : RightSeparating U (-h) (-g)) :
-    LeftSeparating U g h := by
+lemma leftSeparating_of_rightSeparating_neg {A : G → Prop} [ClosedUnderNeg A]
+    {g h : G} (h_right_sep : RightSeparating A (-h) (-g)) :
+    LeftSeparating A g h := by
   simpa using (leftSeparating_neg_of_rightSeparating h_right_sep)
 
 namespace Separation
@@ -415,9 +415,9 @@ class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
 
 -- TODO: move this elsewhere
 private theorem maintenance_neg
-    {U : G → Prop} [ClosedUnderNeg U] {g h : G} {p : Player}
-    (h_maintenance : Maintenance U (-h) (-g) (-p)) :
-    Maintenance U g h p := by
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} {p : Player}
+    (h_maintenance : Maintenance A (-h) (-g) (-p)) :
+    Maintenance A g h p := by
   cases p
   · intro hl hhl
     rcases h_maintenance (-hl) (by simp [moves_neg, hhl]) with hopt | hreply
@@ -446,19 +446,19 @@ private theorem maintenance_neg
 
 -- TODO: move this elsewhere
 theorem maintenance_neg_iff
-    {U : G → Prop} [ClosedUnderNeg U] {g h : G} (p : Player) :
-    Maintenance U (-h) (-g) (-p) ↔ Maintenance U g h p := by
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} (p : Player) :
+    Maintenance A (-h) (-g) (-p) ↔ Maintenance A g h p := by
   constructor
   · exact maintenance_neg
   · intro hm
-    have hm_neg : Maintenance U (- -g) (- -h) (- -p) := by simpa using hm
+    have hm_neg : Maintenance A (- -g) (- -h) (- -p) := by simpa using hm
     simpa using maintenance_neg (g := -h) (h := -g) (p := -p) hm_neg
 
 -- TODO: move this elsewhere
 private theorem proviso_neg
-    {U : G → Prop} [ClosedUnderNeg U] {g h : G} {p : Player}
-    (h_proviso : Proviso U (-g) (-h) (-p)) :
-    Proviso U g h p := by
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} {p : Player}
+    (h_proviso : Proviso A (-g) (-h) (-p)) :
+    Proviso A g h p := by
   intro hg_end x hx hx_end
   have hwin_neg : WinsGoingFirst (-p) ((-h) + (-x)) :=
     h_proviso (by simpa [IsEndLike.neg_iff_neg] using hg_end)
@@ -469,12 +469,12 @@ private theorem proviso_neg
 
 -- TODO: move this elsewhere
 theorem proviso_neg_iff
-    {U : G → Prop} [ClosedUnderNeg U] {g h : G} (p : Player) :
-    Proviso U (-g) (-h) (-p) ↔ Proviso U g h p := by
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} (p : Player) :
+    Proviso A (-g) (-h) (-p) ↔ Proviso A g h p := by
   constructor
   · exact proviso_neg
   · intro hp
-    have hp_neg : Proviso U (- -g) (- -h) (- -p) := by simpa using hp
+    have hp_neg : Proviso A (- -g) (- -h) (- -p) := by simpa using hp
     simpa using proviso_neg (g := -g) (h := -h) (p := -p) hp_neg
 
 namespace ComparisonSet
@@ -485,43 +485,43 @@ Note the discrepancy in hypotheses with the analogous
 one-sided structure imposed on `ComparisonSet`.
 -/
 private lemma rightSeparating_of_leftSeparating
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hh : Legal U h)
-    (h_left_sep : LeftSeparating U g h) :
-    RightSeparating U g h := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hh : Legal A h)
+    (h_left_sep : LeftSeparating A g h) :
+    RightSeparating A g h := by
   refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep
   intro x hx
   exact rightSeparatorCandidate_mem hh hx
 
 /-
-If $G\ngeq_\mathcal{U}H$, and $G$ and $H$ are `RightSeparating`, then they must
+If $G\ngeq_\mathcal{A}H$, and $G$ and $H$ are `RightSeparating`, then they must
 also be `LeftSeparating`.
 -/
 private lemma leftSeparating_of_rightSeparating_not_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g)
-    (h_not_ge : ¬(g ≥m U h))
-    (h_right_sep : RightSeparating U g h) :
-    LeftSeparating U g h := by
-  have h_not_ge_neg : ¬((-h) ≥m U (-g)) := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g)
+    (h_not_ge : ¬(g ≥m A h))
+    (h_right_sep : RightSeparating A g h) :
+    LeftSeparating A g h := by
+  have h_not_ge_neg : ¬((-h) ≥m A (-g)) := by
     rwa [ClosedUnderNeg.neg_ge_neg_iff]
-  have h_left_sep_neg : LeftSeparating U (-h) (-g) :=
+  have h_left_sep_neg : LeftSeparating A (-h) (-g) :=
     leftSeparating_neg_of_rightSeparating h_right_sep
-  have h_right_sep_neg : RightSeparating U (-h) (-g) :=
+  have h_right_sep_neg : RightSeparating A (-h) (-g) :=
     rightSeparating_of_leftSeparating
       (legal_neg hg) h_left_sep_neg
   exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
 
 /--
-If $G\ngeq_\mathcal{U}H$, then $G$ and $H$ must be both `LeftSeparating` and
+If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be both `LeftSeparating` and
 `RightSeparating`. This generalises a result of [Siegel (Lemma 5.8 on p.
 214)][siegel:GeneralDeadendingUniverse:2025], which proved it only for short
 augmented forms and short universes.
 -/
 lemma leftSeparating_rightSeparating_of_not_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g) (hh : Legal U h) (h_not_ge : ¬(g ≥m U h)) :
-    LeftSeparating U g h ∧ RightSeparating U g h := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g) (hh : Legal A h) (h_not_ge : ¬(g ≥m A h)) :
+    LeftSeparating A g h ∧ RightSeparating A g h := by
   cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
   | inl h_left =>
       exact ⟨h_left, rightSeparating_of_leftSeparating
@@ -531,37 +531,37 @@ lemma leftSeparating_rightSeparating_of_not_misereGE
         hg h_not_ge h_right, h_right⟩
 
 /--
-If $\nexists G^L$ such that $G^L\ge_\mathcal{U}H$, and $\nexists H^R$ such that
-$G\ge_\mathcal{U}H^R$, then $G$ must be downlinked to $H$.
+If $\nexists G^L$ such that $G^L\ge_\mathcal{A}H$, and $\nexists H^R$ such that
+$G\ge_\mathcal{A}H^R$, then $G$ must be downlinked to $H$.
 
 This is a transfinite generalisation of one half of a result of [Siegel (Lemma
 5.10 on p. 214)][siegel:GeneralDeadendingUniverse:2025].
 -/
 lemma downlinked_of_not_exists_moves_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g) (hh : Legal U h)
-    (h_left : ¬∃ gl ∈ moves .left g, gl ≥m U h)
-    (h_right : ¬∃ hr ∈ moves .right h, g ≥m U hr) :
-    Downlinked U g h := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g) (hh : Legal A h)
+    (h_left : ¬∃ gl ∈ moves .left g, gl ≥m A h)
+    (h_right : ¬∃ hr ∈ moves .right h, g ≥m A hr) :
+    Downlinked A g h := by
   classical
   have h_left_sep :
-      ∀ gl : moves .left g, LeftSeparating U (gl : G) h := by
+      ∀ gl : moves .left g, LeftSeparating A (gl : G) h := by
     intro gl
-    have h_not_ge : ¬((gl : G) ≥m U h) := by
+    have h_not_ge : ¬((gl : G) ≥m A h) := by
       intro hge
       exact h_left ⟨gl, gl.prop, hge⟩
     exact (leftSeparating_rightSeparating_of_not_misereGE
       (legal_moves hg gl.prop) hh h_not_ge).left
   have h_right_sep :
-      ∀ hr : moves .right h, RightSeparating U g (hr : G) := by
+      ∀ hr : moves .right h, RightSeparating A g (hr : G) := by
     intro hr
-    have h_not_ge : ¬(g ≥m U (hr : G)) := by
+    have h_not_ge : ¬(g ≥m A (hr : G)) := by
       intro hge
       exact h_right ⟨hr, hr.prop, hge⟩
     exact (leftSeparating_rightSeparating_of_not_misereGE
       hg (legal_moves hh hr.prop) h_not_ge).right
-  choose x hxU hxLose hxWin using h_left_sep
-  choose y hyU hyWin hyLose using h_right_sep
+  choose x hxA hxLose hxWin using h_left_sep
+  choose y hyA hyWin hyLose using h_right_sep
   let L : Set G := downlinkLeftSet g h y
   let R : Set G := downlinkRightSet g h x
   haveI : Small.{u} (downlinkZero .left g h) := by
@@ -574,17 +574,17 @@ lemma downlinked_of_not_exists_moves_misereGE
     · simpa [downlinkZero, hz] using (inferInstance : Small.{u} (∅ : Set G))
   haveI : Small.{u} L := inferInstance
   haveI : Small.{u} R := inferInstance
-  have htU : U (downlinkWitness g h x y) :=
-    downlinkWitness_mem hg hh hxU hyU
-  exact downlinked_of_downlinkWitness_mem htU hxLose hxWin hyWin hyLose
+  have htA : A (downlinkWitness g h x y) :=
+    downlinkWitness_mem hg hh hxA hyA
+  exact downlinked_of_downlinkWitness_mem htA hxLose hxWin hyWin hyLose
 
 private lemma maintenance_right_of_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
-    Maintenance U g h .right := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g) (hh : Legal A h) (hge : g ≥m A h) :
+    Maintenance A g h .right := by
   intro gr hgr
   by_contra h_not
-  have h_downlinked : Downlinked U gr h := by
+  have h_downlinked : Downlinked A gr h := by
     apply downlinked_of_not_exists_moves_misereGE (legal_moves hg hgr) hh
     · intro h_exists
       exact h_not (Or.inr h_exists)
@@ -604,24 +604,24 @@ private lemma maintenance_right_of_misereGE
   exact Player.left_le_right h_cmp
 
 private lemma maintenance_left_of_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
-    Maintenance U g h .left := by
-  have hge_neg : (-h) ≥m U (-g) :=
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g) (hh : Legal A h) (hge : g ≥m A h) :
+    Maintenance A g h .left := by
+  have hge_neg : (-h) ≥m A (-g) :=
     (ClosedUnderNeg.neg_ge_neg_iff g h).mpr hge
   exact (maintenance_neg_iff .left).mp
     (maintenance_right_of_misereGE (legal_neg hh) (legal_neg hg) hge_neg)
 
 /--
-If $G\ge_\mathcal{U}H$, then $G$ and $H$ must satisfy both the
+If $G\ge_\mathcal{A}H$, then $G$ and $H$ must satisfy both the
 `Form.Maintenance` and the `Form.Proviso`.
 -/
 theorem maintenance_proviso_of_misereGE
-    {U : G → Prop} [ComparisonSet U] {g h : G}
-    (hg : Legal U g) (hh : Legal U h) :
-    g ≥m U h →
-      Maintenance U g h .right ∧ Maintenance U g h .left ∧
-      Proviso U g h .right ∧ Proviso U h g .left := by
+    {A : G → Prop} [ComparisonSet A] {g h : G}
+    (hg : Legal A g) (hh : Legal A h) :
+    g ≥m A h →
+      Maintenance A g h .right ∧ Maintenance A g h .left ∧
+      Proviso A g h .right ∧ Proviso A h g .left := by
   intro hge
   exact ⟨maintenance_right_of_misereGE hg hh hge,
     maintenance_left_of_misereGE hg hh hge,
