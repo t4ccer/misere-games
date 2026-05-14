@@ -328,47 +328,13 @@ theorem miserePlayerOutcome_of_rightMoves {g gr : G} (h1 : gr ∈ moves .right g
   rw [h4] at h2
   cases h2
 
--- TODO: Golf
 theorem misereOutcome_ge_iff_miserePlayerOutcome_ge {g h : G}
     : MisereOutcome g ≥ MisereOutcome h ↔ (∀ p, MiserePlayerOutcome g p ≥ MiserePlayerOutcome h p) := by
-  apply Iff.intro <;> intro h1
-  · intro p; cases p
-    · simp [MisereOutcome, Outcome.ofPlayers] at h1
-      cases h4 : MiserePlayerOutcome g Player.left
-      <;> cases h5 : MiserePlayerOutcome g Player.right
-      <;> cases h6 : MiserePlayerOutcome h Player.left
-      <;> cases h7 : MiserePlayerOutcome h Player.right
-      <;> simp [h4, h5, h6, h7] at h1
-      <;> try decide
-      · absurd h1
-        decide
-      · absurd h1
-        decide
-    · simp [MisereOutcome, Outcome.ofPlayers] at h1
-      cases h4 : MiserePlayerOutcome g Player.left
-      <;> cases h5 : MiserePlayerOutcome g Player.right
-      <;> cases h6 : MiserePlayerOutcome h Player.left
-      <;> cases h7 : MiserePlayerOutcome h Player.right
-      <;> simp [h4, h5, h6, h7] at h1
-      <;> try decide
-      · absurd h1
-        decide
-      · absurd h1
-        decide
-  · have h2 := h1 .left
-    have h3 := h1 .right
-    cases h4 : MiserePlayerOutcome g Player.left
-    <;> cases h5 : MiserePlayerOutcome g Player.right
-    <;> cases h6 : MiserePlayerOutcome h Player.left
-    <;> cases h7 : MiserePlayerOutcome h Player.right
-    <;> simp [MisereOutcome, Outcome.ofPlayers, h4, h5, h6, h7] at ⊢ h2 h3
-    · exact (Player.left_le_right h3).elim
-    · exact (Player.left_le_right h3).elim
-    · exact (Player.left_le_right h2).elim
-    · exact (Player.left_le_right h2).elim
-    · exact (Player.left_le_right h2).elim
-    · exact (Player.left_le_right h2).elim
-    · exact (Player.left_le_right h3).elim
+  cases hgl : MiserePlayerOutcome g .left <;>
+    cases hgr : MiserePlayerOutcome g .right <;>
+    cases hhl : MiserePlayerOutcome h .left <;>
+    cases hhr : MiserePlayerOutcome h .right <;>
+    simp [MisereOutcome, Outcome.ofPlayers, hgl, hgr, hhl, hhr, LE.le, LT.lt]
 
 /--
 Restricted misère equality, modulo a set `A`.
