@@ -413,6 +413,70 @@ class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
     Legal g → Legal h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
       A (downlinkWitness g h x y)
 
+-- TODO: move this elsewhere
+private theorem maintenance_neg
+    {U : G → Prop} [ClosedUnderNeg U] {g h : G} {p : Player}
+    (h_maintenance : Maintenance U (-h) (-g) (-p)) :
+    Maintenance U g h p := by
+  cases p
+  · intro hl hhl
+    rcases h_maintenance (-hl) (by simp [moves_neg, hhl]) with hopt | hreply
+    · rcases hopt with ⟨ngl, hngl, hge⟩
+      left
+      refine ⟨-ngl, ?_, ?_⟩
+      · simpa [moves_neg] using hngl
+      · exact (ClosedUnderNeg.neg_ge_neg_iff (-ngl) hl).mp (by simpa using hge)
+    · rcases hreply with ⟨nhlr, hnhlr, hge⟩
+      right
+      refine ⟨-nhlr, ?_, ?_⟩
+      · simpa [moves_neg] using hnhlr
+      · exact (ClosedUnderNeg.neg_ge_neg_iff g (-nhlr)).mp (by simpa using hge)
+  · intro gr hgr
+    rcases h_maintenance (-gr) (by simp [moves_neg, hgr]) with hopt | hreply
+    · rcases hopt with ⟨nhr, hnhr, hge⟩
+      left
+      refine ⟨-nhr, ?_, ?_⟩
+      · simpa [moves_neg] using hnhr
+      · exact (ClosedUnderNeg.neg_ge_neg_iff gr (-nhr)).mp (by simpa using hge)
+    · rcases hreply with ⟨ngrl, hngrl, hge⟩
+      right
+      refine ⟨-ngrl, ?_, ?_⟩
+      · simpa [moves_neg] using hngrl
+      · exact (ClosedUnderNeg.neg_ge_neg_iff (-ngrl) h).mp (by simpa using hge)
+
+-- TODO: move this elsewhere
+theorem maintenance_neg_iff
+    {U : G → Prop} [ClosedUnderNeg U] {g h : G} (p : Player) :
+    Maintenance U (-h) (-g) (-p) ↔ Maintenance U g h p := by
+  constructor
+  · exact maintenance_neg
+  · intro hm
+    have hm_neg : Maintenance U (- -g) (- -h) (- -p) := by simpa using hm
+    simpa using maintenance_neg (g := -h) (h := -g) (p := -p) hm_neg
+
+-- TODO: move this elsewhere
+private theorem proviso_neg
+    {U : G → Prop} [ClosedUnderNeg U] {g h : G} {p : Player}
+    (h_proviso : Proviso U (-g) (-h) (-p)) :
+    Proviso U g h p := by
+  intro hg_end x hx hx_end
+  have hwin_neg : WinsGoingFirst (-p) ((-h) + (-x)) :=
+    h_proviso (by simpa [IsEndLike.neg_iff_neg] using hg_end)
+      (-x) (ClosedUnderNeg.neg_of hx)
+      (by simpa [IsEndLike.neg_iff_neg] using hx_end)
+  rw [← winsGoingFirst_neg_iff, neg_add_rev, neg_neg, neg_neg, add_comm] at hwin_neg
+  exact hwin_neg
+
+-- TODO: move this elsewhere
+theorem proviso_neg_iff
+    {U : G → Prop} [ClosedUnderNeg U] {g h : G} (p : Player) :
+    Proviso U (-g) (-h) (-p) ↔ Proviso U g h p := by
+  constructor
+  · exact proviso_neg
+  · intro hp
+    have hp_neg : Proviso U (- -g) (- -h) (- -p) := by simpa using hp
+    simpa using proviso_neg (g := -g) (h := -h) (p := -p) hp_neg
+
 namespace ComparisonSet
 
 /-
@@ -543,26 +607,10 @@ private lemma maintenance_left_of_misereGE
     {U : G → Prop} [ComparisonSet U] {g h : G}
     (hg : Legal U g) (hh : Legal U h) (hge : g ≥m U h) :
     Maintenance U g h .left := by
-  intro hl hhl
-  by_contra h_not
-  have h_downlinked : Downlinked U g hl := by
-    apply downlinked_of_not_exists_moves_misereGE hg (legal_moves hh hhl)
-    · intro h_exists
-      exact h_not (Or.inl h_exists)
-    · intro h_exists
-      exact h_not (Or.inr h_exists)
-  obtain ⟨t, ht, hgt, hhlt⟩ := h_downlinked
-  have hhlt_out : MiserePlayerOutcome (hl + t) .right = .left := by
-    unfold MiserePlayerOutcome
-    simp [hhlt]
-  have hht : MiserePlayerOutcome (h + t) .left = .left :=
-    miserePlayerOutcome_of_leftMoves (add_right_mem_moves_add hhl t) hhlt_out
-  have hgt_out : MiserePlayerOutcome (g + t) .left = .right := by
-    unfold MiserePlayerOutcome
-    simp [hgt]
-  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge t ht) .left
-  rw [hgt_out, hht] at h_cmp
-  exact Player.left_le_right h_cmp
+  have hge_neg : (-h) ≥m U (-g) :=
+    (ClosedUnderNeg.neg_ge_neg_iff g h).mpr hge
+  exact (maintenance_neg_iff .left).mp
+    (maintenance_right_of_misereGE (legal_neg hh) (legal_neg hg) hge_neg)
 
 /--
 If $G\ge_\mathcal{U}H$, then $G$ and $H$ must satisfy both the
