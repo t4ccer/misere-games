@@ -18,6 +18,9 @@ variable {G : Type (u + 1)} [Form G]
 class ClosedUnderNeg (A : G → Prop) where
   neg_of {g : G} (h1 : A g) : A (-g)
 
+instance : ClosedUnderNeg (fun _ => True) (G := G) where
+  neg_of _ := trivial
+
 @[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
 theorem ClosedUnderNeg.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g : G}
     : A (-g) ↔ A g := by

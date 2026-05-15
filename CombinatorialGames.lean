@@ -13,6 +13,7 @@ public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.Small
+public import CombinatorialGames.Misere.Ambient
 public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary
@@ -21,10 +22,8 @@ public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.Separation
-public import CombinatorialGames.Misere.ShortUniverse.Comparison
 public import CombinatorialGames.Misere.TippingPoints
 public import CombinatorialGames.Misere.Universe
-public import CombinatorialGames.Misere.Universe.Comparison
 public import CombinatorialGames.OfSets
 public import CombinatorialGames.Outcome
 public import CombinatorialGames.Player

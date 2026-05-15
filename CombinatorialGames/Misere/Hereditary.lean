@@ -5,8 +5,8 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
+public import CombinatorialGames.Form.Short
 public import CombinatorialGames.Form.Misere.Outcome
-public import CombinatorialGames.GameForm
 
 public section
 
@@ -36,6 +36,12 @@ variable {G : Type (u + 1)} [Form G]
 
 class Hereditary (A : G → Prop) where
   has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
+
+instance : Hereditary (fun _ => True) (G := G) where
+  has_option _ _ := trivial
+
+instance : Hereditary IsShort (G := G) where
+  has_option := Moves.IsOption.short
 
 private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)

@@ -1,26 +1,42 @@
 /-
-Copyright (c) 2026 Alfie Davies. All rights reserved.
+Copyright (c) 2026 Alfie Davies, Tomasz Maciosowski. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alfie Davies
+Authors: Alfie Davies, Tomasz Maciosowski
 -/
+
 module
 
 public import CombinatorialGames.Misere.Separation
-public import CombinatorialGames.Misere.Universe
 
 universe u
 
 variable {G : Type (u + 1)} [Form G]
 
 open Form
+open Classical
 
 public section
 
 namespace Form
 
-namespace ShortUniverse
+open Separation
 
-variable {U : G → Prop} [ShortUniverse U]
+class Ambient (IsAmbient : outParam (G → Prop)) extends Hereditary IsAmbient, ClosedUnderNeg IsAmbient where
+  isAmbient_adjoint {g : G} : IsAmbient g → IsAmbient (g°)
+  isAmbient_rightSeparatorCandidate {h x : G} :
+    IsAmbient h → IsAmbient x → IsAmbient (rightSeparatorCandidate h x)
+  isAmbient_downlinkWitness {g h : G} {x : moves .left g → G} {y : moves .right h → G}
+    [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] :
+    IsAmbient g → IsAmbient h → (∀ gl, IsAmbient (x gl)) → (∀ hr, IsAmbient (y hr)) →
+      IsAmbient (downlinkWitness g h x y)
+
+instance : Ambient (fun _ => True) (G := G) where
+  isAmbient_adjoint _ := by
+    trivial
+  isAmbient_rightSeparatorCandidate _ _ := by
+    trivial
+  isAmbient_downlinkWitness _ _ _ _ := by
+    trivial
 
 private lemma rightSeparatorLeftSet_finite {h : G} (hh : IsShort h) :
     (Separation.rightSeparatorLeftSet h).Finite := by
@@ -63,10 +79,7 @@ private lemma downlinkOptions_short {p : Player} {g h : G} {z : moves (-p) h →
     · simp [ha0]
     · simp [hend] at ha0
 
-instance : Separation.ComparisonSet.UniverseAdapter IsShort U where
-  toUniverse := inferInstance
-  isAmbient_hereditary := { has_option h_g hmove := Short.isOption h_g hmove }
-  isAmbient_closed_neg := inferInstance
+instance : Ambient IsShort (G := G) where
   isAmbient_adjoint := Adjoint.short_adjoint
   isAmbient_rightSeparatorCandidate := fun {h x} h_h h_x => by
     unfold Separation.rightSeparatorCandidate
@@ -86,7 +99,3 @@ instance : Separation.ComparisonSet.UniverseAdapter IsShort U where
     · exact downlinkOptions_short (p := .left) h_g hy
     · exact downlinkOptions_finite (p := .right) h_h h_g x
     · exact downlinkOptions_short (p := .right) h_h hx
-
-end ShortUniverse
-
-end Form
