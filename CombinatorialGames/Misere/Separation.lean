@@ -7,6 +7,7 @@ module
 
 public import CombinatorialGames.Form.Misere.Adjoint
 public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.Universe
 
 /-!
 # Separation and downlinking
@@ -332,8 +333,6 @@ private lemma downlinked_of_downlinkWitness_mem
           (winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hz.left, isEnd_zero⟩) :
             WinsGoingFirst .left (h + 0))
 
-end Separation
-
 /--
 If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
 must be `LeftSeparating`.
@@ -361,29 +360,196 @@ lemma leftSeparating_of_rightSeparating_neg {A : G → Prop} [ClosedUnderNeg A]
     LeftSeparating A g h := by
   simpa using (leftSeparating_neg_of_rightSeparating h_right_sep)
 
-namespace Separation
-
 /--
 This is an interface used to show that $G\ge_\mathcal{U}H$ implies
-`Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`)
-for both `Universe` and `ShortUniverse` simultaneously.
+`Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`).
 
-The `Legal` predicate dictates what game forms are admissible for comparison
-modulo the set. For example, in a `ShortUniverse`, we would write `Legal :=
-IsShort`. We require the set of legal forms to be hereditary and closed
-under conjugation. The final two fields assert that our separating and downlink
-constructions are always elements of `A`.
+The `IsAmbient` predicate dictates what game forms exist in the ambient space
+for comparison. For example, in a `ShortUniverse`, `IsAmbient` is
+`Form.IsShort`. We require the set of ambient forms to be `Form.Hereditary`.
+The final two fields assert that our separating and downlink constructions are
+always elements of `A`.
 -/
-class ComparisonSet (A : G → Prop) extends ClosedUnderNeg A where
-  Legal : G → Prop
-  legal_moves {g g' : G} {p : Player} : Legal g → g' ∈ moves p g → Legal g'
-  legal_neg {g : G} : Legal g → Legal (-g)
-  rightSeparatorCandidate_mem {h x : G} :
-    Legal h → A x → A (rightSeparatorCandidate h x)
+class ComparisonSet (A : G → Prop) where
+  IsAmbient : G → Prop
+  hereditary : Hereditary IsAmbient
+  separating_pair_of_not_misereGE {g h : G} :
+    IsAmbient g → IsAmbient h → ¬(g ≥m A h) →
+      LeftSeparating A g h ∧ RightSeparating A g h
   downlinkWitness_mem {g h : G} {x : moves .left g → G} {y : moves .right h → G}
     [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] :
-    Legal g → Legal h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
+    IsAmbient g → IsAmbient h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
       A (downlinkWitness g h x y)
+
+attribute [instance] ComparisonSet.hereditary
+
+namespace ComparisonSet
+
+/--
+This adapter adds data to the structure of the ambient space of a `Universe` so
+that the required witnesses for `ComparisonSet` can be constructed.
+-/
+class UniverseAdapter (IsAmbient : outParam (G → Prop)) (A : G → Prop) extends
+    Universe IsAmbient A where
+  isAmbient_hereditary : Hereditary IsAmbient
+  isAmbient_closed_neg : ClosedUnderNeg IsAmbient
+  isAmbient_adjoint {g : G} : IsAmbient g → IsAmbient (g°)
+  isAmbient_rightSeparatorCandidate {h x : G} :
+    IsAmbient h → IsAmbient x → IsAmbient (rightSeparatorCandidate h x)
+  isAmbient_downlinkWitness {g h : G} {x : moves .left g → G} {y : moves .right h → G}
+    [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] :
+    IsAmbient g → IsAmbient h → (∀ gl, IsAmbient (x gl)) → (∀ hr, IsAmbient (y hr)) →
+      IsAmbient (downlinkWitness g h x y)
+
+attribute [instance] UniverseAdapter.isAmbient_hereditary
+attribute [instance] UniverseAdapter.isAmbient_closed_neg
+
+namespace UniverseAdapter
+
+variable {IsAmbient A : G → Prop} [UniverseAdapter IsAmbient A]
+
+private theorem universe_zero_mem (IsAmbient : G → Prop) {A : G → Prop}
+    [UniverseAdapter IsAmbient A] : A 0 :=
+  Universe.zero_mem IsAmbient (A := A)
+
+/--
+The adjoint of a form in the ambient space is always in the universe (adapter).
+-/
+theorem adjoint_mem {g : G} (hg : IsAmbient g) : A (g°) := by
+  have hzero : ∀ a ∈ ({0} : Set G), A a := by
+    intro a ha
+    rw [Set.mem_singleton_iff.mp ha]
+    exact universe_zero_mem IsAmbient
+  have hzero_nonempty : ({0} : Set G).Nonempty := Set.singleton_nonempty 0
+  have hAdjAmbient := UniverseAdapter.isAmbient_adjoint
+    (IsAmbient := IsAmbient) (A := A) hg
+  have hAdjRange : ∀ p, ∀ a ∈ Set.range (fun gp : moves p g => (gp : G)°), A a := by
+    intro p a ha
+    simp only [Set.mem_range, Subtype.exists, exists_prop] at ha
+    obtain ⟨gp, hgp, rfl⟩ := ha
+    exact adjoint_mem (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
+  have hAdjRange_nonempty :
+      ∀ {p}, ¬IsEnd p g → (Set.range fun gp : moves p g => (gp : G)°).Nonempty := by
+    intro p hp
+    obtain ⟨gp, hgp⟩ := not_isEnd_exists_move hp
+    exact ⟨gp°, ⟨⟨gp, hgp⟩, rfl⟩⟩
+  unfold adjoint
+  by_cases hleft : IsEnd .left g
+  · by_cases hright : IsEnd .right g
+    · simp [hleft, hright]
+      apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+      · exact hzero
+      · exact hzero
+      · exact hzero_nonempty
+      · exact hzero_nonempty
+      · unfold adjoint at hAdjAmbient
+        simpa [hleft, hright] using hAdjAmbient
+    · simp [hleft, hright]
+      apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+      · exact hAdjRange .right
+      · exact hzero
+      · exact hAdjRange_nonempty hright
+      · exact hzero_nonempty
+      · unfold adjoint at hAdjAmbient
+        simpa [hleft, hright] using hAdjAmbient
+  · by_cases hright : IsEnd .right g
+    · simp [hleft, hright]
+      apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+      · exact hzero
+      · exact hAdjRange .left
+      · exact hzero_nonempty
+      · exact hAdjRange_nonempty hleft
+      · unfold adjoint at hAdjAmbient
+        simpa [hleft, hright] using hAdjAmbient
+    · simp [hleft, hright]
+      apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+      · exact hAdjRange .right
+      · exact hAdjRange .left
+      · exact hAdjRange_nonempty hright
+      · exact hAdjRange_nonempty hleft
+      · unfold adjoint at hAdjAmbient
+        simpa [hleft, hright] using hAdjAmbient
+termination_by g
+decreasing_by all_goals form_wf
+
+private theorem rightSeparatorLeftSet_mem {h : G} (hh : IsAmbient h) :
+    ∀ b ∈ rightSeparatorLeftSet h, A b := by
+  intro b hb
+  simp only [rightSeparatorLeftSet, Set.mem_union, Set.mem_singleton_iff, Set.mem_range] at hb
+  rcases hb with rfl | ⟨hr, rfl⟩
+  · exact universe_zero_mem IsAmbient
+  · exact adjoint_mem (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop))
+
+theorem rightSeparatorCandidate_mem_of_comparison {h x : G} (hh : IsAmbient h) (hx : A x) :
+    A (rightSeparatorCandidate h x) := by
+  unfold rightSeparatorCandidate
+  apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+  · exact rightSeparatorLeftSet_mem hh
+  · intro c hc
+    rwa [Set.mem_singleton_iff.mp hc]
+  · exact ⟨0, Or.inl rfl⟩
+  · exact Set.singleton_nonempty x
+  · exact UniverseAdapter.isAmbient_rightSeparatorCandidate
+      (IsAmbient := IsAmbient) (A := A) hh (Universe.isAmbient_of_mem hx)
+
+private theorem downlinkOptions_mem {p : Player} {g h : G} {z : moves (-p) h → G}
+    (hg : IsAmbient g) (hzA : ∀ hp, A (z hp)) :
+    ∀ a ∈ downlinkOptions p g h z, A a := by
+  intro a ha
+  simp [downlinkOptions, downlinkZero] at ha
+  rcases ha with (⟨hp, hhp, rfl⟩ | ⟨gp, hgp, rfl⟩) | ha0
+  · exact hzA ⟨hp, hhp⟩
+  · exact adjoint_mem (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
+  · by_cases hz : IsEnd (-p) g ∧ IsEnd (-p) h
+    · simpa [hz, ha0] using (universe_zero_mem IsAmbient (A := A))
+    · simp [hz] at ha0
+
+theorem downlinkWitness_mem_of_comparison
+    {g h : G} {x : moves .left g → G} {y : moves .right h → G}
+    [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)]
+    (hg : IsAmbient g)
+    (hh : IsAmbient h)
+    (hxA : ∀ gl, A (x gl)) (hyA : ∀ hr, A (y hr)) :
+    A (downlinkWitness g h x y) := by
+  let L : Set G := downlinkLeftSet g h y
+  let R : Set G := downlinkRightSet g h x
+  change A !{L | R}
+  apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
+  · exact downlinkOptions_mem (p := .left) hg hyA
+  · exact downlinkOptions_mem (p := .right) hh hxA
+  · exact downlinkOptions_nonempty .left g h y
+  · exact downlinkOptions_nonempty .right h g x
+  · exact UniverseAdapter.isAmbient_downlinkWitness
+      (IsAmbient := IsAmbient) (A := A) hg hh
+      (fun gl => Universe.isAmbient_of_mem (hxA gl))
+      (fun hr => Universe.isAmbient_of_mem (hyA hr))
+
+instance : ComparisonSet A where
+  IsAmbient := IsAmbient
+  hereditary := inferInstance
+  separating_pair_of_not_misereGE {g} {h} hg hh h_not_ge := by
+    cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
+    | inl h_left =>
+        refine ⟨h_left, ?_⟩
+        refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left
+        intro x hx
+        exact rightSeparatorCandidate_mem_of_comparison hh hx
+    | inr h_right =>
+        refine ⟨?_, h_right⟩
+        have h_not_ge_neg : ¬((-h) ≥m A (-g)) := by
+          rwa [ClosedUnderNeg.neg_ge_neg_iff]
+        have h_left_sep_neg : LeftSeparating A (-h) (-g) :=
+          leftSeparating_neg_of_rightSeparating h_right
+        have h_right_sep_neg : RightSeparating A (-h) (-g) := by
+          refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep_neg
+          intro x hx
+          exact rightSeparatorCandidate_mem_of_comparison (ClosedUnderNeg.neg_of hg) hx
+        exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
+  downlinkWitness_mem := downlinkWitness_mem_of_comparison
+
+end UniverseAdapter
+
+end ComparisonSet
 
 -- TODO: move this elsewhere
 private theorem maintenance_neg
@@ -451,39 +617,6 @@ theorem proviso_neg_iff
 
 namespace ComparisonSet
 
-/-
-Note the discrepancy in hypotheses with the analogous
-`leftSeparating_of_rightSeparating_not_misereGE`; this is due to the additional
-one-sided structure imposed on `ComparisonSet`.
--/
-private lemma rightSeparating_of_leftSeparating
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hh : Legal A h)
-    (h_left_sep : LeftSeparating A g h) :
-    RightSeparating A g h := by
-  refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep
-  intro x hx
-  exact rightSeparatorCandidate_mem hh hx
-
-/-
-If $G\ngeq_\mathcal{A}H$, and $G$ and $H$ are `RightSeparating`, then they must
-also be `LeftSeparating`.
--/
-private lemma leftSeparating_of_rightSeparating_not_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g)
-    (h_not_ge : ¬(g ≥m A h))
-    (h_right_sep : RightSeparating A g h) :
-    LeftSeparating A g h := by
-  have h_not_ge_neg : ¬((-h) ≥m A (-g)) := by
-    rwa [ClosedUnderNeg.neg_ge_neg_iff]
-  have h_left_sep_neg : LeftSeparating A (-h) (-g) :=
-    leftSeparating_neg_of_rightSeparating h_right_sep
-  have h_right_sep_neg : RightSeparating A (-h) (-g) :=
-    rightSeparating_of_leftSeparating
-      (legal_neg hg) h_left_sep_neg
-  exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
-
 /--
 If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be both `LeftSeparating` and
 `RightSeparating`. This generalises a result of [Siegel (Lemma 5.8 on p.
@@ -492,15 +625,9 @@ augmented forms and short universes.
 -/
 lemma leftSeparating_rightSeparating_of_not_misereGE
     {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g) (hh : Legal A h) (h_not_ge : ¬(g ≥m A h)) :
+    (hg : IsAmbient A g) (hh : IsAmbient A h) (h_not_ge : ¬(g ≥m A h)) :
     LeftSeparating A g h ∧ RightSeparating A g h := by
-  cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
-  | inl h_left =>
-      exact ⟨h_left, rightSeparating_of_leftSeparating
-        hh h_left⟩
-  | inr h_right =>
-      exact ⟨leftSeparating_of_rightSeparating_not_misereGE
-        hg h_not_ge h_right, h_right⟩
+  exact separating_pair_of_not_misereGE hg hh h_not_ge
 
 /--
 If $\nexists G^L$ such that $G^L\ge_\mathcal{A}H$, and $\nexists H^R$ such that
@@ -511,7 +638,7 @@ This is a transfinite generalisation of one half of a result of [Siegel (Lemma
 -/
 lemma downlinked_of_not_exists_moves_misereGE
     {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g) (hh : Legal A h)
+    (hg : IsAmbient A g) (hh : IsAmbient A h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m A h)
     (h_right : ¬∃ hr ∈ moves .right h, g ≥m A hr) :
     Downlinked A g h := by
@@ -523,7 +650,7 @@ lemma downlinked_of_not_exists_moves_misereGE
       intro hge
       exact h_left ⟨gl, gl.prop, hge⟩
     exact (leftSeparating_rightSeparating_of_not_misereGE
-      (legal_moves hg gl.prop) hh h_not_ge).left
+      (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop)) hh h_not_ge).left
   have h_right_sep :
       ∀ hr : moves .right h, RightSeparating A g (hr : G) := by
     intro hr
@@ -531,7 +658,7 @@ lemma downlinked_of_not_exists_moves_misereGE
       intro hge
       exact h_right ⟨hr, hr.prop, hge⟩
     exact (leftSeparating_rightSeparating_of_not_misereGE
-      hg (legal_moves hh hr.prop) h_not_ge).right
+      hg (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop)) h_not_ge).right
   choose x hxA hxLose hxWin using h_left_sep
   choose y hyA hyWin hyLose using h_right_sep
   let L : Set G := downlinkLeftSet g h y
@@ -550,19 +677,32 @@ lemma downlinked_of_not_exists_moves_misereGE
     downlinkWitness_mem hg hh hxA hyA
   exact downlinked_of_downlinkWitness_mem htA hxLose hxWin hyWin hyLose
 
-private lemma maintenance_right_of_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g) (hh : Legal A h) (hge : g ≥m A h) :
-    Maintenance A g h .right := by
-  intro gr hgr
-  by_contra h_not
-  have h_downlinked : Downlinked A gr h := by
-    apply downlinked_of_not_exists_moves_misereGE (legal_moves hg hgr) hh
-    · intro h_exists
-      exact h_not (Or.inr h_exists)
-    · intro h_exists
-      exact h_not (Or.inl h_exists)
-  obtain ⟨t, ht, hgrt, hht⟩ := h_downlinked
+private lemma not_misereGE_of_right_left_outcomes
+    {A : G → Prop} {g h t : G} (hge : g ≥m A h) (ht : A t) (p : Player)
+    (hgt : MiserePlayerOutcome (g + t) p = .right)
+    (hht : MiserePlayerOutcome (h + t) p = .left) : False := by
+  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge t ht) p
+  rw [hgt, hht] at h_cmp
+  exact Player.left_le_right h_cmp
+
+private lemma not_downlinked_left_option_of_misereGE
+    {A : G → Prop} {g h hl : G} (hge : g ≥m A h) (hhl : hl ∈ moves .left h) :
+    ¬Downlinked A g hl := by
+  rintro ⟨t, ht, hgt, hhlt⟩
+  have hgt_out : MiserePlayerOutcome (g + t) .left = .right := by
+    unfold MiserePlayerOutcome
+    simp [hgt]
+  have hhlt_out : MiserePlayerOutcome (hl + t) .right = .left := by
+    unfold MiserePlayerOutcome
+    simp [hhlt]
+  have hht : MiserePlayerOutcome (h + t) .left = .left :=
+    miserePlayerOutcome_of_leftMoves (add_right_mem_moves_add hhl t) hhlt_out
+  exact not_misereGE_of_right_left_outcomes hge ht .left hgt_out hht
+
+private lemma not_downlinked_right_option_of_misereGE
+    {A : G → Prop} {g h gr : G} (hge : g ≥m A h) (hgr : gr ∈ moves .right g) :
+    ¬Downlinked A gr h := by
+  rintro ⟨t, ht, hgrt, hht⟩
   have hgrt_out : MiserePlayerOutcome (gr + t) .left = .right := by
     unfold MiserePlayerOutcome
     simp [hgrt]
@@ -571,18 +711,33 @@ private lemma maintenance_right_of_misereGE
   have hht_out : MiserePlayerOutcome (h + t) .right = .left := by
     unfold MiserePlayerOutcome
     simp [hht]
-  have h_cmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge t ht) .right
-  rw [hgt, hht_out] at h_cmp
-  exact Player.left_le_right h_cmp
+  exact not_misereGE_of_right_left_outcomes hge ht .right hgt hht_out
 
-private lemma maintenance_left_of_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g) (hh : Legal A h) (hge : g ≥m A h) :
-    Maintenance A g h .left := by
-  have hge_neg : (-h) ≥m A (-g) :=
-    (ClosedUnderNeg.neg_ge_neg_iff g h).mpr hge
-  exact (maintenance_neg_iff .left).mp
-    (maintenance_right_of_misereGE (legal_neg hh) (legal_neg hg) hge_neg)
+private lemma maintenance_of_misereGE
+    {A : G → Prop} [ComparisonSet A] {g h : G} (p : Player)
+    (hg : IsAmbient A g) (hh : IsAmbient A h) (hge : g ≥m A h) :
+    Maintenance A g h p := by
+  cases p
+  · intro hl hhl
+    by_contra h_not
+    have h_downlinked : Downlinked A g hl := by
+      apply downlinked_of_not_exists_moves_misereGE hg
+        (Hereditary.has_option hh (IsOption.of_mem_moves hhl))
+      · intro h_exists
+        exact h_not (Or.inl h_exists)
+      · intro h_exists
+        exact h_not (Or.inr h_exists)
+    exact not_downlinked_left_option_of_misereGE hge hhl h_downlinked
+  · intro gr hgr
+    by_contra h_not
+    have h_downlinked : Downlinked A gr h := by
+      apply downlinked_of_not_exists_moves_misereGE
+        (Hereditary.has_option hg (IsOption.of_mem_moves hgr)) hh
+      · intro h_exists
+        exact h_not (Or.inr h_exists)
+      · intro h_exists
+        exact h_not (Or.inl h_exists)
+    exact not_downlinked_right_option_of_misereGE hge hgr h_downlinked
 
 /--
 If $G\ge_\mathcal{A}H$, then $G$ and $H$ must satisfy both the
@@ -590,13 +745,13 @@ If $G\ge_\mathcal{A}H$, then $G$ and $H$ must satisfy both the
 -/
 theorem maintenance_proviso_of_misereGE
     {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : Legal A g) (hh : Legal A h) :
+    (hg : IsAmbient A g) (hh : IsAmbient A h) :
     g ≥m A h →
       Maintenance A g h .right ∧ Maintenance A g h .left ∧
       Proviso A g h .right ∧ Proviso A h g .left := by
   intro hge
-  exact ⟨maintenance_right_of_misereGE hg hh hge,
-    maintenance_left_of_misereGE hg hh hge,
+  exact ⟨maintenance_of_misereGE .right hg hh hge,
+    maintenance_of_misereGE .left hg hh hge,
     proviso_right_of_misereGE hge,
     proviso_left_of_misereGE hge⟩
 

@@ -245,33 +245,27 @@ instance : ShortUniverse ShortDeadEnding where
       simp
   , dead_ending := isDeadEnding_zero
   }
+  isAmbient_of_mem h := h.short
   closed_sum _ _ h_g h_h :=
-  { short := Short.add h_g.short h_h.short
-  , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
-  }
+    { short := Short.add h_g.short h_h.short
+    , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
+    }
+  has_option := Hereditary.has_option
   neg_of h :=
-  { short := ClosedUnderNeg.neg_iff.mpr h.short
-  , dead_ending := ClosedUnderNeg.neg_iff.mpr h.dead_ending
-  }
-  closed_dicotic_short B C b c hb hb' hc hc' _ _ :=
-  { short := by
-      rw [short_def]
-      intro p
-      apply And.intro (by cases p <;> simp only [moves_ofSets, Player.cases, hb, hc])
-      intro y
-      cases p <;> simp only [moves_ofSets, Player.cases] <;> intro hy
-      · exact (b y hy).short
-      · exact (c y hy).short
-  , dead_ending := by
-      unfold IsDeadEnding
-      apply And.intro <;> intro p
-      · cases p <;> intro h1 <;> simp only [isEnd_def, moves_ofSets, Player.cases] at h1
-        · simp only [h1, Set.not_nonempty_empty] at hb'
-        · simp only [h1, Set.not_nonempty_empty] at hc'
-      · cases p <;> simp only [moves_ofSets, Player.cases] <;> intro gp hgp
-        · exact (b gp hgp).dead_ending
-        · exact (c gp hgp).dead_ending
-  }
-  short_only _ h  := h.short
+    { short := ClosedUnderNeg.neg_iff.mpr h.short
+    , dead_ending := ClosedUnderNeg.neg_iff.mpr h.dead_ending
+    }
+  closed_dicotic B C _ _ hB hC hBnon hCnon hAmbient :=
+    { short := hAmbient
+    , dead_ending := by
+        unfold IsDeadEnding
+        apply And.intro <;> intro p
+        · cases p <;> intro h1 <;> simp only [isEnd_def, moves_ofSets, Player.cases] at h1
+          · simp only [h1, Set.not_nonempty_empty] at hBnon
+          · simp only [h1, Set.not_nonempty_empty] at hCnon
+        · cases p <;> simp only [moves_ofSets, Player.cases] <;> intro gp hgp
+          · exact (hB gp hgp).dead_ending
+          · exact (hC gp hgp).dead_ending
+    }
 
 end GameForm

@@ -13,38 +13,26 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
-open Form.Separation.ComparisonSet
 
 public section
 
 namespace Form
 
-namespace ShortUniverse
+namespace Separation.ComparisonSet
 
-theorem misereGE_iff_maintenance_proviso {U : G → Prop} [ShortUniverse U]
-    {g h : G} (h_g : IsShort g) (h_h : IsShort h) :
-    g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
-               Proviso U g h .right ∧ Proviso U h g .left := by
+theorem misereGE_iff_maintenance_proviso {A : G → Prop} [ComparisonSet A] [Hereditary A]
+    {g h : G} (h_g : IsAmbient A g) (h_h : IsAmbient A h) :
+    g ≥m A h ↔ Maintenance A g h .right ∧ Maintenance A g h .left ∧
+               Proviso A g h .right ∧ Proviso A h g .left := by
   constructor
   · intro h_ge
-    exact maintenance_proviso_of_misereGE h_g h_h h_ge
+    apply maintenance_proviso_of_misereGE
+    · exact h_g
+    · exact h_h
+    · exact h_ge
   · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
-    exact Hereditary.misereGE_of_maintenance_proviso U h_mghr h_mghl h_pghr h_pghl
+    exact Hereditary.misereGE_of_maintenance_proviso A h_mghr h_mghl h_pghr h_pghl
 
-end ShortUniverse
-
-namespace Universe
-
-theorem misereGE_iff_maintenance_proviso {U : G → Prop} [Universe U]
-    (g h : G) :
-    g ≥m U h ↔ Maintenance U g h .right ∧ Maintenance U g h .left ∧
-               Proviso U g h .right ∧ Proviso U h g .left := by
-  constructor
-  · intro h_ge
-    exact maintenance_proviso_of_misereGE trivial trivial h_ge
-  · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
-    exact Hereditary.misereGE_of_maintenance_proviso U h_mghr h_mghl h_pghr h_pghl
-
-end Universe
+end Separation.ComparisonSet
 
 end Form

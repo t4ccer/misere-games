@@ -20,26 +20,25 @@ public section
 class ClosedUnderSum (A : G → Prop) [Add G] where
   closed_sum (g h : G) (h1 : A g) (h2 : A h) : A (g + h)
 
-class ClosedUnderDicotic (A : G → Prop) where
-  closed_dicotic (B C : Set G) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
-    (HBnonempty : B.Nonempty) (HCnonempty : C.Nonempty)
-    [Small B] [Small C] : A (!{B | C} : G)
+class ClosedUnderDicotic (IsAmbient : G → Prop) (A : G → Prop) where
+  closed_dicotic (B C : Set G) [Small B] [Small C]
+      (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c) :
+    B.Nonempty → C.Nonempty → IsAmbient (!{B | C} : G) → A (!{B | C} : G)
 
-class ClosedUnderDicoticShort (A : G → Prop) where
-  closed_dicotic_short (B C : Set G) (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c)
-    (hBfin : B.Finite) (HBnonempty : B.Nonempty)
-    (hCfin : C.Finite) (HCnonempty : C.Nonempty) [Small B] [Small C] : A !{B | C}
+abbrev ClosedUnderLongDicotic (A : G → Prop) :=
+  ClosedUnderDicotic (fun _ => True) A
 
-class ShortUniverse (A : G → Prop) extends
-  ClosedUnderSum A, Hereditary A,
-  ClosedUnderNeg A, ClosedUnderDicoticShort A where
+abbrev ClosedUnderShortDicotic (A : G → Prop) :=
+  ClosedUnderDicotic IsShort A
+
+class Universe (IsAmbient : G → Prop) (A : G → Prop) extends
+    ClosedUnderSum A, Hereditary A, ClosedUnderNeg A, ClosedUnderDicotic IsAmbient A where
   zero_mem : A 0
-  short_only (g : G) (h1 : A g) : IsShort g
+  isAmbient_of_mem {g : G} : A g → IsAmbient g
 
-class Universe (A : G → Prop) extends
-  ClosedUnderSum A, Hereditary A,
-  ClosedUnderNeg A, ClosedUnderDicotic A where
-  zero_mem : A 0
+class LongUniverse (A : G → Prop) extends Universe (fun _ => True) A
+
+class ShortUniverse (A : G → Prop) extends Universe IsShort A
 
 namespace Form
 
