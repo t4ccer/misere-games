@@ -22,8 +22,7 @@ namespace LongUniverse
 
 variable {U : G → Prop} [LongUniverse U]
 
-instance : Separation.ComparisonSet.UniverseAdapter (fun _ => True) U where
-  toUniverse := inferInstance
+instance : Separation.UniverseAdapter (fun _ => True) U where
   isAmbient_hereditary := { has_option _ _ := trivial }
   isAmbient_closed_neg := { neg_of _ := trivial }
   isAmbient_adjoint _ := by

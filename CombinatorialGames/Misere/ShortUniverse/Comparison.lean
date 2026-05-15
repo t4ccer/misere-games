@@ -63,8 +63,7 @@ private lemma downlinkOptions_short {p : Player} {g h : G} {z : moves (-p) h →
     · simp [ha0]
     · simp [hend] at ha0
 
-instance : Separation.ComparisonSet.UniverseAdapter IsShort U where
-  toUniverse := inferInstance
+instance : Separation.UniverseAdapter IsShort U where
   isAmbient_hereditary := { has_option h_g hmove := Short.isOption h_g hmove }
   isAmbient_closed_neg := inferInstance
   isAmbient_adjoint := Adjoint.short_adjoint

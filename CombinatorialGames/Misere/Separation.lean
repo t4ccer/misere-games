@@ -85,7 +85,7 @@ abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
 /--
 If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be at least one of
 `LeftSeparating` and `RightSeparating`. When $\mathcal{A}$ is a universe,
-`leftSeparating_rightSeparating_of_not_misereGE` proves that in fact $G$ and
+`separating_pair_of_not_misereGE` proves that in fact $G$ and
 $H$ must always be both.
 -/
 lemma leftSeparating_or_rightSeparating_of_not_misereGE {A : G → Prop}
@@ -154,7 +154,7 @@ abbrev rightSeparatorLeftSet (h : G) : Set G :=
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
 Given forms $H$ and $X$, this constructs the form
 $\form<0,(H^\mathcal{R})^\circ>[X]$, which is used by
-`leftSeparating_rightSeparating_of_not_misereGE` to show that $G$ and $H$ must
+`separating_pair_of_not_misereGE` to show that $G$ and $H$ must
 be both `LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
 -/
 noncomputable abbrev rightSeparatorCandidate (h x : G) : G :=
@@ -361,33 +361,8 @@ lemma leftSeparating_of_rightSeparating_neg {A : G → Prop} [ClosedUnderNeg A]
   simpa using (leftSeparating_neg_of_rightSeparating h_right_sep)
 
 /--
-This is an interface used to show that $G\ge_\mathcal{U}H$ implies
-`Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`).
-
-The `IsAmbient` predicate dictates what game forms exist in the ambient space
-for comparison. For example, in a `ShortUniverse`, `IsAmbient` is
-`Form.IsShort`. We require the set of ambient forms to be `Form.Hereditary`.
-The final two fields assert that our separating and downlink constructions are
-always elements of `A`.
--/
-class ComparisonSet (A : G → Prop) where
-  IsAmbient : G → Prop
-  hereditary : Hereditary IsAmbient
-  separating_pair_of_not_misereGE {g h : G} :
-    IsAmbient g → IsAmbient h → ¬(g ≥m A h) →
-      LeftSeparating A g h ∧ RightSeparating A g h
-  downlinkWitness_mem {g h : G} {x : moves .left g → G} {y : moves .right h → G}
-    [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)] :
-    IsAmbient g → IsAmbient h → (∀ gl, A (x gl)) → (∀ hr, A (y hr)) →
-      A (downlinkWitness g h x y)
-
-attribute [instance] ComparisonSet.hereditary
-
-namespace ComparisonSet
-
-/--
 This adapter adds data to the structure of the ambient space of a `Universe` so
-that the required witnesses for `ComparisonSet` can be constructed.
+that the required witnesses for `separating_pair_of_not_misereGE` can be constructed.
 -/
 class UniverseAdapter (IsAmbient : outParam (G → Prop)) (A : G → Prop) extends
     Universe IsAmbient A where
@@ -403,8 +378,6 @@ class UniverseAdapter (IsAmbient : outParam (G → Prop)) (A : G → Prop) exten
 
 attribute [instance] UniverseAdapter.isAmbient_hereditary
 attribute [instance] UniverseAdapter.isAmbient_closed_neg
-
-namespace UniverseAdapter
 
 variable {IsAmbient A : G → Prop} [UniverseAdapter IsAmbient A]
 
@@ -524,32 +497,26 @@ theorem downlinkWitness_mem_of_comparison
       (fun gl => Universe.isAmbient_of_mem (hxA gl))
       (fun hr => Universe.isAmbient_of_mem (hyA hr))
 
-instance : ComparisonSet A where
-  IsAmbient := IsAmbient
-  hereditary := inferInstance
-  separating_pair_of_not_misereGE {g} {h} hg hh h_not_ge := by
-    cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
-    | inl h_left =>
-        refine ⟨h_left, ?_⟩
-        refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left
+theorem separating_pair_of_not_misereGE
+    {g h : G} (hg : IsAmbient g) (hh : IsAmbient h) (h_not_ge : ¬(g ≥m A h)) :
+    LeftSeparating A g h ∧ RightSeparating A g h := by
+  cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
+  | inl h_left =>
+      refine ⟨h_left, ?_⟩
+      refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left
+      intro x hx
+      exact rightSeparatorCandidate_mem_of_comparison hh hx
+  | inr h_right =>
+      refine ⟨?_, h_right⟩
+      have h_not_ge_neg : ¬((-h) ≥m A (-g)) := by
+        rwa [ClosedUnderNeg.neg_ge_neg_iff]
+      have h_left_sep_neg : LeftSeparating A (-h) (-g) :=
+        leftSeparating_neg_of_rightSeparating h_right
+      have h_right_sep_neg : RightSeparating A (-h) (-g) := by
+        refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep_neg
         intro x hx
-        exact rightSeparatorCandidate_mem_of_comparison hh hx
-    | inr h_right =>
-        refine ⟨?_, h_right⟩
-        have h_not_ge_neg : ¬((-h) ≥m A (-g)) := by
-          rwa [ClosedUnderNeg.neg_ge_neg_iff]
-        have h_left_sep_neg : LeftSeparating A (-h) (-g) :=
-          leftSeparating_neg_of_rightSeparating h_right
-        have h_right_sep_neg : RightSeparating A (-h) (-g) := by
-          refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left_sep_neg
-          intro x hx
-          exact rightSeparatorCandidate_mem_of_comparison (ClosedUnderNeg.neg_of hg) hx
-        exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
-  downlinkWitness_mem := downlinkWitness_mem_of_comparison
-
-end UniverseAdapter
-
-end ComparisonSet
+        exact rightSeparatorCandidate_mem_of_comparison (ClosedUnderNeg.neg_of hg) hx
+      exact leftSeparating_of_rightSeparating_neg h_right_sep_neg
 
 -- TODO: move this elsewhere
 private theorem maintenance_neg
@@ -615,19 +582,7 @@ theorem proviso_neg_iff
     have hp_neg : Proviso A (- -g) (- -h) (- -p) := by simpa using hp
     simpa using proviso_neg (g := -g) (h := -h) (p := -p) hp_neg
 
-namespace ComparisonSet
-
-/--
-If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be both `LeftSeparating` and
-`RightSeparating`. This generalises a result of [Siegel (Lemma 5.8 on p.
-214)][siegel:GeneralDeadendingUniverse:2025], which proved it only for short
-augmented forms and short universes.
--/
-lemma leftSeparating_rightSeparating_of_not_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : IsAmbient A g) (hh : IsAmbient A h) (h_not_ge : ¬(g ≥m A h)) :
-    LeftSeparating A g h ∧ RightSeparating A g h := by
-  exact separating_pair_of_not_misereGE hg hh h_not_ge
+variable {A IsAmbient : G → Prop} [UniverseAdapter IsAmbient A]
 
 /--
 If $\nexists G^L$ such that $G^L\ge_\mathcal{A}H$, and $\nexists H^R$ such that
@@ -637,8 +592,8 @@ This is a transfinite generalisation of one half of a result of [Siegel (Lemma
 5.10 on p. 214)][siegel:GeneralDeadendingUniverse:2025].
 -/
 lemma downlinked_of_not_exists_moves_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : IsAmbient A g) (hh : IsAmbient A h)
+    {g h : G}
+    (hg : IsAmbient g) (hh : IsAmbient h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m A h)
     (h_right : ¬∃ hr ∈ moves .right h, g ≥m A hr) :
     Downlinked A g h := by
@@ -649,7 +604,7 @@ lemma downlinked_of_not_exists_moves_misereGE
     have h_not_ge : ¬((gl : G) ≥m A h) := by
       intro hge
       exact h_left ⟨gl, gl.prop, hge⟩
-    exact (leftSeparating_rightSeparating_of_not_misereGE
+    exact (separating_pair_of_not_misereGE
       (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop)) hh h_not_ge).left
   have h_right_sep :
       ∀ hr : moves .right h, RightSeparating A g (hr : G) := by
@@ -657,7 +612,7 @@ lemma downlinked_of_not_exists_moves_misereGE
     have h_not_ge : ¬(g ≥m A (hr : G)) := by
       intro hge
       exact h_right ⟨hr, hr.prop, hge⟩
-    exact (leftSeparating_rightSeparating_of_not_misereGE
+    exact (separating_pair_of_not_misereGE
       hg (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop)) h_not_ge).right
   choose x hxA hxLose hxWin using h_left_sep
   choose y hyA hyWin hyLose using h_right_sep
@@ -674,7 +629,7 @@ lemma downlinked_of_not_exists_moves_misereGE
   haveI : Small.{u} L := inferInstance
   haveI : Small.{u} R := inferInstance
   have htA : A (downlinkWitness g h x y) :=
-    downlinkWitness_mem hg hh hxA hyA
+    downlinkWitness_mem_of_comparison hg hh hxA hyA
   exact downlinked_of_downlinkWitness_mem htA hxLose hxWin hyWin hyLose
 
 private lemma not_misereGE_of_right_left_outcomes
@@ -714,8 +669,7 @@ private lemma not_downlinked_right_option_of_misereGE
   exact not_misereGE_of_right_left_outcomes hge ht .right hgt hht_out
 
 private lemma maintenance_of_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G} (p : Player)
-    (hg : IsAmbient A g) (hh : IsAmbient A h) (hge : g ≥m A h) :
+    {g h : G} (p : Player) (hg : IsAmbient g) (hh : IsAmbient h) (hge : g ≥m A h) :
     Maintenance A g h p := by
   cases p
   · intro hl hhl
@@ -744,8 +698,8 @@ If $G\ge_\mathcal{A}H$, then $G$ and $H$ must satisfy both the
 `Form.Maintenance` and the `Form.Proviso`.
 -/
 theorem maintenance_proviso_of_misereGE
-    {A : G → Prop} [ComparisonSet A] {g h : G}
-    (hg : IsAmbient A g) (hh : IsAmbient A h) :
+    {g h : G}
+    (hg : IsAmbient g) (hh : IsAmbient h) :
     g ≥m A h →
       Maintenance A g h .right ∧ Maintenance A g h .left ∧
       Proviso A g h .right ∧ Proviso A h g .left := by
@@ -754,8 +708,6 @@ theorem maintenance_proviso_of_misereGE
     maintenance_of_misereGE .left hg hh hge,
     proviso_right_of_misereGE hge,
     proviso_left_of_misereGE hge⟩
-
-end ComparisonSet
 
 end Separation
 
