@@ -18,11 +18,10 @@ public section
 
 namespace Form
 
-namespace Separation
+namespace Separation.ComparisonSet
 
-theorem misereGE_iff_maintenance_proviso
-    {IsAmbient A : G → Prop} [UniverseAdapter IsAmbient A] [Hereditary A]
-    {g h : G} (h_g : IsAmbient g) (h_h : IsAmbient h) :
+theorem misereGE_iff_maintenance_proviso {A : G → Prop} [ComparisonSet A] [Hereditary A]
+    {g h : G} (h_g : IsAmbient A g) (h_h : IsAmbient A h) :
     g ≥m A h ↔ Maintenance A g h .right ∧ Maintenance A g h .left ∧
                Proviso A g h .right ∧ Proviso A h g .left := by
   constructor
@@ -34,6 +33,6 @@ theorem misereGE_iff_maintenance_proviso
   · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
     exact Hereditary.misereGE_of_maintenance_proviso A h_mghr h_mghl h_pghr h_pghl
 
-end Separation
+end Separation.ComparisonSet
 
 end Form
