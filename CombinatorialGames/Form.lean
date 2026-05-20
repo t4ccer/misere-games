@@ -241,9 +241,22 @@ theorem not_isEnd_exists_move {g : G} {p : Player}
   exact Set.subset_eq_empty h4 rfl
 
 @[simp]
-theorem not_mem_moves_of_isEnd {g gp : G} {p : Player} (h1 : IsEnd p g) : gp ∉ moves p g := by
+theorem not_mem_moves_of_isEnd {p : Player} {g gp : G} (h1 : IsEnd p g) : gp ∉ moves p g := by
   rw [isEnd_def] at h1
   simp [h1]
+
+theorem not_isEnd_of_mem_moves {p : Player} {g g' : G} (h1 : g' ∈ moves p g) : ¬IsEnd p g := by
+  rw [isEnd_def]
+  exact ne_of_mem_of_not_mem' h1 id
+
+@[aesop unsafe apply 50%]
+theorem not_isEnd_add_left {p : Player} {g h : G} (h_not_isEnd : ¬IsEnd p g) :
+    ¬IsEnd p (g + h) := by simp [h_not_isEnd]
+
+@[aesop unsafe apply 50%]
+theorem not_isEnd_add_right {p : Player} {g h : G} (h_not_isEnd : ¬IsEnd p h) :
+    ¬IsEnd p (g + h) := by simp [h_not_isEnd]
+
 
 theorem add_left_mem_moves_add {p : Player} {x y : G} (h : x ∈ moves p y) (z : G) :
     z + x ∈ moves p (z + y) := by
@@ -292,6 +305,22 @@ lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y �
   simp [IsOption, Moves.IsOption', Player.exists]
 
 @[simp] theorem not_isOption_zero (g : G) : ¬IsOption g 0 := by simp [IsOption, Moves.IsOption']
+
+private theorem isOption_zero_neg.aux  {g : G} (h_isOption : IsOption 0 (-g)) : IsOption 0 g := by
+  simp only [isOption_iff_mem_union, Player.le_left, moves_neg, Player.neg_left, Player.right_le,
+             Player.le_right_eq, Player.neg_right, Player.le_left_eq, Set.mem_union, Set.mem_neg,
+             neg_zero] at h_isOption
+  apply Or.elim h_isOption
+  · exact IsOption.of_mem_moves
+  · exact IsOption.of_mem_moves
+
+@[simp]
+theorem isOption_zero_neg_iff  {g : G} : IsOption 0 (-g) ↔ IsOption 0 g := by
+  constructor
+  · exact isOption_zero_neg.aux
+  · intro h_isOption
+    rw [<-neg_neg g] at h_isOption
+    exact isOption_zero_neg.aux h_isOption
 
 -- Casts
 
@@ -435,6 +464,10 @@ theorem mem_moves_add_one_iff_mem_moves {g : G} {p : Player} {n : ℕ}
 @[simp]
 theorem one_isEnd_right : IsEnd .right (1 : G) := by
   simp only [isEnd_def, rightMoves_one]
+
+@[simp]
+theorem not_isEnd_left_one : ¬IsEnd Player.left (1 : G) := by
+  simp only [isEnd_def, leftMoves_one, Set.singleton_ne_empty, not_false_eq_true]
 
 @[simp]
 theorem natCast_isEnd_right (n : ℕ) : IsEnd .right (n : G) := by

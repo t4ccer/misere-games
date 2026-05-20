@@ -40,7 +40,7 @@ private theorem not_left_wins_of_birthday_lt (g : GameForm) (b : ℕ) (h1 : birt
   constructor
   · intro h2
     rw [GameForm.isEndLike_iff_isEnd] at h2
-    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm) := by simp [isEnd_def]
+    have h4 : ¬IsEnd .left ((k + 1 : ℕ) : GameForm.{u_1}) := by simp
     exact h4 (by simpa [hk] using (IsEnd.add_iff.mp h2).right)
   · intro gl h2
     rw [moves_add] at h2

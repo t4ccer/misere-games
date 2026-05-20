@@ -384,4 +384,26 @@ theorem zero_not_both_end {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsEnd
     ¬IsEnd (-p) g :=
   fun h3 => h1 (both_ends_eq_zero h2 h3)
 
+theorem isOption_zero_add_iff {g h : GameForm} :
+    IsOption 0 (g + h) ↔ (IsOption 0 g ∧ h = 0) ∨ (IsOption 0 h ∧ g = 0) := by
+  constructor
+  · intro h1
+    simp only [isOption_iff_mem_union, moves_add, Set.mem_union,
+               Set.mem_image, add_eq_zero_iff, ↓existsAndEq, true_and, exists_eq_right_right] at h1
+    simp only [isOption_iff_mem_union, Set.mem_union]
+    apply Or.elim3 h1
+    · intro h2
+      apply Or.elim h2
+      · intro ⟨gl, h0⟩
+        exact Or.inl ⟨Or.inl gl, h0⟩
+      · intro ⟨hl, g0⟩
+        exact Or.inr ⟨Or.inl hl, g0⟩
+    · intro ⟨gr, h0⟩
+      exact Or.inl ⟨Or.inr gr, h0⟩
+    · intro ⟨hr, g0⟩
+      exact Or.inr ⟨Or.inr hr, g0⟩
+  · rintro (⟨h_isOption_zero_g, h_h_zero⟩ | ⟨h_isOption_zero_h, h_g_zero⟩)
+    · rwa [h_h_zero, add_zero]
+    · rwa [h_g_zero, zero_add]
+
 end GameForm

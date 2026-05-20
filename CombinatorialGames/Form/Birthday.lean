@@ -148,6 +148,7 @@ theorem birthday_intCast (k : ℤ) : birthday (k : G) = k.natAbs := by
 open Lean Meta Elab Tactic in
 elab "gameform_birthday" : tactic => do
   Lean.Elab.Tactic.withMainContext do
+    -- TODO: Also generate proofs from IsOption g' g and Subposition g' g
     -- From (g' ∈ moves p g) generate proofs for (birthday g' < birthday g)
     let lctx ← getLCtx
     for h in lctx do
