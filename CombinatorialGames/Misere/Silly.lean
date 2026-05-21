@@ -7,6 +7,7 @@ module
 
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Misere.PFree
 
 universe u
 
@@ -513,7 +514,7 @@ theorem hasStride_winsGoingFirst_iff {p : Player} {g : GameForm} {l r : ℕ}
 /--
 If game has both strides then they determine the winner
 -/
-theorem hasStride_misereOutcome_iff {p : Player} {g : GameForm} {l r : ℕ}
+theorem hasStride_misereOutcome_iff_lt {p : Player} {g : GameForm} {l r : ℕ}
     (h_l : HasStride p g l) (h_r : HasStride (-p) g r) :
     (MisereOutcome g = Outcome.ofPlayer p) ↔ l < r := by
   rw [misereOutcome_eq_player_iff]
@@ -528,3 +529,50 @@ theorem hasStride_misereOutcome_iff {p : Player} {g : GameForm} {l r : ℕ}
     rw [<-neg_neg p] at h_l
     rw [(hasStride_winsGoingFirst_iff h_r h_l).not]
     exact Nat.not_le_of_lt h_lt
+
+/--
+If game has both strides then they determine the winner
+-/
+theorem hasStride_misereOutcome_iff_eq {p : Player} {g : GameForm} {l r : ℕ}
+    (h_l : HasStride p g l) (h_r : HasStride (-p) g r) :
+    (MisereOutcome g = .N) ↔ l = r := by
+  rw [misereOutcome_N_iff_winsGoingFirst]
+  cases p
+  · rw [hasStride_winsGoingFirst_iff h_l h_r]
+    rw [<-neg_neg Player.left] at h_l
+    rw [<-Player.neg_left, hasStride_winsGoingFirst_iff h_r h_l]
+    exact Std.le_antisymm_iff
+  · rw [hasStride_winsGoingFirst_iff h_l h_r]
+    rw [<-neg_neg Player.right] at h_l
+    rw [<-Player.neg_right, hasStride_winsGoingFirst_iff h_r h_l]
+    exact Iff.symm ge_antisymm_iff
+
+/--
+If game has both strides then it is P-free
+-/
+theorem hasStride_isPFree {p : Player} {g : GameForm} {l r : ℕ}
+    (h_l : HasStride p g l) (h_r : HasStride (-p) g r) : IsPFree g := by
+  unfold IsPFree
+  constructor
+  · obtain h_lt | h_eq | h_gt := Nat.lt_trichotomy l r
+    · rw [(hasStride_misereOutcome_iff_lt h_l h_r).mpr h_lt]
+      cases p <;> simp
+    · rw [(hasStride_misereOutcome_iff_eq h_l h_r).mpr h_eq]
+      simp only [ne_eq, reduceCtorEq, not_false_eq_true]
+    · rw [<-neg_neg p] at h_l
+      rw [(hasStride_misereOutcome_iff_lt h_r h_l).mpr h_gt]
+      cases p <;> simp
+  · intro q g' h_g'_mem
+    by_cases h_pq : p = q
+    · subst h_pq
+      have ⟨_, _, h_l'⟩ := hasStride_of_mem_moves h_l h_g'_mem
+      rw [<-neg_neg p] at h_g'_mem
+      have h_r' := hasStride_of_mem_moves_neg h_r h_g'_mem
+      exact hasStride_isPFree h_l' h_r'
+    · simp only [Player.ne_iff_eq_neg] at h_pq; subst h_pq
+      rw [<-neg_neg q] at h_g'_mem
+      have ⟨_, _, h_r'⟩ := hasStride_of_mem_moves (g' := g') h_r h_g'_mem
+      have h_l' := hasStride_of_mem_moves_neg (g' := g') h_l h_g'_mem
+      exact hasStride_isPFree h_l' h_r'
+termination_by g
+decreasing_by form_wf
