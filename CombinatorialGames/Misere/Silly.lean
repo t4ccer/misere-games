@@ -8,6 +8,7 @@ module
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
+public import CombinatorialGames.AdditiveClosure
 
 universe u
 
@@ -17,6 +18,7 @@ namespace GameForm
 
 open Form
 open Form.Misere.Outcome
+open Ruleset
 
 /--
 Intuitively a position is solved for a given player if they win no matter what they do
@@ -27,6 +29,15 @@ def IsSolved (p : Player) (g : GameForm) : Prop :=
   ∧ (∀ gp, IsOption gp g → IsSolved p gp)
 termination_by g
 decreasing_by form_wf
+
+theorem isSolved_def (p : Player) (g : GameForm) :
+  IsSolved p g ↔
+    ((IsOption 0 g → 0 ∉ moves p g)
+    ∧ (g ≠ 0 → ¬IsEnd (-p) g)
+    ∧ (∀ gp, IsOption gp g → IsSolved p gp)) := by
+  constructor
+  · intro h; unfold IsSolved at h; exact h
+  · intro h; unfold IsSolved; exact h
 
 theorem isSolved_zero_not_mem {p : Player} {g : GameForm}
     (h_isSolved : IsSolved p g) (h_isOption : IsOption 0 g) :
@@ -742,5 +753,40 @@ theorem hasStride_isPFree {p : Player} {g : GameForm} {l r : ℕ}
       exact hasStride_isPFree h_l' h_r'
 termination_by g
 decreasing_by form_wf
+
+class Strided (A : GameForm → Prop) where
+  mk_with_stride (p : Player) (n : ℕ) : ∃ g, A g ∧ GameForm.HasStride p g n
+  has_stride (p : Player) {g : GameForm} (h_g : A g) : ∃ n, GameForm.HasStride p g n
+
+theorem mk_with_stride_choose {A : GameForm → Prop} [Strided A] {p : Player} {n : ℕ} :
+    A (Strided.mk_with_stride (A := A) p n).choose := by
+  grind only [Exists.choose_spec]
+
+theorem has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g : GameForm}
+    (stride : R → Player → ℕ)
+    (hasStride : (r : R) → (p : Player) → GameForm.HasStride p (Ruleset.toGameForm r) (stride r p))
+    (h_g : AdditiveClosure R g)
+    : ∃ n, GameForm.HasStride p g n := by
+  rw [additiveClosure_iff] at h_g
+  obtain ⟨b, h_r⟩ | ⟨x, y, hx, hy, hxy, hax, hay⟩ := h_g
+  · have := hasStride b p
+    use stride b p
+    rwa [h_r]
+  · have ⟨a, ha⟩ := has_stride_aux p stride hasStride hax
+    have ⟨a', ha'⟩ := has_stride_aux (-p) stride hasStride hax
+    have ⟨b, hb⟩ := has_stride_aux p stride hasStride hay
+    have ⟨b', hb'⟩ := has_stride_aux (-p) stride hasStride hay
+    use a + b
+    rw [hxy]
+    exact GameForm.hasStride_add ha hb ha' hb'
+termination_by Form.birthday g
+decreasing_by
+  all_goals
+  · subst hxy
+    simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right]
+    by_contra h_absurd
+    simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd
+    absurd h_absurd
+    assumption
 
 end GameForm

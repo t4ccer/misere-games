@@ -1,5 +1,6 @@
 module
 
+public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
@@ -29,3 +30,5 @@ public import CombinatorialGames.Misere.Universe
 public import CombinatorialGames.OfSets
 public import CombinatorialGames.Outcome
 public import CombinatorialGames.Player
+public import CombinatorialGames.Ruleset
+public import CombinatorialGames.Ruleset.Shove
