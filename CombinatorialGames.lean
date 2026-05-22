@@ -23,6 +23,7 @@ public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
+public import CombinatorialGames.Misere.Quotient
 public import CombinatorialGames.Misere.Separation
 public import CombinatorialGames.Misere.Silly
 public import CombinatorialGames.Misere.TippingPoints
