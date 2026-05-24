@@ -809,6 +809,36 @@ theorem AdditiveClosure.mk_with_strides_aux {A : GameForm → Prop}
   · have := hasStride_add ht₁_r ht₂_r ht₁_l ht₂_l
     simpa only [zero_add] using this
 
+private theorem AdditiveClosure.has_stride.aux {A : GameForm → Prop} [Strided A]
+    (p : Player) (g : GameForm) (h_g : AdditiveClosure A g) : ∃ n, HasStride p g n := by
+  rw [additiveClosure_iff] at h_g
+  obtain h_g | ⟨x, y, h_x, h_y, h_xy, h_Ax, h_Ay⟩ := h_g
+  · exact Strided.has_stride p h_g
+  · have ⟨a, ha⟩ := has_stride.aux p x h_Ax
+    have ⟨a', ha'⟩ := has_stride.aux (-p) x h_Ax
+    have ⟨b, hb⟩ := has_stride.aux p y h_Ay
+    have ⟨b', hb'⟩ := has_stride.aux (-p) y h_Ay
+    use a + b
+    rw [h_xy]
+    exact hasStride_add ha hb ha' hb'
+termination_by birthday g
+decreasing_by
+  all_goals
+  · subst h_xy
+    simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right]
+    by_contra h_absurd
+    simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd
+    absurd h_absurd
+    assumption
+
+instance {A : GameForm → Prop} [Strided A] : Strided (AdditiveClosure A) where
+  mk_with_strides l r := by
+    have ⟨g, h1, h2, h3⟩ := Strided.mk_with_strides (A := A) l r
+    use g
+    rw [additiveClosure_iff]
+    exact ⟨Or.inl h1, h2, h3⟩
+  has_stride := AdditiveClosure.has_stride.aux
+
 section Quotients
 
 variable {A : GameForm → Prop} [Strided A]
