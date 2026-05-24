@@ -5,7 +5,6 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Ruleset
 public import CombinatorialGames.Misere.Hereditary
 import CombinatorialGames.GameForm.Birthday
 
@@ -16,14 +15,12 @@ public section
 class ClosedUnderAdd (A : GameForm → Prop) where
   has_add (g h : GameForm) (h_g : A g) (h_h : A h) : A (g + h)
 
-namespace Ruleset
-
 open Form
 
 set_option linter.unusedVariables false in -- Used in the terminaton proof
-def AdditiveClosure (R : Type u) [Ruleset R] (g : GameForm) : Prop :=
-  (∃ (b : R), g = Ruleset.toGameForm b)
-  ∨ (∃ x y, ∃ (h : x ≠ 0 ∧ y ≠ 0 ∧ g = x + y), AdditiveClosure R x ∧ AdditiveClosure R y)
+def AdditiveClosure (A : GameForm → Prop) (g : GameForm) : Prop :=
+  A g
+  ∨ (∃ x y, ∃ (h : x ≠ 0 ∧ y ≠ 0 ∧ g = x + y), AdditiveClosure A x ∧ AdditiveClosure A y)
 termination_by Form.birthday g
 decreasing_by
   · obtain ⟨_, h2, h3⟩ := h
@@ -37,13 +34,11 @@ decreasing_by
     by_contra h4; simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h4
     exact h1 h4
 
-variable {R : Type u} [Ruleset R]
+variable {A : GameForm → Prop}
 
 theorem additiveClosure_iff {g : GameForm} :
-    AdditiveClosure R g ↔
-    (∃ (b : R), g = Ruleset.toGameForm b)
-    ∨ (∃ x y, x ≠ 0 ∧ y ≠ 0 ∧ g = x + y ∧ AdditiveClosure R x ∧ AdditiveClosure R y)
-  := by
+    AdditiveClosure A g ↔
+    A g ∨ (∃ x y, x ≠ 0 ∧ y ≠ 0 ∧ g = x + y ∧ AdditiveClosure A x ∧ AdditiveClosure A y) := by
   constructor
   · intro h; unfold AdditiveClosure at h;
     obtain h1 | ⟨x, y, ⟨hx, hy, hxy⟩, hax, hay⟩ := h
@@ -56,42 +51,25 @@ theorem additiveClosure_iff {g : GameForm} :
     · apply Or.inr
       use x, y
 
-instance : ClosedUnderAdd (AdditiveClosure R) where
+instance : ClosedUnderAdd (AdditiveClosure A) where
   has_add g h h_g h_h := by
-    rw [additiveClosure_iff] at h_g h_h ⊢
     by_cases h_g_zero : g = 0
     · subst h_g_zero; rw [zero_add]
-      by_cases h_h_zero : h = 0
-      · subst h_h_zero
-        apply Or.inl
-        have ⟨r, hr⟩ := Ruleset.has_zero (R := R)
-        use r
-        exact hr.symm
-      · obtain ⟨rh, h_h⟩ | ⟨x', y', hx', hy', hxy', hax', hay'⟩ := h_h
-        · apply Or.inl; use rh
-        · apply Or.inr; use x', y'
+      exact h_h
     · by_cases h_h_zero : h = 0
       · subst h_h_zero; rw [add_zero]
-        obtain ⟨rg, h_g⟩ | ⟨x, y, hx, hy, hxy, hax, hay⟩ := h_g
-        · apply Or.inl; use rg
-        · apply Or.inr; use x, y
-      · apply Or.inr
-        rw [<-additiveClosure_iff] at h_g h_h
+        exact h_g
+      · rw [additiveClosure_iff]
+        apply Or.inr
         use g, h
 
-private theorem has_option' {g g' : GameForm} (h_g : AdditiveClosure R g) (h_g' : IsOption g' g) :
-    AdditiveClosure R g' := by
+private theorem has_option' [Hereditary A] {g g' : GameForm} (h_g : AdditiveClosure A g) (h_g' : IsOption g' g) :
+    AdditiveClosure A g' := by
   rw [additiveClosure_iff] at h_g
-  obtain ⟨b, h_b⟩ | ⟨a, b, ha, hb, hab, ha_closure, hb_closure⟩ := h_g
+  obtain h_g | ⟨a, b, ha, hb, hab, ha_closure, hb_closure⟩ := h_g
   · rw [additiveClosure_iff]
     apply Or.inl
-    simp only [isOption_iff_mem_union, Set.mem_union] at h_g'
-    subst h_b
-    obtain h_l | h_r := h_g'
-    · have ⟨r', h_r'⟩ := Ruleset.moves_toGameForm .left b _ h_l
-      use r', h_r'.symm
-    · have ⟨r', h_r'⟩ := Ruleset.moves_toGameForm .right b _ h_r
-      use r', h_r'.symm
+    exact Hereditary.has_option h_g h_g'
   · simp [isOption_iff_mem_union, hab] at h_g'
     obtain (⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩) | ⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩ := h_g'
     · subst h_xh
@@ -116,8 +94,5 @@ decreasing_by
     absurd h_absurd
     assumption
 
-instance : Hereditary (AdditiveClosure R) where
+instance [Hereditary A] : Hereditary (AdditiveClosure A) where
   has_option := has_option'
-
-end Ruleset
-

@@ -5,13 +5,14 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.GameGraph
-public import CombinatorialGames.Misere.Silly
-public import CombinatorialGames.Ruleset
-public import CombinatorialGames.AdditiveClosure
-public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-public import Mathlib.Tactic
+public import CombinatorialGames.Misere.Stride
+import Mathlib.Algebra.BigOperators.Intervals
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Tactic.IntervalCases
+import Mathlib.Tactic.Cases
+
+open GameForm
 
 public section
 
@@ -117,12 +118,8 @@ theorem mem_moves_iff (p : Player) (s s' : Shove) :
   · rintro ⟨n, hn, rfl⟩; exact ⟨n, hn, rfl⟩
   · rintro ⟨n, hn, rfl⟩; exact ⟨n, hn, rfl⟩
 
-end Shove
-
-def GameGraph.shove : GameGraph Shove where
+def _root_.GameGraph.shove : GameGraph Shove where
   moves := Shove.moves
-
-namespace Shove
 
 /-! ### Weight measure for well-foundedness -/
 
@@ -503,9 +500,10 @@ theorem push_to_empty_is_neg (g : Shove) (p : Player) {m : ℕ}
     g.board m = .ofPlayer (-p) := by
   have h_m_eq_rightmostPos : m = g.rightmostPos := by
     refine' le_antisymm ( Shove.rightmostPos_greatest _ hm_piece ) _;
-    contrapose! h_empty;
-    use g.rightmostPos;
-    convert rightmostPos_spec g ( by linarith [ Shove.rightmostPos_le g ] ) hm_piece using 1;
+    contrapose! h_empty
+    use g.rightmostPos
+    have := Shove.rightmostPos_le g
+    convert rightmostPos_spec g (by omega) hm_piece using 1
     exact push_on_gt g h_empty
   cases p <;> cases h : g.board m <;> simp_all +decide [ Shove.stride ]
 
@@ -672,14 +670,14 @@ noncomputable instance : Ruleset Shove where
     obtain ⟨r', _, h_r'⟩ := h_g'
     use r'
 
-instance : GameForm.Strided (Ruleset.AdditiveClosure Shove) where
-  mk_with_stride p n := by
+private def mk_with_stride (p : Player) (n : ℕ) :
+    ∃ g, Ruleset.Forms Shove g ∧ HasStride p g n ∧ HasStride (-p) g 0 := by
     match n with
     | 0 =>
       use 0
       constructor
-      · rw [Ruleset.additiveClosure_iff]
-        exact Or.inl ⟨Shove.zero, Shove.zero_toGameForm.symm⟩
+      · rw [<-Shove.zero_toGameForm]
+        exact Ruleset.Forms.position_mem Shove.zero
       · simp only [GameForm.hasStride_zero_iff, GameForm.isSolved_zero, and_self]
     | n + 1 =>
       let s: Shove :=
@@ -702,10 +700,7 @@ instance : GameForm.Strided (Ruleset.AdditiveClosure Shove) where
         subst s
         grind only
       refine ⟨?_, ?_, ?_⟩
-      · rw [Ruleset.additiveClosure_iff]
-        apply Or.inl
-        use s
-        simp only [Ruleset.toGameForm]
+      · exact Ruleset.Forms.position_mem s
       · convert toGameForm_hasStride s p
         subst s
         simp only [Shove.stride, beq_iff_eq, ite_eq_left_iff, Piece.none_ne_ofPlayer, imp_false]
@@ -718,12 +713,15 @@ instance : GameForm.Strided (Ruleset.AdditiveClosure Shove) where
         · simp [Piece.ofPlayer]
           cases p <;> simp only [reduceCtorEq, not_false_eq_true]
         · exact Piece.none_ne_ofPlayer (-p)
-  has_stride p := GameForm.has_stride_aux p Shove.stride Shove.toGameForm_hasStride
 
-protected noncomputable def equivInt : MisereQuotient (Ruleset.AdditiveClosure Shove) ≃ ℤ :=
+instance : GameForm.Strided (AdditiveClosure (Ruleset.Forms Shove)) where
+  mk_with_strides l r := AdditiveClosure.mk_with_strides_aux Shove.mk_with_stride l r
+  has_stride p := AdditiveClosure.has_stride_aux p Shove.stride Shove.toGameForm_hasStride
+
+protected noncomputable def equivInt : MisereQuotient (AdditiveClosure (Ruleset.Forms Shove)) ≃ ℤ :=
   GameForm.MisereQuotient.stridedEquivInt
 
-protected theorem le_iff_equiv_ge (a b : MisereQuotient (Ruleset.AdditiveClosure Shove)) :
+protected theorem le_iff_equiv_ge (a b : MisereQuotient (AdditiveClosure (Ruleset.Forms Shove))) :
     a ≤ b ↔
     GameForm.MisereQuotient.stridedEquivInt a ≥ GameForm.MisereQuotient.stridedEquivInt b :=
     GameForm.MisereQuotient.le_iff_equiv_ge a b

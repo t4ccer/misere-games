@@ -10,6 +10,7 @@ public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.Quotient
 public import CombinatorialGames.AdditiveClosure
+public import CombinatorialGames.Ruleset
 
 universe u
 
@@ -762,22 +763,19 @@ termination_by g
 decreasing_by form_wf
 
 class Strided (A : GameForm → Prop) where
-  mk_with_stride (p : Player) (n : ℕ) : ∃ g, A g ∧ HasStride p g n ∧ HasStride (-p) g 0
+  mk_with_strides (l r : ℕ) : ∃ g, A g ∧ HasStride .left g l ∧ HasStride .right g r
   has_stride (p : Player) {g : GameForm} (h_g : A g) : ∃ n, GameForm.HasStride p g n
 
-theorem mk_with_stride_choose {A : GameForm → Prop} [Strided A] {p : Player} {n : ℕ} :
-    A (Strided.mk_with_stride (A := A) p n).choose := by
-  grind only [Exists.choose_spec]
-
-theorem has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g : GameForm}
+theorem AdditiveClosure.has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g : GameForm}
     (stride : R → Player → ℕ)
     (hasStride : (r : R) → (p : Player) → GameForm.HasStride p (Ruleset.toGameForm r) (stride r p))
-    (h_g : AdditiveClosure R g)
+    (h_g : AdditiveClosure (Ruleset.Forms R) g)
     : ∃ n, GameForm.HasStride p g n := by
   rw [additiveClosure_iff] at h_g
-  obtain ⟨b, h_r⟩ | ⟨x, y, hx, hy, hxy, hax, hay⟩ := h_g
-  · have := hasStride b p
-    use stride b p
+  obtain h_g | ⟨x, y, hx, hy, hxy, hax, hay⟩ := h_g
+  · obtain ⟨r, h_r⟩ := Ruleset.Forms.exists h_g
+    have := hasStride r p
+    use stride r p
     rwa [h_r]
   · have ⟨a, ha⟩ := has_stride_aux p stride hasStride hax
     have ⟨a', ha'⟩ := has_stride_aux (-p) stride hasStride hax
@@ -796,26 +794,24 @@ decreasing_by
     absurd h_absurd
     assumption
 
+theorem AdditiveClosure.mk_with_strides_aux {A : GameForm → Prop}
+    (mk_stride_other_zero : (p : Player) → (n : ℕ) → ∃ g, A g ∧ HasStride p g n ∧ HasStride (-p) g 0)
+    (l r : ℕ) :
+    ∃ t, AdditiveClosure A t ∧ HasStride .left t l ∧ HasStride .right t r := by
+  obtain ⟨t₁, ht₁_A, ht₁_l, ht₁_r⟩ := mk_stride_other_zero .left l
+  have ht₁_A' := additiveClosure_iff.mpr (Or.inl ht₁_A)
+  obtain ⟨t₂, ht₂_A, ht₂_r, ht₂_l⟩ := mk_stride_other_zero .right r
+  have ht₂_A' := additiveClosure_iff.mpr (Or.inl ht₂_A)
+  use t₁ + t₂
+  refine ⟨ClosedUnderAdd.has_add _ _ ht₁_A' ht₂_A', ?_, ?_⟩
+  · have := hasStride_add ht₁_l ht₂_l ht₁_r ht₂_r
+    simpa only [add_zero] using this
+  · have := hasStride_add ht₁_r ht₂_r ht₁_l ht₂_l
+    simpa only [zero_add] using this
+
 section Quotients
 
-variable {A : GameForm → Prop} [Strided A] [ClosedUnderAdd A]
-
-/--
-Helper: construct a game in `A` with left stride `a` and right stride `b`,
-using `mk_with_stride .left a` (left stride `a`, right stride `0`) and
-`mk_with_stride .right b` (right stride `b`, left stride `0`), then summing them.
--/
-theorem mk_with_strides
-    (a b : ℕ) : ∃ t, A t ∧ HasStride .left t a ∧ HasStride .right t b := by
-  obtain ⟨t₁, ht₁_A, ht₁_l, ht₁_r⟩ := Strided.mk_with_stride (A := A) .left a
-  obtain ⟨t₂, ht₂_A, ht₂_r, ht₂_l⟩ := Strided.mk_with_stride (A := A) .right b
-  refine ⟨t₁ + t₂, ClosedUnderAdd.has_add _ _ ht₁_A ht₂_A, ?_, ?_⟩
-  · -- left stride: a + 0 = a
-    have := hasStride_add ht₁_l ht₂_l ht₁_r ht₂_r
-    simpa using this
-  · -- right stride: 0 + b = b
-    have := hasStride_add ht₁_r ht₂_r ht₁_l ht₂_l
-    simpa using this
+variable {A : GameForm → Prop} [Strided A]
 
 theorem stride_diff_eq_of_misereEQ
     {g h : GameForm}
@@ -827,7 +823,7 @@ theorem stride_diff_eq_of_misereEQ
   -- Construct a test game t with left stride rg and right stride ng.
   -- Then g + t has equal left and right strides (both ng + rg), giving outcome N.
   -- Since g =m A h, h + t also has outcome N, forcing nh + rg = rh + ng.
-  obtain ⟨t, ht_A, ht_l, ht_r⟩ := mk_with_strides (A := A) rg ng
+  obtain ⟨t, ht_A, ht_l, ht_r⟩ := Strided.mk_with_strides (A := A) rg ng
   have h_outcome_g : MisereOutcome (g + t) = .N := by
     rw [(hasStride_misereOutcome_iff_eq
       (hasStride_add h_ng ht_l h_rg ht_r)
@@ -840,7 +836,6 @@ theorem stride_diff_eq_of_misereEQ
     (hasStride_add h_rh ht_r h_nh ht_l))] at h_eq_t
   omega
 
-omit [ClosedUnderAdd A] in
 /-
 Two games with the same stride difference are misère equivalent.
 -/
@@ -883,7 +878,6 @@ theorem misereEQ_iff_stride_diff_eq
   ⟨fun heq => stride_diff_eq_of_misereEQ (A := A) h_g h_h heq h_ng h_rg h_nh h_rh,
    fun hdiff => misereEQ_of_stride_diff_eq h_ng h_rg h_nh h_rh hdiff⟩
 
-omit [ClosedUnderAdd A] in
 /-
 If the stride difference of g is ≤ that of h (as integers), then g ≥m A h.
 Lower stride diff means better for Left, so higher MisereOutcome.
@@ -932,7 +926,6 @@ theorem misereGE_of_stride_diff_le
   · omega
   · omega
 
-omit [ClosedUnderAdd A] in
 /--
 The misère quotient of a strided class is totally ordered.
 This follows from the fact that the ordering is determined by stride differences.
@@ -957,7 +950,6 @@ noncomputable def Strided.strideDiff
   ((Strided.has_stride (A := A) .left hg).choose : ℤ) -
   ((Strided.has_stride (A := A) .right hg).choose : ℤ)
 
-omit [ClosedUnderAdd A] in
 /--
 The stride difference is well-defined regardless of which stride witnesses are used.
 -/
@@ -968,12 +960,12 @@ theorem strideDiff_eq
   unfold Strided.strideDiff
   have h1 := hasStride_unique (Strided.has_stride (A := A) .left hg).choose_spec hl
   have h2 := hasStride_unique (Strided.has_stride (A := A) .right hg).choose_spec hr
-  omega
+  rw [h1, h2]
 
 /--
 Misère equivalent games have the same stride difference.
 -/
-theorem Strided.strideDiff_eq_of_misereEQ'
+theorem Strided.strideDiff_eq_of_misereEQ
     {g h : GameForm} (hg : A g) (hh : A h) (heq : g =m A h) :
     Strided.strideDiff g hg = Strided.strideDiff h hh := by
   obtain ⟨lg, hlg⟩ := Strided.has_stride (A := A) .left hg
@@ -991,7 +983,7 @@ noncomputable def MisereQuotient.strideDiff : MisereQuotient A → ℤ := by
   apply Quotient.lift (fun (g : {g : GameForm // A g}) => Strided.strideDiff g g.prop)
   intro g h heq
   unfold MisereSetoid at heq
-  exact Strided.strideDiff_eq_of_misereEQ' g.prop h.prop heq
+  exact Strided.strideDiff_eq_of_misereEQ g.prop h.prop heq
 
 theorem MisereQuotient.strideDiff_mk (g : GameForm) (hg : A g) :
     strideDiff (MisereQuotient.mk A g hg) = Strided.strideDiff g hg := by
@@ -1031,7 +1023,7 @@ theorem MisereQuotient.strideDiff_surjective : Function.Surjective (strideDiff (
       use 0, n + 1
       simp only [Int.negSucc_eq, neg_add_rev, Int.reduceNeg, Nat.cast_zero, Nat.cast_add,
                  Nat.cast_one, zero_sub]
-  obtain ⟨t, ht_A, ht_l, ht_r⟩ := mk_with_strides (A := A) n m
+  obtain ⟨t, ht_A, ht_l, ht_r⟩ := Strided.mk_with_strides (A := A) n m
   use Form.MisereQuotient.mk A t ht_A
   rw [MisereQuotient.strideDiff_mk]
   exact strideDiff_eq ht_l ht_r

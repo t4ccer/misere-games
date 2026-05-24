@@ -25,7 +25,7 @@ public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.Quotient
 public import CombinatorialGames.Misere.Separation
-public import CombinatorialGames.Misere.Silly
+public import CombinatorialGames.Misere.Stride
 public import CombinatorialGames.Misere.TippingPoints
 public import CombinatorialGames.Misere.Universe
 public import CombinatorialGames.OfSets
