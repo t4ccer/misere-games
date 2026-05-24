@@ -19,7 +19,7 @@ universe u
 
 variable {G : Type (u + 1)} [Form G]
 
-def MisereSetoid (A : G → Prop) : Setoid {g : G // A g} :=
+@[expose] def MisereSetoid (A : G → Prop) : Setoid {g : G // A g} :=
   ⟨ fun g h => MisereEQ A g h
   , fun _ ↦ MisereEQ.symm fun _ ↦ congrFun rfl
   , MisereEQ.symm
@@ -30,7 +30,7 @@ def MisereSetoid (A : G → Prop) : Setoid {g : G // A g} :=
 
 namespace Form.MisereQuotient
 
-def mk (A : G → Prop) (x : G) (h1 : A x) : MisereQuotient A := Quotient.mk (MisereSetoid A) ⟨x, h1⟩
+@[expose] def mk (A : G → Prop) (x : G) (h1 : A x) : MisereQuotient A := Quotient.mk (MisereSetoid A) ⟨x, h1⟩
 
 @[no_expose] def out {A : G → Prop} (x : MisereQuotient (A := A)) : {g : G // A g} := Quotient.out x
 

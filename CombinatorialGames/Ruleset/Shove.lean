@@ -13,6 +13,10 @@ public import CombinatorialGames.AdditiveClosure
 public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Tactic
 
+public section
+
+namespace Shove
+
 /-!
 # Shove
 
@@ -51,6 +55,8 @@ theorem Piece.ne_none_of_ofPlayer {p : Player} {x : Piece} (h : x = Piece.ofPlay
   rw [h]
   exact ofPlayer_ne_none p
 
+end Shove
+
 /--
 Shove position is encoded as a function from position on a strip (leftmost one being 0) to the piece
 that is at that position.
@@ -59,7 +65,7 @@ Boards must have finite support (only finitely many occupied squares) for the ga
 well-founded.
 -/
 structure Shove where
-  board : ℕ → Piece
+  board : ℕ → Shove.Piece
   finite_support : ∃ N, ∀ n, N ≤ n → board n = .none
 
 namespace Shove
@@ -67,11 +73,6 @@ namespace Shove
 @[ext]
 theorem ext {s t : Shove} (h : ∀ n, s.board n = t.board n) : s = t := by
   cases s; cases t; simp only [mk.injEq]; funext n; exact h n
-
-protected def on (s : Shove) (n : ℕ) : Piece := s.board n
-
-@[simp]
-theorem on_eq_board (s : Shove) (n : ℕ) : s.on n = s.board n := rfl
 
 /--
 Push piece at position `n`: everything at positions 0..n shifts one square to the left.
@@ -94,24 +95,24 @@ def push_on (s : Shove) (n : ℕ) : Shove where
 @[simp]
 theorem push_on_lt (s : Shove) {n i : ℕ} (h : i < n) :
     (s.push_on n).board i = s.board (i + 1) := by
-  unfold push_on; simp [h]
+  unfold push_on; simp only [h, ↓reduceIte]
 
 @[simp]
 theorem push_on_eq (s : Shove) (n : ℕ) :
     (s.push_on n).board n = .none := by
-  unfold push_on; simp
+  unfold push_on; simp only [lt_self_iff_false, ↓reduceIte]
 
 @[simp]
 theorem push_on_gt (s : Shove) {n i : ℕ} (h : n < i) :
     (s.push_on n).board i = s.board i := by
-  unfold push_on; simp [Nat.not_lt_of_gt h, Nat.ne_of_gt h]
+  unfold push_on; simp only [Nat.not_lt_of_gt h, ↓reduceIte, Nat.ne_of_gt h]
 
 protected def moves : Player → Shove → Set Shove :=
-  fun p s ↦ push_on s '' {n : ℕ | s.on n = Piece.ofPlayer p}
+  fun p s ↦ push_on s '' {n : ℕ | s.board n = Piece.ofPlayer p}
 
 theorem mem_moves_iff (p : Player) (s s' : Shove) :
-    s' ∈ Shove.moves p s ↔ ∃ n, s.on n = Piece.ofPlayer p ∧ s' = s.push_on n := by
-  simp [Shove.moves, Set.mem_image]
+    s' ∈ Shove.moves p s ↔ ∃ n, s.board n = Piece.ofPlayer p ∧ s' = s.push_on n := by
+  simp only [Shove.moves, Set.mem_image, Set.mem_setOf_eq]
   constructor
   · rintro ⟨n, hn, rfl⟩; exact ⟨n, hn, rfl⟩
   · rintro ⟨n, hn, rfl⟩; exact ⟨n, hn, rfl⟩
@@ -121,6 +122,8 @@ end Shove
 def GameGraph.shove : GameGraph Shove where
   moves := Shove.moves
 
+namespace Shove
+
 /-! ### Weight measure for well-foundedness -/
 
 /--
@@ -128,11 +131,11 @@ The weight of a board is the sum of (i + 1) for each non-empty position i.
 This is finite because of the finite support condition, and strictly decreases
 with each push operation.
 -/
-noncomputable def Shove.weight (s : Shove) : ℕ :=
+noncomputable def weight (s : Shove) : ℕ :=
   ∑ i ∈ Finset.range s.finite_support.choose,
     if s.board i = .none then 0 else i + 1
 
-theorem Shove.weight_eq_of_bound (s : Shove) (N : ℕ) (hN : ∀ n, N ≤ n → s.board n = .none) :
+theorem weight_eq_of_bound (s : Shove) (N : ℕ) (hN : ∀ n, N ≤ n → s.board n = .none) :
     s.weight = ∑ i ∈ Finset.range N, if s.board i = .none then 0 else i + 1 := by
   have h_weight_def :
       s.weight =
@@ -146,11 +149,7 @@ theorem Shove.weight_eq_of_bound (s : Shove) (N : ℕ) (hN : ∀ n, N ≤ n → 
   rw [←Finset.sum_range_add_sum_Ico _ ‹_›];
   simpa using fun i hi₁ hi₂ => hN i hi₁
 
-
-
--- theorem Shove.weight_eq (s : Shove) : s.weight = ∑ i ∈ Finset.range (h_support.choose), (if s.board i = .none then 0 else i + 1)
-
-theorem Shove.support_exists (s : Shove) (n : ℕ) :
+theorem support_exists (s : Shove) (n : ℕ) :
     ∃ N, ∀ m ≥ N, s.board m = .none ∧ (s.push_on n).board m = .none := by
   have ⟨N, hN⟩ := s.finite_support
   use N + n + 1
@@ -159,14 +158,14 @@ theorem Shove.support_exists (s : Shove) (n : ℕ) :
   rw [Shove.push_on_gt s (by omega)]
   exact hN m (by omega)
 
-theorem Shove.weight_eq (s : Shove) (n : ℕ) :
+theorem weight_eq (s : Shove) (n : ℕ) :
     s.weight =
     ∑ i ∈ Finset.range ((support_exists s n).choose), (if s.board i = .none then 0 else i + 1) := by
   apply Shove.weight_eq_of_bound s (support_exists s n).choose
   intro m hm
   exact ((support_exists s n).choose_spec m hm).left
 
-theorem Shove.push_on_weight_eq (s : Shove) (n : ℕ) :
+theorem push_on_weight_eq (s : Shove) (n : ℕ) :
     (s.push_on n).weight =
     ∑ i ∈ Finset.range ((support_exists s n).choose),
     (if (s.push_on n).board i = .none then 0 else i + 1) := by
@@ -174,7 +173,7 @@ theorem Shove.push_on_weight_eq (s : Shove) (n : ℕ) :
     intro m hm
     exact ((support_exists s n).choose_spec m hm).right
 
-theorem Shove.weight_push_lt (s : Shove) (n : ℕ) (hn : s.board n ≠ .none) :
+theorem weight_push_lt (s : Shove) (n : ℕ) (hn : s.board n ≠ .none) :
     (s.push_on n).weight < s.weight := by
   have h_diff :
       ∑ i ∈ Finset.range ((support_exists s n).choose), (if s.board i = .none then 0 else i + 1) =
@@ -236,14 +235,14 @@ theorem Shove.weight_push_lt (s : Shove) (n : ℕ) (hn : s.board n ≠ .none) :
   have := Shove.push_on_weight_eq s n
   omega
 
-theorem Shove.weight_lt_of_mem_move (p : Player) (s s' : Shove)
+theorem weight_lt_of_mem_move (p : Player) (s s' : Shove)
     (h_mem : s' ∈ GameGraph.shove.moves p s) :
     s'.weight < s.weight := by
   obtain ⟨n, hn₁, hn₂⟩ := (Shove.mem_moves_iff p s s').mp h_mem
   convert Shove.weight_push_lt s n _ using 1
   · rw [hn₂]
   · subst hn₂
-    simp_all only [on_eq_board, ne_eq, Piece.ofPlayer_ne_none, not_false_eq_true]
+    simp_all only [ne_eq, Piece.ofPlayer_ne_none, not_false_eq_true]
 
 instance : GameGraph.IsWellFounded GameGraph.shove where
   wf := by
@@ -256,8 +255,6 @@ instance : GameGraph.IsWellFounded GameGraph.shove where
     have := Shove.weight_lt_of_mem_move p s s' hp
     omega
 
-namespace Shove
-
 protected noncomputable def toGameForm : Shove → GameForm := GameGraph.toForm (g := GameGraph.shove)
 
 /-! ### Relating board moves to game form moves -/
@@ -267,12 +264,14 @@ theorem moves_toGameForm (p : Player) (s : Shove) :
     Form.moves p s.toGameForm = Shove.toGameForm '' (Shove.moves p s) := by
   simp [Shove.toGameForm, GameGraph.shove]
 
-theorem toGameForm_zero_iff (g : Shove) : (g.toGameForm = 0) ↔ (∀ n, g.on n = .none) := by
+theorem toGameForm_zero_iff (g : Shove) : (g.toGameForm = 0) ↔ (∀ n, g.board n = .none) := by
   constructor <;> intro h;
   · intro n
     by_contra h_contra
     have h_moves : Shove.moves .left g ≠ ∅ ∨ Shove.moves .right g ≠ ∅ := by
-      cases h : g.on n <;> simp_all [Shove.moves]
+      cases h : g.board n
+        <;> simp_all only [reduceCtorEq, not_true_eq_false, not_false_eq_true, Shove.moves,
+                           ne_eq, Set.image_eq_empty]
       · exact Or.inl (Set.Nonempty.ne_empty ⟨n, h⟩)
       · exact Or.inr (Set.Nonempty.ne_empty ⟨n, h⟩)
     cases h_moves <;> simp_all [Set.ext_iff]
@@ -284,11 +283,11 @@ theorem toGameForm_zero_iff (g : Shove) : (g.toGameForm = 0) ↔ (∀ n, g.on n 
       simp_all [Set.ext_iff]
   · apply GameForm.ext
     intro p
-    simp only [toGameForm, GameGraph.moves_toForm, Form.moves_zero, Set.image_eq_empty]
+    simp only [Shove.toGameForm, GameGraph.moves_toForm, Form.moves_zero, Set.image_eq_empty]
     apply Set.eq_empty_of_forall_notMem
     intro x hx
     obtain ⟨n, hn, rfl⟩ := (Shove.mem_moves_iff p g x).mp hx
-    simp_all only [on_eq_board, Piece.none_ne_ofPlayer]
+    simp_all only [Piece.none_ne_ofPlayer]
 
 theorem toGameForm_push_mem_moves (s : Shove) (p : Player) {m : ℕ}
     (hm : s.board m = .ofPlayer p) :
@@ -296,7 +295,7 @@ theorem toGameForm_push_mem_moves (s : Shove) (p : Player) {m : ℕ}
   rw [moves_toGameForm]
   refine ⟨s.push_on m, ?_, rfl⟩
   rw [mem_moves_iff p s _]
-  use m, (by simp [hm])
+  use m
 
 theorem mem_moves_toGameForm_iff (s : Shove) (p : Player) (g' : GameForm) :
     g' ∈ Form.moves p s.toGameForm ↔
@@ -306,9 +305,12 @@ theorem mem_moves_toGameForm_iff (s : Shove) (p : Player) (g' : GameForm) :
   constructor
   · rintro ⟨s', hs', rfl⟩
     obtain ⟨m, hm, rfl⟩ := (mem_moves_iff p s s').mp hs'
-    exact ⟨m, by simpa using hm, rfl⟩
+    use m
   · rintro ⟨m, hm, rfl⟩
-    exact ⟨s.push_on m, (mem_moves_iff p s _).mpr ⟨m, by simp [hm], rfl⟩, rfl⟩
+    use s.push_on m
+    refine ⟨?_, rfl⟩
+    rw [mem_moves_iff]
+    use m
 
 /-! ### Properties of rightmostPos -/
 
@@ -324,11 +326,14 @@ theorem rightmostPos_spec (s : Shove) {k : ℕ} (hk : k ≤ s.finite_support.cho
   exact Nat.findGreatest_spec (P := fun n => s.board n ≠ .none) hk hne
 
 theorem board_eq_none_of_gt_rightmostPos (s : Shove) {k : ℕ}
-    (hk : s.rightmostPos < k) (hk2 : k ≤ s.finite_support.choose) :
+    (hk : s.rightmostPos < k) :
     s.board k = .none := by
   unfold rightmostPos at hk
-  by_contra h
-  exact absurd (Nat.le_findGreatest hk2 h) (not_le.mpr hk)
+  by_cases hk2 : k ≤ s.finite_support.choose
+  · by_contra h
+    exact absurd (Nat.le_findGreatest hk2 h) (not_le.mpr hk)
+  · simp at hk2
+    grind only [Exists.choose_spec]
 
 theorem rightmostPos_greatest (s : Shove) {k : ℕ} (hk : s.board k ≠ .none) :
     k ≤ s.rightmostPos := by
@@ -337,7 +342,7 @@ theorem rightmostPos_greatest (s : Shove) {k : ℕ} (hk : s.board k ≠ .none) :
   have hk2 : k ≤ s.finite_support.choose := by
     by_contra h2; push_neg at h2
     exact hk (s.finite_support.choose_spec k (by omega))
-  exact hk (board_eq_none_of_gt_rightmostPos s h hk2)
+  exact hk (board_eq_none_of_gt_rightmostPos s h)
 
 theorem board_eq_none_of_rightmostPos_zero (s : Shove)
     (h0 : s.rightmostPos = 0) (hb : s.board 0 = .none) : ∀ n, s.board n = .none := by
@@ -453,11 +458,26 @@ theorem stride_neg_zero_of_p_move (s : Shove) (p : Player) {m : ℕ}
       exact Piece.none_ne_ofPlayer (-p)
 
 theorem stride_push_eq_rightmostPos (s : Shove) (p : Player) {m : ℕ}
-    (hm : s.board m ≠ .none) (hm : m = s.rightmostPos) :
+    (hm1 : s.board m ≠ .none) (hm2 : m = s.rightmostPos) :
     (s.push_on m).stride p = s.stride p - 1 := by
-  grind only [stride, push_on, stride_push_at_rightmost, rightmostPos, push_rightmost_zero_empty,
-              board_eq_none_of_rightmostPos_zero, rightmostPos_push_at, Piece.none_ne_ofPlayer,
-              push_on_gt]
+  subst hm2
+  by_cases h1 : 0 < s.rightmostPos
+  · have h2 := rightmostPos_push_at s rfl h1 hm1
+    have h3 := push_on_lt s (Nat.sub_one_lt_of_lt h1)
+    have h4 : s.rightmostPos - 1 + 1 = s.rightmostPos := Nat.sub_add_cancel h1
+    simp only [Shove.stride, h2, h3, h4]
+    split_ifs <;> omega
+  · simp only [not_lt, nonpos_iff_eq_zero, ne_eq] at h1 hm1
+    rw [h1] at ⊢ hm1
+    simp only [Shove.stride, h1, zero_add]
+    split_ifs with h2 h3
+    · absurd push_rightmost_zero_empty s h1 (s.push_on 0).rightmostPos
+      exact Piece.ne_none_of_ofPlayer h2
+    · absurd h2
+      rw [push_rightmost_zero_empty s h1 (s.push_on 0).rightmostPos]
+      exact Piece.none_ne_ofPlayer p
+    · rfl
+    · rfl
 
 theorem stride_push_le (s : Shove) (p : Player) {m : ℕ}
     (hm : s.board m ≠ .none) :
@@ -493,7 +513,7 @@ theorem isSolved_of_stride_zero {p : Player} (g : Shove)
     (hs : g.stride p = 0) :
     GameForm.IsSolved p g.toGameForm := by
   induction' n' : g.weight using Nat.strong_induction_on with n ih generalizing g;
-  by_cases h_empty : ∀ n, g.on n = .none;
+  by_cases h_empty : ∀ n, g.board n = .none;
   · rw [ Shove.toGameForm_zero_iff g |>.2 h_empty ] ; exact GameForm.isSolved_zero p;
   · obtain ⟨k, hk⟩ : ∃ k, g.board k = .ofPlayer (-p) ∧ k = g.rightmostPos := by
       have h_rightmost : g.board g.rightmostPos ≠ .none := by
@@ -636,16 +656,16 @@ theorem toGameForm_hasStride (g : Shove) (p : Player) :
       rw [← h_stride_eq]
       exact ih_push m p hm_ne
 
-def Shove.zero : Shove := { board := fun _ => .none, finite_support := by use 0; intro _ _; rfl }
+protected def zero : Shove := { board := fun _ => .none, finite_support := by use 0; intro _ _; rfl }
 
 @[simp]
-def Shove.zero_toGameForm : Shove.zero.toGameForm = 0 := by
+protected def zero_toGameForm : Shove.zero.toGameForm = 0 := by
   ext p x
-  simp only [moves_toGameForm, moves, on_eq_board, Piece.none_ne_ofPlayer, Set.setOf_false,
+  simp only [moves_toGameForm, Shove.moves, Piece.none_ne_ofPlayer, Set.setOf_false,
              Set.image_empty, Set.mem_empty_iff_false, Form.moves_zero, Shove.zero]
 
 noncomputable instance : Ruleset Shove where
-  toGameForm := toGameForm
+  toGameForm := Shove.toGameForm
   has_zero := ⟨Shove.zero, Shove.zero_toGameForm⟩
   moves_toGameForm p r g' h_g' := by
     simp only [moves_toGameForm, Set.mem_image] at h_g'
@@ -660,8 +680,7 @@ instance : GameForm.Strided (Ruleset.AdditiveClosure Shove) where
       constructor
       · rw [Ruleset.additiveClosure_iff]
         exact Or.inl ⟨Shove.zero, Shove.zero_toGameForm.symm⟩
-      · rw [GameForm.hasStride_zero_iff]
-        exact GameForm.isSolved_zero p
+      · simp only [GameForm.hasStride_zero_iff, GameForm.isSolved_zero, and_self]
     | n + 1 =>
       let s: Shove :=
         { board k := if n == k then Piece.ofPlayer p else .none
@@ -674,20 +693,39 @@ instance : GameForm.Strided (Ruleset.AdditiveClosure Shove) where
             · rfl
         }
       use s.toGameForm
-      constructor
+      have h_n_rightmost : s.rightmostPos = n := by
+        subst s
+        simp only [rightmostPos, beq_iff_eq, ne_eq, ite_eq_right_iff, Piece.ofPlayer_ne_none,
+                   imp_false, Decidable.not_not, Nat.findGreatest_eq_iff, implies_true, true_and]
+        grind only [Exists.choose_spec]
+      have : s.board s.rightmostPos = Piece.ofPlayer p := by
+        subst s
+        grind only
+      refine ⟨?_, ?_, ?_⟩
       · rw [Ruleset.additiveClosure_iff]
         apply Or.inl
         use s
         simp only [Ruleset.toGameForm]
       · convert toGameForm_hasStride s p
-        have h_n_rightmost : s.rightmostPos = n := by
-          subst s
-          simp only [rightmostPos, beq_iff_eq, ne_eq, ite_eq_right_iff, Piece.ofPlayer_ne_none,
-                     imp_false, Decidable.not_not, Nat.findGreatest_eq_iff, implies_true, true_and]
-          grind only [Exists.choose_spec]
         subst s
-        simp only [stride, beq_iff_eq, ite_eq_left_iff, Piece.none_ne_ofPlayer, imp_false]
+        simp only [Shove.stride, beq_iff_eq, ite_eq_left_iff, Piece.none_ne_ofPlayer, imp_false]
         split_ifs with h <;> grind only
+      · convert toGameForm_hasStride s (-p)
+        subst s
+        simp only [Shove.stride, beq_iff_eq, right_eq_ite_iff, and_false, imp_false,
+                   Nat.right_eq_add, Nat.add_eq_zero_iff, one_ne_zero]
+        split_ifs with h
+        · simp [Piece.ofPlayer]
+          cases p <;> simp only [reduceCtorEq, not_false_eq_true]
+        · exact Piece.none_ne_ofPlayer (-p)
   has_stride p := GameForm.has_stride_aux p Shove.stride Shove.toGameForm_hasStride
+
+protected noncomputable def equivInt : MisereQuotient (Ruleset.AdditiveClosure Shove) ≃ ℤ :=
+  GameForm.MisereQuotient.stridedEquivInt
+
+protected theorem le_iff_equiv_ge (a b : MisereQuotient (Ruleset.AdditiveClosure Shove)) :
+    a ≤ b ↔
+    GameForm.MisereQuotient.stridedEquivInt a ≥ GameForm.MisereQuotient.stridedEquivInt b :=
+    GameForm.MisereQuotient.le_iff_equiv_ge a b
 
 end Shove
