@@ -26,7 +26,7 @@ open Ruleset
 Intuitively a position is solved for a given player if they win no matter what they do
 -/
 def IsSolved (p : Player) (g : GameForm) : Prop :=
-  (IsOption 0 g → 0 ∉ moves p g)
+  (0 ∉ moves p g)
   ∧ (g ≠ 0 → ¬IsEnd (-p) g)
   ∧ (∀ gp, IsOption gp g → IsSolved p gp)
 termination_by g
@@ -34,28 +34,24 @@ decreasing_by form_wf
 
 theorem isSolved_def (p : Player) (g : GameForm) :
   IsSolved p g ↔
-    ((IsOption 0 g → 0 ∉ moves p g)
+    ((0 ∉ moves p g)
     ∧ (g ≠ 0 → ¬IsEnd (-p) g)
     ∧ (∀ gp, IsOption gp g → IsSolved p gp)) := by
   constructor
   · intro h; unfold IsSolved at h; exact h
   · intro h; unfold IsSolved; exact h
 
-theorem isSolved_zero_not_mem {p : Player} {g : GameForm}
-    (h_isSolved : IsSolved p g) (h_isOption : IsOption 0 g) :
+theorem isSolved_zero_not_mem {p : Player} {g : GameForm} (h_isSolved : IsSolved p g) :
     0 ∉ moves p g := by
   unfold IsSolved at h_isSolved
-  exact h_isSolved.left h_isOption
+  exact h_isSolved.left
 
 theorem isSolved_zero_mem {p : Player} {g : GameForm}
     (h_isSolved : IsSolved p g) (h_isOption : IsOption 0 g) :
     0 ∈ moves (-p) g := by
   unfold IsSolved at h_isSolved
-  have h_not_mem := h_isSolved.left h_isOption
-  simp only [isOption_iff_mem_union, Set.mem_union] at h_isOption
-  cases p
-  · exact h_isOption.resolve_left h_not_mem
-  · exact h_isOption.resolve_right h_not_mem
+  have h_not_mem := h_isSolved.left
+  exact isOption_not_mem h_isOption h_not_mem
 
 theorem isSolved_not_isEnd {p : Player} {g : GameForm}
     (h_isSolved : IsSolved p g) (h_ne_zero : g ≠ 0) : ¬IsEnd (-p) g := by
@@ -77,9 +73,9 @@ private theorem isSolved_neg {p : Player} {g : GameForm} (h_isSolved : IsSolved 
     IsSolved (-p) (-g) := by
   unfold IsSolved
   refine ⟨?_, ?_, ?_⟩
-  · intro h_isOption; rw [isOption_zero_neg_iff] at h_isOption
-    simp only [moves_neg, neg_neg, Set.mem_neg, neg_zero]
-    exact isSolved_zero_not_mem h_isSolved h_isOption
+  · intro h_zero_mem
+    simp only [moves_neg, neg_neg, Set.mem_neg, neg_zero] at h_zero_mem
+    exact isSolved_zero_not_mem h_isSolved h_zero_mem
   · intro h_ne_zero; rw [neg_ne_zero] at h_ne_zero
     rw [neg_neg, IsEnd.neg_iff_neg]
     exact isSolved_not_isEnd h_isSolved h_ne_zero
@@ -91,7 +87,6 @@ private theorem isSolved_neg {p : Player} {g : GameForm} (h_isSolved : IsSolved 
     rwa [neg_neg, neg_neg] at h_isSolved_neg_gp
 termination_by birthday g
 decreasing_by
-  -- gameform_birthday
   rw [isOption_neg] at h_isOption
   exact birthday_lt_of_isOption h_isOption
 
@@ -115,8 +110,7 @@ theorem isSolved_winsGoingFirst {p : Player} {g : GameForm} (h_isSolved : IsSolv
     have h_gp_ne_zero : gp ≠ 0 := by
       intro h
       subst h
-      have zero_not_mem:= isSolved_zero_not_mem h_isSolved (IsOption.of_mem_moves h_gp_mem)
-      exact zero_not_mem h_gp_mem
+      exact isSolved_zero_not_mem h_isSolved h_gp_mem
     apply winsGoingFirst_of_moves
     use gp, h_gp_mem
     rw [not_winsGoingFirst_iff]
@@ -148,17 +142,15 @@ theorem isSolved_add {p : Player} {g h : GameForm}
   unfold IsSolved
   refine ⟨?_, ?_, ?_⟩
   · intro h_zero_gh
-    apply Or.elim (isOption_zero_add_iff.mp h_zero_gh)
+    apply Or.elim (isOption_zero_add_iff.mp (IsOption.of_mem_moves h_zero_gh))
     · intro ⟨h_zero_g, h_g_zero⟩
-      by_contra h_zero_mem_gh
       have h_zero_mem_g := isSolved_zero_mem h_isSolved_g h_zero_g
-      rw [h_g_zero, add_zero] at h_zero_mem_gh
-      exact isSolved_zero_not_mem h_isSolved_g h_zero_g h_zero_mem_gh
+      simp only [h_g_zero, add_zero] at h_zero_gh
+      exact isSolved_zero_not_mem h_isSolved_g h_zero_gh
     · intro ⟨h_zero_h, h_h_zero⟩
-      by_contra h_zero_mem_gh
       have h_zero_mem_h := isSolved_zero_mem h_isSolved_h h_zero_h
-      rw [h_h_zero, zero_add] at h_zero_mem_gh
-      exact isSolved_zero_not_mem h_isSolved_h h_zero_h h_zero_mem_gh
+      simp only [h_h_zero, zero_add] at h_zero_gh
+      exact isSolved_zero_not_mem h_isSolved_h h_zero_gh
   · intro h_gh_ne_zero
     have h_not_gh_zero := (add_eq_zero_iff (G := GameForm) (x := g) (y := h)).not.mp h_gh_ne_zero
     rw [not_and_or] at h_not_gh_zero
@@ -168,12 +160,8 @@ theorem isSolved_add {p : Player} {g h : GameForm}
     · intro h_h_ne_zero
       exact not_isEnd_add_right (isSolved_not_isEnd h_isSolved_h h_h_ne_zero)
   · intro ghp h_isOption_ghp
-    simp only [IsOption.iff_mem_union, moves_add, Set.mem_union, Set.mem_image] at h_isOption_ghp
-    obtain (⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩) | ⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩ := h_isOption_ghp
-    · subst h_xh
-      exact isSolved_add (isSolved_of_mem_moves h_isSolved_g h_x_mem) h_isSolved_h
-    · subst h_gx
-      exact isSolved_add h_isSolved_g (isSolved_of_mem_moves h_isSolved_h h_x_mem)
+    simp only [isOption_iff_mem_moves, moves_add, Set.mem_union, Set.mem_image] at h_isOption_ghp
+    obtain ⟨p, ⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩⟩ := h_isOption_ghp
     · subst h_xh
       exact isSolved_add (isSolved_of_mem_moves h_isSolved_g h_x_mem) h_isSolved_h
     · subst h_gx
@@ -241,7 +229,7 @@ theorem isSolved_iff_zero {g : GameForm} : (IsSolved .left g ∧ IsSolved .right
                  , isSolved_of_isOption h_isSolved_right (IsOption.of_mem_moves h_gr_mem_r)⟩
     subst h_gr
     -- But G is solved for Left so 0 cannot be a Left option of G
-    have h_gr_not_mem_l := isSolved_zero_not_mem h_isSolved_right (IsOption.of_mem_moves h_gr_mem_r)
+    have h_gr_not_mem_l := isSolved_zero_not_mem h_isSolved_right
 
     -- Similarly since G is solved for Right, G is not a Left end so there exists some G^L
     have ⟨gl, h_gl_mem_l⟩ := not_isEnd_exists_move (isSolved_not_isEnd h_isSolved_left h_ne_zero)
@@ -432,8 +420,7 @@ theorem hasStride_of_mem_moves_neg {p : Player} {g g' : GameForm} {n : ℕ}
     (hg : HasStride p g n) (hm : g' ∈ moves (-p) g) : ∃ k, k ≤ n ∧ HasStride p g' k := by
   match n with
   | 0 => exact ⟨0, le_refl _, hasStride_zero_iff.mpr (isSolved_of_mem_moves (hasStride_zero_iff.mp hg) hm)⟩
-  | .succ n' =>
-    exact hasStride_succ_support_neg hg g' hm
+  | .succ n' => exact hasStride_succ_support_neg hg g' hm
 
 /--
 A variant of `hasStride_succ_iff` that simplifies condition B' when we know the (-p)-stride.
@@ -634,8 +621,7 @@ private theorem hasStride_winsGoingFirst {p : Player} {g : GameForm} {l r : ℕ}
   | .succ l' =>
     have ⟨r', hr'⟩ : ∃ r', r = r' + 1 := ⟨r - 1, by omega⟩
     subst hr'
-    have ⟨g1, hg1_mem, hg1_stride_p, hg1_stride_neg⟩ :=
-      hasStride_good_move_neg_stride h_l h_r
+    have ⟨g1, hg1_mem, hg1_stride_p, hg1_stride_neg⟩ := hasStride_good_move_neg_stride h_l h_r
     apply winsGoingFirst_of_moves
     use g1, hg1_mem
     rw [not_winsGoingFirst_iff]

@@ -528,7 +528,7 @@ theorem isSolved_of_groundCount_zero {hack : Hackenbush V} {p : Player}
   rw [GameForm.isSolved_def]
   refine ⟨?_, ?_, ?_⟩
   · -- (i): p has no moves to 0
-    intro _ h_mem
+    intro h_mem
     obtain ⟨e, he, hc, heq⟩ := mem_moves_toGameForm_iff.mp h_mem
     have := move_not_zero_of_groundCount_zero he hc hgc
     exact this (toGameForm_eq_zero_iff.mp heq.symm)

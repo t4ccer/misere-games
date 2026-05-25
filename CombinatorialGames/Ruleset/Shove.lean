@@ -524,7 +524,7 @@ theorem isSolved_of_stride_zero {p : Player} (g : Shove)
       · cases p <;> tauto);
     rw [GameForm.isSolved_def]
     refine ⟨?_, ?_, ?_⟩
-    · intro h₀ h₁;
+    · intro h₁
       obtain ⟨ m, hm₁, hm₂ ⟩ := ( Shove.mem_moves_toGameForm_iff g p 0 ).mp h₁;
       have h_piece_neg : g.board m = .ofPlayer (-p) := by
         apply Shove.push_to_empty_is_neg g p hs (by
@@ -595,7 +595,7 @@ theorem toGameForm_hasStride (g : Shove) (p : Player) :
         have h_zero : (g.push_on k).toGameForm = 0 := by
           rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
         rw [h_zero] at h_push_k_mem
-        exact GameForm.isSolved_zero_not_mem H (Form.IsOption.of_mem_moves h_push_k_mem) h_push_k_mem
+        exact GameForm.isSolved_zero_not_mem H h_push_k_mem
     · intro g' hg'
       obtain ⟨m, hm_p, rfl⟩ := (mem_moves_toGameForm_iff g p g').mp hg'
       have hm_ne : g.board m ≠ .none := by rw [hm_p]; exact Piece.ofPlayer_ne_none p
@@ -603,7 +603,11 @@ theorem toGameForm_hasStride (g : Shove) (p : Player) :
         by_cases hm_lt : m < g.rightmostPos
         · rw [stride_push_below g p hm_lt, hstride_eq]
           omega
-        · have hm_eq : m = g.rightmostPos := le_antisymm (rightmostPos_greatest g (by rw [hm_p]; exact Piece.ofPlayer_ne_none p)) (by omega)
+        · have hm_eq : m = g.rightmostPos := by
+            refine le_antisymm ?_ (Nat.not_lt.mp hm_lt)
+            apply rightmostPos_greatest g
+            rw [hm_p]
+            exact Piece.ofPlayer_ne_none p
           have := stride_push_eq_rightmostPos g p hm_ne hm_eq
           omega
       exact ⟨(g.push_on m).stride p, h_stride_ge, ih_push m p hm_ne⟩

@@ -325,6 +325,24 @@ theorem isOption_zero_neg_iff  {g : G} : IsOption 0 (-g) ↔ IsOption 0 g := by
     rw [<-neg_neg g] at h_isOption
     exact isOption_zero_neg.aux h_isOption
 
+theorem isOption_not_mem {p : Player} {g g' : G}
+    (h_isOption : IsOption g' g) (h_mem : g' ∉ moves p g) :
+    g' ∈ moves (-p) g := by
+  simp only [isOption_iff_mem_moves] at h_isOption
+  obtain ⟨q, h_q⟩ := h_isOption
+  by_cases h_pq : p = q
+  · subst h_pq
+    exact absurd h_q h_mem
+  · simp only [Player.ne_iff_eq_neg] at h_pq
+    subst h_pq
+    rwa [neg_neg]
+
+theorem isOption_not_mem_neg {p : Player} {g g' : G}
+    (h_isOption : IsOption g' g) (h_mem : g' ∉ moves (-p) g) :
+    g' ∈ moves p g := by
+  have := isOption_not_mem h_isOption h_mem
+  rwa [neg_neg] at this
+
 -- Casts
 
 theorem leftMoves_natCast_succ' : ∀ n : ℕ, moves .left (n.succ : G) = {(n : G)}
