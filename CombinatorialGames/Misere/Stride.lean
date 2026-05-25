@@ -785,14 +785,7 @@ theorem AdditiveClosure.has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g 
     rw [hxy]
     exact GameForm.hasStride_add ha hb ha' hb'
 termination_by Form.birthday g
-decreasing_by
-  all_goals
-  · subst hxy
-    simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right]
-    by_contra h_absurd
-    simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd
-    absurd h_absurd
-    assumption
+decreasing_by additiveClosure_birthday
 
 theorem AdditiveClosure.mk_with_strides_aux {A : GameForm → Prop}
     (mk_stride_other_zero : (p : Player) → (n : ℕ) → ∃ g, A g ∧ HasStride p g n ∧ HasStride (-p) g 0)
@@ -822,14 +815,7 @@ private theorem AdditiveClosure.has_stride.aux {A : GameForm → Prop} [Strided 
     rw [h_xy]
     exact hasStride_add ha hb ha' hb'
 termination_by birthday g
-decreasing_by
-  all_goals
-  · subst h_xy
-    simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right]
-    by_contra h_absurd
-    simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd
-    absurd h_absurd
-    assumption
+decreasing_by additiveClosure_birthday
 
 instance {A : GameForm → Prop} [Strided A] : Strided (AdditiveClosure A) where
   mk_with_strides l r := by

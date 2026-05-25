@@ -17,22 +17,22 @@ class ClosedUnderAdd (A : GameForm → Prop) where
 
 open Form
 
+macro "additiveClosure_birthday" : tactic =>
+  `(tactic|
+    all_goals
+    · try casesm* _ ∧ _;
+      subst_vars;
+      simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right];
+      by_contra h_absurd;
+      simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd;
+      contradiction)
+
 set_option linter.unusedVariables false in -- Used in the terminaton proof
 def AdditiveClosure (A : GameForm → Prop) (g : GameForm) : Prop :=
   A g
   ∨ (∃ x y, ∃ (h : x ≠ 0 ∧ y ≠ 0 ∧ g = x + y), AdditiveClosure A x ∧ AdditiveClosure A y)
 termination_by Form.birthday g
-decreasing_by
-  · obtain ⟨_, h2, h3⟩ := h
-    subst h3
-    simp only [Form.birthday_add, lt_add_iff_pos_right]
-    by_contra h4; simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h4
-    exact h2 h4
-  · obtain ⟨h1, _, h3⟩ := h
-    subst h3
-    simp only [Form.birthday_add, lt_add_iff_pos_left]
-    by_contra h4; simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h4
-    exact h1 h4
+decreasing_by additiveClosure_birthday
 
 variable {A : GameForm → Prop}
 
@@ -85,14 +85,7 @@ private theorem has_option' [Hereditary A] {g g' : GameForm} (h_g : AdditiveClos
       refine ClosedUnderAdd.has_add a x ha_closure ?_
       exact has_option' hb_closure (IsOption.of_mem_moves h_x_mem)
 termination_by birthday g
-decreasing_by
-  all_goals
-  · subst hab
-    simp only [Form.birthday_add, lt_add_iff_pos_left, lt_add_iff_pos_right]
-    by_contra h_absurd
-    simp only [not_lt, NatOrdinal.le_zero, GameForm.birthday_eq_zero] at h_absurd
-    absurd h_absurd
-    assumption
+decreasing_by additiveClosure_birthday
 
 instance [Hereditary A] : Hereditary (AdditiveClosure A) where
   has_option := has_option'
