@@ -664,7 +664,6 @@ protected def zero_toGameForm : Shove.zero.toGameForm = 0 := by
 
 noncomputable instance : Ruleset Shove where
   toGameForm := Shove.toGameForm
-  has_zero := ⟨Shove.zero, Shove.zero_toGameForm⟩
   moves_toGameForm p r g' h_g' := by
     simp only [moves_toGameForm, Set.mem_image] at h_g'
     obtain ⟨r', _, h_r'⟩ := h_g'

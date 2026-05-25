@@ -16,7 +16,6 @@ open Form
 
 class Ruleset (R : Type u) where
   toGameForm : R → GameForm
-  has_zero : ∃ r, toGameForm r = 0
   moves_toGameForm (p : Player) (r : R) :
       ∀ g' ∈ Form.moves p (toGameForm r), ∃ r', toGameForm r' = g'
 
