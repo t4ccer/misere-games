@@ -37,14 +37,10 @@ theorem Ruleset.Forms.position_mem {R : Type u} [Ruleset R] (r : R) :
 
 instance {R : Type u} [Ruleset R] : Hereditary (Ruleset.Forms R) where
   has_option h_g h_g' := by
-    simp [isOption_iff_mem_union] at h_g'
+    simp only [isOption_iff_mem_moves] at h_g'
+    obtain ⟨p, h_g'⟩ := h_g'
     obtain ⟨r, h_r⟩ := Ruleset.Forms.exists h_g
-    obtain h_mem | h_mem := h_g'
-    · rw [h_r] at h_mem
-      have ⟨r', h1⟩ := Ruleset.moves_toGameForm .left r _ h_mem
-      rw [<-h1]
-      exact Ruleset.Forms.position_mem r'
-    · rw [h_r] at h_mem
-      have ⟨r', h1⟩ := Ruleset.moves_toGameForm .right r _ h_mem
-      rw [<-h1]
-      exact Ruleset.Forms.position_mem r'
+    subst h_r
+    have ⟨r', h_r'⟩ := Ruleset.moves_toGameForm p r _ h_g'
+    subst h_r'
+    exact Ruleset.Forms.position_mem r'

@@ -304,6 +304,9 @@ theorem exists_moves_add {p : Player} {P : G → Prop} {x y : G} :
 lemma isOption_iff_mem_union {x y : G} : IsOption x y ↔ x ∈ moves .left y ∪ moves .right y := by
   simp [IsOption, Moves.IsOption', Player.exists]
 
+lemma isOption_iff_mem_moves {x y : G} : IsOption x y ↔ ∃ p, x ∈ moves p y := by
+  simp [IsOption, Moves.IsOption', Player.exists]
+
 @[simp] theorem not_isOption_zero (g : G) : ¬IsOption g 0 := by simp [IsOption, Moves.IsOption']
 
 private theorem isOption_zero_neg.aux  {g : G} (h_isOption : IsOption 0 (-g)) : IsOption 0 g := by

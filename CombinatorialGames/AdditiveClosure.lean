@@ -70,14 +70,8 @@ private theorem has_option' [Hereditary A] {g g' : GameForm} (h_g : AdditiveClos
   · rw [additiveClosure_iff]
     apply Or.inl
     exact Hereditary.has_option h_g h_g'
-  · simp [isOption_iff_mem_union, hab] at h_g'
-    obtain (⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩) | ⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩ := h_g'
-    · subst h_xh
-      refine ClosedUnderAdd.has_add x b ?_ hb_closure
-      exact has_option' ha_closure (IsOption.of_mem_moves h_x_mem)
-    · subst h_gx
-      refine ClosedUnderAdd.has_add a x ha_closure ?_
-      exact has_option' hb_closure (IsOption.of_mem_moves h_x_mem)
+  · simp only [hab, isOption_iff_mem_moves, moves_add, Set.mem_union, Set.mem_image] at h_g'
+    obtain ⟨p, ⟨x, h_x_mem, h_xh⟩ | ⟨x, h_x_mem, h_gx⟩⟩ := h_g'
     · subst h_xh
       refine ClosedUnderAdd.has_add x b ?_ hb_closure
       exact has_option' ha_closure (IsOption.of_mem_moves h_x_mem)
