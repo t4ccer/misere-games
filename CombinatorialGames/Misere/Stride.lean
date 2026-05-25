@@ -845,7 +845,7 @@ variable {A : GameForm → Prop} [Strided A]
 
 theorem stride_diff_eq_of_misereEQ
     {g h : GameForm}
-    (_h_g : A g) (_h_h : A h) (h_eq : g =m A h)
+    (h_eq : g =m A h)
     {ng rg nh rh : ℕ}
     (h_ng : HasStride .left g ng) (h_rg : HasStride .right g rg)
     (h_nh : HasStride .left h nh) (h_rh : HasStride .right h rh) :
@@ -900,12 +900,11 @@ The stride difference characterizes misère equivalence for strided games.
 -/
 theorem misereEQ_iff_stride_diff_eq
     {g h : GameForm}
-    (h_g : A g) (h_h : A h)
     {ng rg nh rh : ℕ}
     (h_ng : HasStride .left g ng) (h_rg : HasStride .right g rg)
     (h_nh : HasStride .left h nh) (h_rh : HasStride .right h rh) :
     (g =m A h) ↔ ((ng : ℤ) - (rg : ℤ) = (nh : ℤ) - (rh : ℤ)) :=
-  ⟨fun heq => stride_diff_eq_of_misereEQ (A := A) h_g h_h heq h_ng h_rg h_nh h_rh,
+  ⟨fun heq => stride_diff_eq_of_misereEQ (A := A) heq h_ng h_rg h_nh h_rh,
    fun hdiff => misereEQ_of_stride_diff_eq h_ng h_rg h_nh h_rh hdiff⟩
 
 /-
@@ -914,7 +913,6 @@ Lower stride diff means better for Left, so higher MisereOutcome.
 -/
 theorem misereGE_of_stride_diff_le
     {g h : GameForm}
-    (_h_g : A g) (_h_h : A h)
     {ng rg nh rh : ℕ}
     (h_ng : HasStride .left g ng) (h_rg : HasStride .right g rg)
     (h_nh : HasStride .left h nh) (h_rh : HasStride .right h rh)
@@ -968,8 +966,8 @@ theorem misereQuotient_linearOrder (a b : MisereQuotient A) : a ≤ b ∨ b ≤ 
   obtain ⟨lb, hlb⟩ := Strided.has_stride (A := A) .left hb
   obtain ⟨rb, hrb⟩ := Strided.has_stride (A := A) .right hb
   rcases le_total ((lb : ℤ) - rb) ((la : ℤ) - ra) with h | h
-  · exact Or.inl (misereGE_of_stride_diff_le hb ha hlb hrb hla hra h)
-  · exact Or.inr (misereGE_of_stride_diff_le ha hb hla hra hlb hrb h)
+  · exact Or.inl (misereGE_of_stride_diff_le hlb hrb hla hra h)
+  · exact Or.inr (misereGE_of_stride_diff_le hla hra hlb hrb h)
 
 /--
 The stride difference of a game in a strided class `A`.
@@ -1003,7 +1001,7 @@ theorem Strided.strideDiff_eq_of_misereEQ
   obtain ⟨lh, hlh⟩ := Strided.has_stride (A := A) .left hh
   obtain ⟨rh, hrh⟩ := Strided.has_stride (A := A) .right hh
   rw [strideDiff_eq hlg hrg, strideDiff_eq hlh hrh]
-  exact stride_diff_eq_of_misereEQ hg hh heq hlg hrg hlh hrh
+  exact stride_diff_eq_of_misereEQ heq hlg hrg hlh hrh
 
 /--
 The stride difference function on the misère quotient, defined via representative.
@@ -1072,7 +1070,7 @@ The converse of `misereGE_of_stride_diff_le`.
 -/
 theorem stride_diff_le_of_misereGE
     {g h : GameForm}
-    (h_g : A g) (h_h : A h) (h_ge : g ≥m A h)
+    (h_ge : g ≥m A h)
     {ng rg nh rh : ℕ}
     (h_ng : HasStride .left g ng) (h_rg : HasStride .right g rg)
     (h_nh : HasStride .left h nh) (h_rh : HasStride .right h rh) :
@@ -1080,22 +1078,22 @@ theorem stride_diff_le_of_misereGE
   by_contra h_lt
   push_neg at h_lt
   have h_ge' : h ≥m A g :=
-    misereGE_of_stride_diff_le h_h h_g h_nh h_rh h_ng h_rg (Int.le_of_lt h_lt)
+    misereGE_of_stride_diff_le h_nh h_rh h_ng h_rg (Int.le_of_lt h_lt)
   have h_eq : g =m A h := MisereEq.of_antisymm h_ge h_ge'
-  have h_eq_diff := stride_diff_eq_of_misereEQ h_g h_h h_eq h_ng h_rg h_nh h_rh
+  have h_eq_diff := stride_diff_eq_of_misereEQ  h_eq h_ng h_rg h_nh h_rh
   omega
 
 /--
 Misère GE is equivalent to stride difference inequality.
 -/
 theorem misereGE_iff_stride_diff_le
-    {g h : GameForm} (h_g : A g) (h_h : A h)
+    {g h : GameForm}
     {ng rg nh rh : ℕ}
     (h_ng : HasStride .left g ng) (h_rg : HasStride .right g rg)
     (h_nh : HasStride .left h nh) (h_rh : HasStride .right h rh) :
     (g ≥m A h) ↔ ((ng : ℤ) - (rg : ℤ) ≤ (nh : ℤ) - (rh : ℤ)) :=
-  ⟨fun hge => stride_diff_le_of_misereGE h_g h_h hge h_ng h_rg h_nh h_rh,
-   fun hle => misereGE_of_stride_diff_le h_g h_h h_ng h_rg h_nh h_rh hle⟩
+  ⟨fun hge => stride_diff_le_of_misereGE hge h_ng h_rg h_nh h_rh,
+   fun hle => misereGE_of_stride_diff_le h_ng h_rg h_nh h_rh hle⟩
 
 /--
 The ordering on the misère quotient corresponds to `≥` on stride differences:
@@ -1115,10 +1113,10 @@ theorem MisereQuotient.mk_le_iff_strideDiff
     have hge : h ≥m A g :=
       misereGE_rw_left (Form.MisereQuotient.mk_out_equiv h)
         (misereGE_rw_right (MisereEQ.symm (Form.MisereQuotient.mk_out_equiv g)) hab)
-    exact stride_diff_le_of_misereGE hh hg hge hlh hrh hlg hrg
+    exact stride_diff_le_of_misereGE hge hlh hrh hlg hrg
   · intro hge
     have h_ge : h ≥m A g :=
-      misereGE_of_stride_diff_le hh hg hlh hrh hlg hrg hge
+      misereGE_of_stride_diff_le hlh hrh hlg hrg hge
     exact misereGE_rw_left (MisereEQ.symm (Form.MisereQuotient.mk_out_equiv h))
       (misereGE_rw_right (Form.MisereQuotient.mk_out_equiv g) h_ge)
 
