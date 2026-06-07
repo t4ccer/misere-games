@@ -86,9 +86,12 @@ theorem self_notMem_moves (p : Player) (x : G) : x ∉ moves p x :=
 @[expose] def Subposition : G → G → Prop :=
   Relation.TransGen IsOption
 
+theorem Subposition.of_isOption {x y : G} (h : IsOption x y) : Subposition x y :=
+  Relation.TransGen.single h
+
 @[aesop unsafe apply 50%]
 theorem Subposition.of_mem_moves {p} {x y : G} (h : x ∈ moves p y) : Subposition x y :=
-  Relation.TransGen.single (.of_mem_moves h)
+  Subposition.of_isOption (.of_mem_moves h)
 
 theorem Subposition.trans {x y z : G} (h₁ : Subposition x y) (h₂ : Subposition y z) :
     Subposition x z :=

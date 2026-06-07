@@ -7,9 +7,7 @@ module
 
 public import CombinatorialGames.GameGraph
 public import CombinatorialGames.Misere.Stride
-public import Mathlib.Combinatorics.SimpleGraph.Basic
-public import Mathlib.Combinatorics.SimpleGraph.Connectivity.Subgraph
-public import Mathlib.Combinatorics.SimpleGraph.Finite
+public import CombinatorialGames.Mathlib.SimpleGraph
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.NormNum
 import Mathlib.Order.RelClasses
@@ -32,42 +30,6 @@ open GameForm
 
 variable {V : Type}
 
-----------------------------------------------------------------------------------------------------
-
--- TODO: Upstream to mathlib
-
-/--
-If the support of a simple graph is finite, then so is its edge set.
--/
-private theorem edgeSet_finite_of_support_finite {graph : SimpleGraph V}
-    (hfin : graph.support.Finite) : graph.edgeSet.Finite := by
-  apply Set.Finite.subset (Set.Finite.image2 (fun a b => s(a, b)) hfin hfin)
-  intro e he
-  induction e using Sym2.inductionOn with
-  | _ u w =>
-    rw [SimpleGraph.mem_edgeSet] at he
-    exact Set.mem_image2_of_mem
-      (graph.mem_support.mpr ⟨w, he⟩)
-      (graph.mem_support.mpr ⟨u, he.symm⟩)
-
-/--
-If a non-empty walk ends with a vertex `u` then there exists some edge incident to `u`.
--/
-private theorem exist_edge_end_walk {graph : SimpleGraph V} {v u : V} (h1 : v ≠ u)
-    (walk : graph.Walk v u) : ∃ e ∈ graph.edgeSet, u ∈ e := by
-  induction walk with
-  | nil => absurd h1; rfl
-  | @cons v w u h rest ih =>
-    by_cases h2 : w = u
-    · subst h2
-      use Sym2.mk v w
-      constructor
-      · exact (SimpleGraph.mem_edgeSet graph).mpr h
-      · simp only [Sym2.mem_iff, or_true]
-    · exact ih h2
-
-----------------------------------------------------------------------------------------------------
-
 structure Hackenbush (V : Type) where
   /-- The underlying graph. -/
   graph : SimpleGraph V
@@ -88,7 +50,7 @@ namespace Hackenbush
 The edge set of a Hackenbush position is finite.
 -/
 theorem edgeSetFinite (hack : Hackenbush V) : hack.graph.edgeSet.Finite :=
-  edgeSet_finite_of_support_finite (hack.supportFinset_coe ▸ hack.supportFinset.finite_toSet)
+  SimpleGraph.edgeSet_finite_of_support_finite (hack.supportFinset_coe ▸ hack.supportFinset.finite_toSet)
 
 /--
 The edge finset of a Hackenbush position's graph, derived from support finiteness.
@@ -163,14 +125,15 @@ Reachability in `G.deleteEdges {e}` from ground implies reachability in the grou
 theorem reach_deleteEdges_imp_reach_groundComp {graph : SimpleGraph V} {ground : V} {e : Sym2 V}
     {v : V} (hv : (graph.deleteEdges {e}).Reachable v ground) :
     (groundComp graph ground e).Reachable v ground := by
-  induction' hv with v hv ih ih;
-  induction' v with v w hv ih;
-  · exact SimpleGraph.Reachable.refl _;
-  · rename_i h₁ h₂ h₃;
-    exact SimpleGraph.Reachable.trans ( SimpleGraph.Adj.reachable ( by
-      exact ⟨ h₁, by
-        exact SimpleGraph.Reachable.trans ( SimpleGraph.Adj.reachable h₁ ) ( SimpleGraph.Walk.reachable h₂ ), by
-        exact ⟨ h₂ ⟩ ⟩ ) ) h₃
+  induction' hv with v hv ih ih
+  induction' v with v w hv ih
+  · exact SimpleGraph.Reachable.refl _
+  · rename_i h₁ h₂ h₃
+    refine SimpleGraph.Reachable.trans ?_ h₃
+    apply SimpleGraph.Adj.reachable
+    rw [groundComp_adj_iff]
+    refine ⟨h₁, ?_, ⟨h₂⟩⟩
+    exact SimpleGraph.Reachable.trans (SimpleGraph.Adj.reachable h₁) (SimpleGraph.Walk.reachable h₂)
 
 /--
 The ground component is connected
@@ -179,8 +142,10 @@ theorem groundComp_connected (graph : SimpleGraph V) (ground : V) (e : Sym2 V) :
     ∀ v ∈ (groundComp graph ground e).support, (groundComp graph ground e).Reachable v ground := by
   intro v hv
   rw [SimpleGraph.mem_support] at hv
-  obtain ⟨w, hadj⟩ := hv
-  exact reach_deleteEdges_imp_reach_groundComp hadj.2.1
+  obtain ⟨_, h_adj⟩ := hv
+  rw [groundComp_adj_iff] at h_adj
+  obtain ⟨_, h_v_g, _⟩ := h_adj
+  exact reach_deleteEdges_imp_reach_groundComp h_v_g
 
 /--
 Remove an edge from a Hackenbush position and take the ground component.
@@ -282,7 +247,7 @@ theorem groundEdges_remove_eq (hack : Hackenbush V) (e : Sym2 V)
     (hack.groundEdges p).erase e = (hack.remove e).groundEdges p := by
   ext e'
   simp only [Finset.mem_erase, groundEdges, Finset.mem_filter, mem_edgeFinset,
-    remove_graph, remove_ground, remove_coloring]
+             remove_graph, remove_ground, remove_coloring]
   constructor
   · intro ⟨hne, he'_mem, hgnd, hcol⟩
     exact ⟨groundEdge_mem_groundComp he'_mem hne hgnd hack.connected, hgnd, hcol⟩
@@ -311,14 +276,14 @@ theorem groundCount_remove_ground {hack : Hackenbush V} {e : Sym2 V} {p : Player
 /--
 Ground count is preserved when removing an edge of different color.
 -/
-theorem groundCount_remove_diff_color {hack : Hackenbush V} {e : Sym2 V} {p : Player}
-    (hc : hack.coloring e ≠ p) :
+theorem groundCount_remove_neg {hack : Hackenbush V} {e : Sym2 V} {p : Player}
+    (hc : hack.coloring e = -p) :
     (hack.remove e).groundCount p = hack.groundCount p := by
   unfold groundCount
   rw [← hack.groundEdges_remove_eq e p, Finset.erase_eq_of_notMem]
   simp only [groundEdges, Finset.mem_filter, mem_edgeFinset, not_and]
   intro _ _ hnc
-  exact hc hnc
+  exact Player.absurd hnc hc
 
 /--
 Ground count is preserved when removing a non-ground edge.
@@ -338,8 +303,7 @@ Removing a p-colored edge preserves (-p)-colored ground count.
 theorem groundCount_neg_remove {hack : Hackenbush V} {e : Sym2 V} {p : Player}
     (hc : hack.coloring e = p) :
     (hack.remove e).groundCount (-p) = hack.groundCount (-p) :=
-  groundCount_remove_diff_color
-    (by rw [hc]; exact (Player.ne_iff_eq_neg.mpr rfl).symm)
+  groundCount_remove_neg (by rw [hc, neg_neg])
 
 /--
 For any p-move, the groundCount p of the result is ≥ groundCount p - 1.
@@ -414,14 +378,16 @@ The game form is zero iff the graph has no edges.
 -/
 theorem toGameForm_eq_zero_iff {hack : Hackenbush V} :
     hack.toGameForm = 0 ↔ hack.graph = ⊥ := by
-  refine ⟨ ?_, ?_ ⟩;
-  · intro h;
-    contrapose! h;
+  refine ⟨ ?_, ?_ ⟩
+  · intro h
+    contrapose! h
     obtain ⟨e, he⟩ : ∃ e : Sym2 V, e ∈ hack.graph.edgeSet := by
       refine Set.nonempty_iff_ne_empty.mpr fun h' => h <| ?_
       ext
       simp only [SimpleGraph.edgeSet_eq_empty, h] at h'
-    exact fun h => by have := toGameForm_remove_mem_moves he; simp_all +decide ;
+    intro h
+    have := toGameForm_remove_mem_moves he
+    simp only [h, moves_zero, Set.mem_empty_iff_false] at this
   · intro h
     have h_empty_moves : ∀ p : Player, hack.moves p = ∅ := by
       intro p
@@ -444,11 +410,11 @@ theorem exists_ground_edge {hack : Hackenbush V} (h_ne : hack.graph ≠ ⊥) :
     by_cases h : v = hack.ground
     <;> by_cases h' : w = hack.ground
     <;> simp_all only [ne_eq, SimpleGraph.support, SetRel.mem_dom, Set.mem_setOf_eq, SimpleGraph.irrefl]
-    · exact ⟨w, ⟨hack.ground, hvw.symm⟩, hvw.symm.reachable, h'⟩;
-    · exact ⟨v, ⟨hack.ground, hvw⟩, hvw.reachable, h⟩;
-    · exact ⟨v, ⟨w, hvw ⟩, hack.connected v ⟨w, hvw⟩, h⟩;
+    · exact ⟨w, ⟨hack.ground, hvw.symm⟩, hvw.symm.reachable, h'⟩
+    · exact ⟨v, ⟨hack.ground, hvw⟩, hvw.reachable, h⟩
+    · exact ⟨v, ⟨w, hvw ⟩, hack.connected v ⟨w, hvw⟩, h⟩
   apply SimpleGraph.Reachable.elim h2
-  exact exist_edge_end_walk h3
+  exact SimpleGraph.exist_edge_end_walk h3
 
 /-
 If position is nonempty and groundCount p = 0, then all ground edges are (-p)-colored.
@@ -456,8 +422,8 @@ If position is nonempty and groundCount p = 0, then all ground edges are (-p)-co
 theorem exists_neg_ground_edge {hack : Hackenbush V} {p : Player}
     (h_ne : hack.graph ≠ ⊥) (hgc : hack.groundCount p = 0) :
     ∃ e, e ∈ hack.graph.edgeSet ∧ hack.ground ∈ e ∧ hack.coloring e = -p := by
-  obtain ⟨ e, he₁, he₂ ⟩ := hack.exists_ground_edge h_ne;
-  by_cases he₃ : hack.coloring e = p;
+  obtain ⟨ e, he₁, he₂ ⟩ := hack.exists_ground_edge h_ne
+  by_cases he₃ : hack.coloring e = p
   · absurd hgc
     apply Nat.ne_of_gt
     exact Finset.card_pos.mpr ⟨e, Finset.mem_filter.mpr ⟨hack.mem_edgeFinset.mpr he₁, he₂, he₃⟩⟩
@@ -475,7 +441,8 @@ theorem move_not_zero_of_groundCount_zero {hack : Hackenbush V} {p : Player} {e 
     (he : e ∈ hack.graph.edgeSet) (hc : hack.coloring e = p) (hgc : hack.groundCount p = 0) :
     (hack.remove e).graph ≠ ⊥ := by
   have h_ne : hack.graph ≠ ⊥ := by
-    intro hbot; simp [hbot] at he
+    intro hbot
+    simp [hbot] at he
   obtain ⟨e', he'_mem, he'_gnd, he'_col⟩ := hack.exists_neg_ground_edge h_ne hgc
   have hne : e' ≠ e := by
     intro heq
@@ -524,7 +491,9 @@ theorem isSolved_of_groundCount_zero {hack : Hackenbush V} {p : Player}
       (hack.remove e).groundCount p = 0 →
       GameForm.IsSolved p (hack.remove e).toGameForm := by
     intro e he hgc'
-    exact ih _ (by rw [← m]; exact hack.edgeCard_remove_lt e he) hgc' rfl
+    refine ih _ ?_ hgc' rfl
+    subst m
+    exact hack.edgeCard_remove_lt e he
   rw [GameForm.isSolved_def]
   refine ⟨?_, ?_, ?_⟩
   · -- (i): p has no moves to 0
@@ -537,16 +506,17 @@ theorem isSolved_of_groundCount_zero {hack : Hackenbush V} {p : Player}
     have hne : hack.graph ≠ ⊥ := fun h => hne0 (toGameForm_eq_zero_iff.mpr h)
     obtain ⟨e, he_mem, he_gnd, he_col⟩ := exists_neg_ground_edge hne hgc
     have hmove : (hack.remove e).toGameForm ∈ Form.moves (-p) hack.toGameForm := by
-      rw [← he_col]; exact toGameForm_remove_mem_moves he_mem
+      rw [← he_col]
+      exact toGameForm_remove_mem_moves he_mem
     rw [Form.isEnd_def] at h_end
     rwa [h_end] at hmove
   · -- (iii): All options are solved for p
     intro gp hopt
     rw [Form.isOption_iff_mem_union] at hopt
-    rcases hopt with hopt | hopt <;> {
-      obtain ⟨e, he, hc, rfl⟩ := mem_moves_toGameForm_iff.mp hopt
+    obtain hopt | hopt := hopt
+    all_goals
+    · obtain ⟨e, he, hc, rfl⟩ := mem_moves_toGameForm_iff.mp hopt
       exact ih_remove e he (groundCount_zero_of_option hgc)
-    }
 
 /--
 When `groundCount` p ≥ 1, the position is not solved for p.
@@ -561,7 +531,9 @@ theorem not_isSolved_of_groundCount_pos {hack : Hackenbush V} {p : Player}
     intro hbot
     have : hack.edgeFinset = ∅ := by
       rw [Finset.eq_empty_iff_forall_notMem]
-      intro e; simp [mem_edgeFinset, hbot]
+      intro e
+      simp only [mem_edgeFinset, hbot, SimpleGraph.edgeSet_bot, Set.mem_empty_iff_false,
+                 not_false_eq_true]
     simp [groundCount, groundEdges, this] at hgc
   have hne0 : hack.toGameForm ≠ 0 :=
     fun h => hne (toGameForm_eq_zero_iff.mp h)
@@ -570,21 +542,23 @@ theorem not_isSolved_of_groundCount_pos {hack : Hackenbush V} {p : Player}
   · -- Case A: (-p) has an edge e₁
     obtain ⟨e₁, he₁, hc₁⟩ := h_neg
     have hmove : (hack.remove e₁).toGameForm ∈ Form.moves (-p) hack.toGameForm := by
-      rw [← hc₁]; exact toGameForm_remove_mem_moves he₁
+      rw [← hc₁]
+      exact toGameForm_remove_mem_moves he₁
     have h_solved' := GameForm.isSolved_of_mem_moves h_solved hmove
     have hgc' : (hack.remove e₁).groundCount p ≥ 1 := by
-      rw [groundCount_remove_diff_color (by rw [hc₁]; cases p <;> simp)]
+      rw [groundCount_remove_neg hc₁]
       exact hgc
-    exact ih _ (by rw [← n]; exact hack.edgeCard_remove_lt e₁ he₁) hgc' rfl h_solved'
-  · -- Case B: all edges are p-colored, so (-p) is ended
+    refine ih _ ?_ hgc' rfl h_solved'
+    subst n
+    exact hack.edgeCard_remove_lt e₁ he₁
+  · -- Case B: all edges are p-colored, so (-p)-end
     push_neg at h_neg
-    have h_end : Form.IsEnd (-p) hack.toGameForm := by
-      rw [isEnd_def, moves_toGameForm, Set.image_eq_empty]
-      ext
-      simp only [Hackenbush.moves, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
-      rintro ⟨e, he, hc, _⟩
-      exact absurd hc (h_neg e he)
-    exact absurd h_end (GameForm.isSolved_not_isEnd h_solved hne0)
+    refine absurd ?_ (GameForm.isSolved_not_isEnd h_solved hne0)
+    rw [isEnd_def, moves_toGameForm, Set.image_eq_empty]
+    ext
+    simp only [Hackenbush.moves, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+    rintro ⟨e, he, hc, _⟩
+    exact absurd hc (h_neg e he)
 
 /--
 The p-stride of a Hackenbush position equals the number of p-colored ground edges.
@@ -597,8 +571,9 @@ theorem hasStride_groundCount (hack : Hackenbush V) (p : Player) :
       GameForm.HasStride q (hack.remove e).toGameForm
         ((hack.remove e).groundCount q) := by
     intro e he q
-    apply ih _ (by rw [← n]; exact hack.edgeCard_remove_lt e he)
-    rfl
+    refine ih _ ?_ _ _ rfl
+    subst n
+    exact hack.edgeCard_remove_lt e he
   by_cases h_groundCount : hack.groundCount p = 0
   · rw [h_groundCount, GameForm.hasStride_zero_iff]
     exact isSolved_of_groundCount_zero h_groundCount
@@ -625,35 +600,32 @@ theorem hasStride_groundCount (hack : Hackenbush V) (p : Player) :
         (by rw [← he₀_col]; exact toGameForm_remove_mem_moves he₀_mem), ?_, ?_⟩
       · have : (hack.remove e₀).groundCount p = k := by
           rw [groundCount_remove_ground he₀_mem he₀_gnd he₀_col, hk, Nat.add_sub_self_right]
-        rw [← this]; exact ih_remove e₀ he₀_mem p
+        rw [← this]
+        exact ih_remove e₀ he₀_mem p
       · intro g'' hg'' m hm
         obtain ⟨e', he', hc', rfl⟩ := mem_moves_toGameForm_iff.mp hg''
-        have h1 : (hack.remove e').groundCount (-p) = hack.groundCount (-p) :=
-          groundCount_neg_remove hc'
-        have h2 : (hack.remove e₀).groundCount (-p) = hack.groundCount (-p) :=
-          groundCount_neg_remove he₀_col
         have hs1 := ih_remove e' he' (-p)
-        have hs2 := ih_remove e₀ he₀_mem (-p)
-        rw [h1] at hs1; rw [h2] at hs2
+        rw [groundCount_neg_remove hc'] at hs1
         rw [GameForm.hasStride_unique hm hs1]
+        have hs2 := ih_remove e₀ he₀_mem (-p)
+        rw [groundCount_neg_remove he₀_col] at hs2
         exact ⟨hack.groundCount (-p), le_refl _, hs2⟩
     · -- (iv): Opponent support
       intro g' hg'
       obtain ⟨e, he, hc, rfl⟩ := mem_moves_toGameForm_iff.mp hg'
-      have hgc_eq : (hack.remove e).groundCount p = k + 1 := by
-        rw [groundCount_remove_diff_color (by cases p <;> simp_all), hk]
+      use (hack.remove e).groundCount p
+      have hgc_eq : (hack.remove e).groundCount p = k + 1 := by rw [groundCount_remove_neg hc, hk]
       rw [← hgc_eq]
-      exact ⟨(hack.remove e).groundCount p, le_refl _, ih_remove e he p⟩
+      exact ⟨le_refl _, ih_remove e he p⟩
     · -- (v): Opponent best response
       intro hne
       obtain ⟨g', hg'⟩ := Set.nonempty_iff_ne_empty.mpr hne
       obtain ⟨e, he, hc, rfl⟩ := mem_moves_toGameForm_iff.mp hg'
+      use (hack.remove e).toGameForm, mem_moves_toGameForm_iff.mpr ⟨e, he, hc, rfl⟩
       have hgc_eq : (hack.remove e).groundCount p = k + 1 := by
-        rw [groundCount_remove_diff_color (Player.ne_iff_eq_neg.mpr hc), hk]
+        rw [groundCount_remove_neg hc, hk]
       rw [← hgc_eq]
-      exact ⟨(hack.remove e).toGameForm,
-        mem_moves_toGameForm_iff.mpr ⟨e, he, hc, rfl⟩,
-        ih_remove e he p⟩
+      exact ih_remove e he p
 
 instance : Ruleset (Hackenbush V) where
   toGameForm := toGameForm
@@ -662,7 +634,9 @@ instance : Ruleset (Hackenbush V) where
     obtain ⟨r', _, h_r'⟩ := h_g'
     use r'
 
-/-- The underlying star graph for Hackenbush: ground vertex `0` connected to vertices `1, ..., n`. -/
+/--
+The underlying star graph for Hackenbush: ground vertex `0` connected to vertices `1, ..., n`.
+-/
 private def starGraph (n : ℕ) : SimpleGraph ℕ where
   Adj u v := (u = 0 ∧ 1 ≤ v ∧ v ≤ n) ∨ (1 ≤ u ∧ u ≤ n ∧ v = 0)
   symm u v h := by
@@ -671,10 +645,12 @@ private def starGraph (n : ℕ) : SimpleGraph ℕ where
     | inr h => exact Or.inl ⟨h.2.2, h.1, h.2.1⟩
   loopless := ⟨fun v h => by cases h with | inl h => omega | inr h => omega⟩
 
-/-- A star Hackenbush position over ℕ with `l` left ground edges and `r` right ground edges.
-    Ground vertex is `0`. Left edges connect `0` to `1, ..., l`.
-    Right edges connect `0` to `l+1, ..., l+r`.
-    The coloring uses `max u v` (the non-zero endpoint of each star edge) to determine color. -/
+/--
+A star Hackenbush position over ℕ with `l` left ground edges and `r` right ground edges.
+Ground vertex is `0`. Left edges connect `0` to `1, ..., l`.
+Right edges connect `0` to `l+1, ..., l+r`.
+The coloring uses `max u v` (the non-zero endpoint of each star edge) to determine color.
+-/
 def starPos (l r : ℕ) : Hackenbush ℕ where
   graph := Hackenbush.starGraph (l + r)
   ground := 0
@@ -683,21 +659,20 @@ def starPos (l r : ℕ) : Hackenbush ℕ where
       if max u v ≤ l then Player.left else Player.right,
       by intro u v; simp [max_comm]⟩ e
   connected := fun v hv => by
-    simp [SimpleGraph.mem_support, starGraph] at hv
+    simp only [starGraph, SimpleGraph.mem_support] at hv
     obtain ⟨w, hw⟩ := hv
     cases hw with
     | inl h => exact h.1 ▸ SimpleGraph.Reachable.refl _
-    | inr h => exact SimpleGraph.Adj.reachable (show (starGraph (l + r)).Adj v 0 from Or.inr ⟨h.1, h.2.1, rfl⟩)
+    | inr h => exact SimpleGraph.Adj.reachable (Or.inr ⟨h.1, h.2.1, rfl⟩)
   supportFinset := (Finset.range (l + r + 1)).filter (fun v =>
     v ∈ (Hackenbush.starGraph (l + r)).support)
   supportFinset_coe := by
-    ext v; simp only [Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq,
-      SimpleGraph.mem_support, starGraph]
+    ext v
+    simp only [Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq, SimpleGraph.mem_support, starGraph]
     constructor
     · intro ⟨_, hv⟩; exact hv
-    · intro hv
-      refine ⟨?_, hv⟩
-      obtain ⟨w, hw⟩ := hv
+    · intro ⟨w, hw⟩
+      refine ⟨?_, ⟨w, hw⟩⟩
       cases hw with
       | inl h => omega
       | inr h => omega
@@ -746,8 +721,8 @@ theorem starPos_groundCount_right (l r : ℕ) :
     <;> simp [starGraph]
     · tauto
     · tauto
-  convert congr_arg Finset.card h_groundEdges_right using 1;
-  rw [Finset.card_image_of_injOn] <;> norm_num [Function.Injective];
+  convert congr_arg Finset.card h_groundEdges_right using 1
+  rw [Finset.card_image_of_injOn] <;> norm_num [Function.Injective]
   omega
 
 instance : GameForm.Strided (Ruleset.Forms (Hackenbush ℕ)) where

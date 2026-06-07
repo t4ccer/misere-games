@@ -132,7 +132,7 @@ noncomputable def weight (s : Shove) : ℕ :=
   ∑ i ∈ Finset.range s.finite_support.choose,
     if s.board i = .none then 0 else i + 1
 
-theorem weight_eq_of_bound (s : Shove) (N : ℕ) (hN : ∀ n, N ≤ n → s.board n = .none) :
+theorem weight_eq_of_bound {s : Shove} (N : ℕ) (hN : ∀ n, N ≤ n → s.board n = .none) :
     s.weight = ∑ i ∈ Finset.range N, if s.board i = .none then 0 else i + 1 := by
   have h_weight_def :
       s.weight =
@@ -158,7 +158,7 @@ theorem support_exists (s : Shove) (n : ℕ) :
 theorem weight_eq (s : Shove) (n : ℕ) :
     s.weight =
     ∑ i ∈ Finset.range ((support_exists s n).choose), (if s.board i = .none then 0 else i + 1) := by
-  apply Shove.weight_eq_of_bound s (support_exists s n).choose
+  apply Shove.weight_eq_of_bound (support_exists s n).choose
   intro m hm
   exact ((support_exists s n).choose_spec m hm).left
 
@@ -166,11 +166,11 @@ theorem push_on_weight_eq (s : Shove) (n : ℕ) :
     (s.push_on n).weight =
     ∑ i ∈ Finset.range ((support_exists s n).choose),
     (if (s.push_on n).board i = .none then 0 else i + 1) := by
-    apply Shove.weight_eq_of_bound (s.push_on n) (support_exists s n).choose
+    apply Shove.weight_eq_of_bound (support_exists s n).choose
     intro m hm
     exact ((support_exists s n).choose_spec m hm).right
 
-theorem weight_push_lt (s : Shove) (n : ℕ) (hn : s.board n ≠ .none) :
+theorem weight_push_lt {s : Shove} (n : ℕ) (hn : s.board n ≠ .none) :
     (s.push_on n).weight < s.weight := by
   have h_diff :
       ∑ i ∈ Finset.range ((support_exists s n).choose), (if s.board i = .none then 0 else i + 1) =
@@ -232,14 +232,14 @@ theorem weight_push_lt (s : Shove) (n : ℕ) (hn : s.board n ≠ .none) :
   have := Shove.push_on_weight_eq s n
   omega
 
-theorem weight_lt_of_mem_move (p : Player) (s s' : Shove)
+theorem weight_lt_of_mem_move {p : Player} {s s' : Shove}
     (h_mem : s' ∈ GameGraph.shove.moves p s) :
     s'.weight < s.weight := by
   obtain ⟨n, hn₁, hn₂⟩ := (Shove.mem_moves_iff p s s').mp h_mem
-  convert Shove.weight_push_lt s n _ using 1
-  · rw [hn₂]
+  convert Shove.weight_push_lt n _ using 1
   · subst hn₂
-    simp_all only [ne_eq, Piece.ofPlayer_ne_none, not_false_eq_true]
+    simp
+  · simp [hn₁]
 
 instance : GameGraph.IsWellFounded GameGraph.shove where
   wf := by
@@ -249,7 +249,7 @@ instance : GameGraph.IsWellFounded GameGraph.shove where
     refine' ⟨ _, fun s' hs' => _ ⟩
     refine ih _ ?_ _ rfl
     obtain ⟨ p, hp ⟩ := hs'
-    have := Shove.weight_lt_of_mem_move p s s' hp
+    have := Shove.weight_lt_of_mem_move hp
     omega
 
 protected noncomputable def toGameForm : Shove → GameForm := GameGraph.toForm (g := GameGraph.shove)
@@ -286,7 +286,7 @@ theorem toGameForm_zero_iff (g : Shove) : (g.toGameForm = 0) ↔ (∀ n, g.board
     obtain ⟨n, hn, rfl⟩ := (Shove.mem_moves_iff p g x).mp hx
     simp_all only [Piece.none_ne_ofPlayer]
 
-theorem toGameForm_push_mem_moves (s : Shove) (p : Player) {m : ℕ}
+theorem toGameForm_push_mem_moves {s : Shove} (p : Player) {m : ℕ}
     (hm : s.board m = .ofPlayer p) :
     (s.push_on m).toGameForm ∈ Form.moves p s.toGameForm := by
   rw [moves_toGameForm]
@@ -322,7 +322,7 @@ theorem rightmostPos_spec (s : Shove) {k : ℕ} (hk : k ≤ s.finite_support.cho
   unfold rightmostPos
   exact Nat.findGreatest_spec (P := fun n => s.board n ≠ .none) hk hne
 
-theorem board_eq_none_of_gt_rightmostPos (s : Shove) {k : ℕ}
+theorem board_eq_none_of_gt_rightmostPos {s : Shove} {k : ℕ}
     (hk : s.rightmostPos < k) :
     s.board k = .none := by
   unfold rightmostPos at hk
@@ -332,23 +332,14 @@ theorem board_eq_none_of_gt_rightmostPos (s : Shove) {k : ℕ}
   · simp at hk2
     grind only [Exists.choose_spec]
 
-theorem rightmostPos_greatest (s : Shove) {k : ℕ} (hk : s.board k ≠ .none) :
+theorem rightmostPos_greatest {s : Shove} {k : ℕ} (hk : s.board k ≠ .none) :
     k ≤ s.rightmostPos := by
   by_contra h
   push_neg at h
   have hk2 : k ≤ s.finite_support.choose := by
     by_contra h2; push_neg at h2
     exact hk (s.finite_support.choose_spec k (by omega))
-  exact hk (board_eq_none_of_gt_rightmostPos s h)
-
-theorem board_eq_none_of_rightmostPos_zero (s : Shove)
-    (h0 : s.rightmostPos = 0) (hb : s.board 0 = .none) : ∀ n, s.board n = .none := by
-  intro n
-  by_contra h
-  have h1 := rightmostPos_greatest s h
-  rw [h0] at h1
-  interval_cases n
-  exact h hb
+  exact hk (board_eq_none_of_gt_rightmostPos h)
 
 /-! ### Stride definition and properties under push_on -/
 
@@ -356,7 +347,7 @@ protected noncomputable def stride (s : Shove) (p : Player) : ℕ :=
   if s.board s.rightmostPos = .ofPlayer p then s.rightmostPos + 1
   else 0
 
-theorem rightmostPos_push_below (s : Shove) {m : ℕ}
+theorem rightmostPos_push_below {s : Shove} {m : ℕ}
     (hm : m < s.rightmostPos) :
     (s.push_on m).rightmostPos = s.rightmostPos := by
   apply Nat.le_antisymm _ _;
@@ -367,15 +358,15 @@ theorem rightmostPos_push_below (s : Shove) {m : ℕ}
       exact this.2.1 (by omega)
     have h_push_on_eq : (s.push_on m).board j = s.board j := Shove.push_on_gt _ (by omega)
     rw [h_push_on_eq] at hj_ne
-    exact absurd (rightmostPos_greatest s hj_ne) hj_gt.not_ge)
-  · refine' rightmostPos_greatest _ _;
+    exact absurd (rightmostPos_greatest hj_ne) hj_gt.not_ge)
+  · refine' rightmostPos_greatest _
     rw [ Shove.push_on_gt ];
     · have : Nat.findGreatest (fun n => s.board n ≠ Piece.none) s.finite_support.choose = s.rightmostPos := rfl
       have := Nat.findGreatest_eq_iff.mp this
       lia
     · assumption
 
-theorem rightmostPos_push_at (s : Shove) {k : ℕ}
+theorem rightmostPos_push_at {s : Shove} {k : ℕ}
     (hk : s.rightmostPos = k) (hpos : 0 < k) (hne : s.board k ≠ .none) :
     (s.push_on k).rightmostPos = k - 1 := by
   apply le_antisymm
@@ -386,7 +377,7 @@ theorem rightmostPos_push_at (s : Shove) {k : ℕ}
       · exact push_on_eq s k
       · rw [push_on_gt s h_gt_k]
         by_contra h_ne'
-        exact absurd (rightmostPos_greatest s h_ne') (by omega)
+        exact absurd (rightmostPos_greatest h_ne') (by omega)
     have h_witness : (s.push_on k).board (k - 1) ≠ .none := by
       rcases k with (_ | k) <;> simp_all +decide [Shove.push_on]
     have h_k_le : k - 1 ≤ (s.push_on k).finite_support.choose := by
@@ -397,38 +388,38 @@ theorem rightmostPos_push_at (s : Shove) {k : ℕ}
   · apply rightmostPos_greatest
     rcases k with (_ | k) <;> simp_all +decide [Shove.push_on]
 
-theorem stride_push_below (s : Shove) (p : Player) {m : ℕ}
+theorem stride_push_below {s : Shove} (p : Player) {m : ℕ}
     (hm : m < s.rightmostPos) :
     (s.push_on m).stride p = s.stride p := by
   unfold Shove.stride;
-  rw [rightmostPos_push_below s hm, Shove.push_on]
+  rw [rightmostPos_push_below hm, Shove.push_on]
   grind only
 
-theorem stride_push_at_rightmost (s : Shove) (p : Player) {k : ℕ}
+theorem stride_push_at_rightmost {s : Shove} (p : Player) {k : ℕ}
     (hk : s.rightmostPos = k) (hpos : 0 < k)
     (hp : s.board k = .ofPlayer p) :
     (s.push_on k).stride p = k := by
   have h_push : (s.push_on k).rightmostPos = k - 1 := by
-    exact rightmostPos_push_at s hk hpos ( by cases p <;> aesop );
+    exact rightmostPos_push_at hk hpos ( by cases p <;> aesop );
   rcases k with ( _ | k ) <;> simp_all +decide [ Shove.stride ]
 
-theorem stride_neg_push_at_rightmost (s : Shove) (p : Player) {k : ℕ}
+theorem stride_neg_push_at_rightmost {s : Shove} (p : Player) {k : ℕ}
     (hk : s.rightmostPos = k)
     (hp : s.board k = .ofPlayer p) (hpos : 0 < k) :
     (s.push_on k).stride (-p) = 0 := by
   have h_rightmostPos : (s.push_on k).rightmostPos = k - 1 := by
-    convert rightmostPos_push_at s hk hpos ( hp.symm ▸ by cases p <;> trivial ) using 1;
+    convert rightmostPos_push_at hk hpos ( hp.symm ▸ by cases p <;> trivial ) using 1;
   have h_board : (s.push_on k).board (k - 1) = Piece.ofPlayer p := by
     rcases k with ( _ | k ) <;> simp_all +decide [ Shove.push_on ];
   simp_all [Shove.stride];
   cases p <;> tauto
 
-theorem stride_neg_eq_zero (s : Shove) (p : Player)
+theorem stride_neg_eq_zero {s : Shove} (p : Player)
     (hp : s.board s.rightmostPos = .ofPlayer p) :
     s.stride (-p) = 0 := by
   cases p <;> simp_all +decide [Shove.stride]
 
-theorem push_rightmost_zero_empty (s : Shove)
+theorem push_rightmost_zero_empty {s : Shove}
     (h0 : s.rightmostPos = 0) (n : ℕ) :
     (s.push_on 0).board n = .none := by
   simp only [push_on, not_lt_zero, ↓reduceIte, ite_eq_left_iff]
@@ -439,27 +430,27 @@ theorem push_rightmost_zero_empty (s : Shove)
   · rw [not_le] at h_sup
     exact Exists.choose_spec s.finite_support n (Nat.le_of_succ_le h_sup)
 
-theorem stride_neg_zero_of_p_move (s : Shove) (p : Player) {m : ℕ}
+theorem stride_neg_zero_of_p_move {s : Shove} (p : Player) {m : ℕ}
     (hrm : s.board s.rightmostPos = .ofPlayer p)
     (hm : s.board m = .ofPlayer p) :
     (s.push_on m).stride (-p) = 0 := by
   by_cases hm' : m < s.rightmostPos;
-  · convert stride_neg_eq_zero ( s.push_on m ) p _ using 1;
-    rw [rightmostPos_push_below] <;> aesop;
+  · convert stride_neg_eq_zero p _ using 1;
+    rwa [rightmostPos_push_below hm', push_on_gt s hm']
   · have hm'' : m = s.rightmostPos := by
-      exact le_antisymm (rightmostPos_greatest s (by aesop)) (not_lt.mp hm')
+      exact le_antisymm (rightmostPos_greatest (by aesop)) (not_lt.mp hm')
     by_cases h : 0 < s.rightmostPos <;> simp_all +decide [ Shove.stride ]
-    · convert stride_neg_push_at_rightmost s p rfl hrm h using 1;
+    · convert stride_neg_push_at_rightmost p rfl hrm h using 1;
       unfold Shove.stride; aesop
-    · rw [push_rightmost_zero_empty s h (s.push_on 0).rightmostPos]
+    · rw [push_rightmost_zero_empty h (s.push_on 0).rightmostPos]
       exact Piece.none_ne_ofPlayer (-p)
 
-theorem stride_push_eq_rightmostPos (s : Shove) (p : Player) {m : ℕ}
+theorem stride_push_eq_rightmostPos {s : Shove} (p : Player) {m : ℕ}
     (hm1 : s.board m ≠ .none) (hm2 : m = s.rightmostPos) :
     (s.push_on m).stride p = s.stride p - 1 := by
   subst hm2
   by_cases h1 : 0 < s.rightmostPos
-  · have h2 := rightmostPos_push_at s rfl h1 hm1
+  · have h2 := rightmostPos_push_at rfl h1 hm1
     have h3 := push_on_lt s (Nat.sub_one_lt_of_lt h1)
     have h4 : s.rightmostPos - 1 + 1 = s.rightmostPos := Nat.sub_add_cancel h1
     simp only [Shove.stride, h2, h3, h4]
@@ -468,193 +459,192 @@ theorem stride_push_eq_rightmostPos (s : Shove) (p : Player) {m : ℕ}
     rw [h1] at ⊢ hm1
     simp only [Shove.stride, h1, zero_add]
     split_ifs with h2 h3
-    · absurd push_rightmost_zero_empty s h1 (s.push_on 0).rightmostPos
+    · absurd push_rightmost_zero_empty h1 (s.push_on 0).rightmostPos
       exact Piece.ne_none_of_ofPlayer h2
     · absurd h2
-      rw [push_rightmost_zero_empty s h1 (s.push_on 0).rightmostPos]
+      rw [push_rightmost_zero_empty h1 (s.push_on 0).rightmostPos]
       exact Piece.none_ne_ofPlayer p
     · rfl
     · rfl
 
-theorem stride_push_le (s : Shove) (p : Player) {m : ℕ}
+theorem stride_push_le {s : Shove} (p : Player) {m : ℕ}
     (hm : s.board m ≠ .none) :
     (s.push_on m).stride p ≤ s.stride p := by
   obtain h_lt | h_eq | h_gt := Nat.lt_trichotomy m s.rightmostPos
-  · exact Nat.le_of_eq (stride_push_below s p h_lt)
-  · rw [stride_push_eq_rightmostPos s p hm h_eq]
+  · exact Nat.le_of_eq (stride_push_below p h_lt)
+  · rw [stride_push_eq_rightmostPos p hm h_eq]
     exact Nat.sub_le (s.stride p) 1
   · absurd h_gt
     rw [not_lt]
-    exact rightmostPos_greatest s hm
+    exact rightmostPos_greatest hm
 
-theorem stride_zero_of_push (g : Shove) (p : Player) {m : ℕ}
-    (hs : g.stride p = 0) (hm : g.board m ≠ .none) :
-    (g.push_on m).stride p = 0 := by
-  have := stride_push_le g p hm
-  omega
+theorem stride_zero_of_push {s : Shove} {p : Player} {m : ℕ}
+    (hs : s.stride p = 0) (hm : s.board m ≠ .none) :
+    (s.push_on m).stride p = 0 := by
+  have := stride_push_le p hm
+  rw [hs] at this
+  exact Nat.le_zero.mp this
 
-theorem push_to_empty_is_neg (g : Shove) (p : Player) {m : ℕ}
-    (hs : g.stride p = 0)
-    (hm_piece : g.board m ≠ .none)
-    (h_empty : ∀ n, (g.push_on m).board n = .none) :
-    g.board m = .ofPlayer (-p) := by
-  have h_m_eq_rightmostPos : m = g.rightmostPos := by
-    refine' le_antisymm ( Shove.rightmostPos_greatest _ hm_piece ) _;
+theorem push_to_empty_is_neg {s : Shove} {p : Player} {m : ℕ}
+    (hs : s.stride p = 0)
+    (hm_piece : s.board m ≠ .none)
+    (h_empty : ∀ n, (s.push_on m).board n = .none) :
+    s.board m = .ofPlayer (-p) := by
+  have h_m_eq_rightmostPos : m = s.rightmostPos := by
+    refine' le_antisymm (Shove.rightmostPos_greatest hm_piece) _;
     contrapose! h_empty
-    use g.rightmostPos
-    have := Shove.rightmostPos_le g
-    convert rightmostPos_spec g (by omega) hm_piece using 1
-    exact push_on_gt g h_empty
-  cases p <;> cases h : g.board m <;> simp_all +decide [ Shove.stride ]
+    use s.rightmostPos
+    have := Shove.rightmostPos_le s
+    convert rightmostPos_spec s (by omega) hm_piece using 1
+    exact push_on_gt s h_empty
+  cases p <;> cases h : s.board m <;> simp_all +decide [ Shove.stride ]
 
-theorem isSolved_of_stride_zero {p : Player} (g : Shove)
-    (hs : g.stride p = 0) :
-    GameForm.IsSolved p g.toGameForm := by
-  induction' n' : g.weight using Nat.strong_induction_on with n ih generalizing g;
-  by_cases h_empty : ∀ n, g.board n = .none;
-  · rw [ Shove.toGameForm_zero_iff g |>.2 h_empty ] ; exact GameForm.isSolved_zero p;
-  · obtain ⟨k, hk⟩ : ∃ k, g.board k = .ofPlayer (-p) ∧ k = g.rightmostPos := by
-      have h_rightmost : g.board g.rightmostPos ≠ .none := by
-        obtain ⟨n, hn⟩ : ∃ n, g.board n ≠ .none := by
-          exact not_forall.mp h_empty;
-        exact g.rightmostPos_spec ( show n ≤ g.finite_support.choose from le_of_not_gt fun h => hn <| g.finite_support.choose_spec n h.le ) hn
-      generalize_proofs at *; (
-      cases h : g.board g.rightmostPos <;> simp_all +decide [ Shove.stride ];
-      · cases p <;> tauto;
-      · cases p <;> tauto);
+theorem isSolved_of_stride_zero {p : Player} {s : Shove}
+    (hs : s.stride p = 0) :
+    GameForm.IsSolved p s.toGameForm := by
+  induction' n' : s.weight using Nat.strong_induction_on with n ih generalizing s
+  by_cases h_empty : ∀ n, s.board n = .none
+  · rw [<-Shove.toGameForm_zero_iff] at h_empty
+    rw [h_empty]
+    exact GameForm.isSolved_zero p
+  · obtain ⟨k, hk⟩ : ∃ k, s.board k = .ofPlayer (-p) ∧ k = s.rightmostPos := by
+      have h_rightmost : s.board s.rightmostPos ≠ .none := by
+        obtain ⟨n, hn⟩ : ∃ n, s.board n ≠ .none := not_forall.mp h_empty
+        refine s.rightmostPos_spec (le_of_not_gt ?_) hn
+        intro h
+        exact hn (s.finite_support.choose_spec n h.le)
+      cases h : s.board s.rightmostPos <;> simp_all [Shove.stride]
+      · cases p <;> tauto
+      · cases p <;> tauto
     rw [GameForm.isSolved_def]
     refine ⟨?_, ?_, ?_⟩
     · intro h₁
-      obtain ⟨ m, hm₁, hm₂ ⟩ := ( Shove.mem_moves_toGameForm_iff g p 0 ).mp h₁;
-      have h_piece_neg : g.board m = .ofPlayer (-p) := by
-        apply Shove.push_to_empty_is_neg g p hs (by
-        exact hm₁.symm ▸ by cases p <;> tauto;) (by
-        exact fun n => by simpa using Shove.toGameForm_zero_iff ( g.push_on m ) |>.1 hm₂.symm n;);
-      cases p <;> cases h : g.board m <;> simp_all +decide;
+      obtain ⟨m, hm₁, hm₂⟩ := (Shove.mem_moves_toGameForm_iff s p 0).mp h₁
+      have h_piece_neg : s.board m = .ofPlayer (-p) := by
+        apply Shove.push_to_empty_is_neg hs
+        · exact hm₁.symm ▸ by cases p <;> tauto
+        · exact fun n => by simpa using Shove.toGameForm_zero_iff (s.push_on m) |>.1 hm₂.symm n
+      cases p <;> cases h : s.board m <;> simp_all +decide
     · intro h_nonzero
-      have h_move : (g.push_on k).toGameForm ∈ Form.moves (-p) g.toGameForm := by
-        exact Shove.toGameForm_push_mem_moves g ( -p ) hk.1;
-      exact Form.not_isEnd_of_mem_moves h_move
+      exact Form.not_isEnd_of_mem_moves (Shove.toGameForm_push_mem_moves (-p) hk.1)
     · intro gp hgp
-      obtain ⟨q, m, hm⟩ : ∃ q m, gp = (g.push_on m).toGameForm ∧ g.board m = .ofPlayer q := by
-        obtain ⟨ q, hq ⟩ := hgp;
-        obtain ⟨ ⟨ q, rfl ⟩, hq ⟩ := hq;
-        exact Exists.elim ( Shove.mem_moves_toGameForm_iff g q gp |>.1 hq ) fun m hm => ⟨ q, m, hm.2, hm.1 ⟩;
+      obtain ⟨q, m, hm⟩ : ∃ q m, gp = (s.push_on m).toGameForm ∧ s.board m = .ofPlayer q := by
+        obtain ⟨q, ⟨⟨q, rfl⟩, hq⟩⟩ := hgp
+        exact Exists.elim (Shove.mem_moves_toGameForm_iff s q gp |>.1 hq) fun m hm => ⟨q, m, hm.2, hm.1⟩
       grind only [Piece.ofPlayer_ne_none, stride_zero_of_push, weight_push_lt]
 
-theorem rightmost_of_stride_pos {p : Player} {g : Shove}
-    (hs : g.stride p ≠ 0) :
-    g.board g.rightmostPos = .ofPlayer p ∧ g.rightmostPos + 1 = g.stride p := by
-  unfold Shove.stride at *; aesop;
+theorem rightmost_of_stride_pos {p : Player} {s : Shove}
+    (hs : s.stride p ≠ 0) :
+    s.board s.rightmostPos = .ofPlayer p ∧ s.rightmostPos + 1 = s.stride p := by
+  unfold Shove.stride at ⊢ hs
+  simp only [ne_eq, ite_eq_right_iff, Nat.add_eq_zero_iff, one_ne_zero, and_false, imp_false, not_not] at hs
+  simp only [hs, ↓reduceIte, and_self]
 
-theorem neg_push_below_rightmost (g : Shove) (p : Player) {m : ℕ}
-    (hrm : g.board g.rightmostPos = .ofPlayer p)
-    (hm : g.board m = .ofPlayer (-p)) :
-    m < g.rightmostPos := by
-  refine' lt_of_le_of_ne ( _ : m ≤ g.rightmostPos ) _;
-  · exact Shove.rightmostPos_greatest _ ( by aesop );
-  · rintro rfl; cases p <;> cases hm.symm.trans hrm
+theorem neg_push_below_rightmost {s : Shove} {p : Player} {m : ℕ}
+    (hrm : s.board s.rightmostPos = .ofPlayer p)
+    (hm : s.board m = .ofPlayer (-p)) :
+    m < s.rightmostPos := by
+  apply lt_of_le_of_ne (Shove.rightmostPos_greatest (Piece.ne_none_of_ofPlayer hm))
+  rintro rfl
+  rw [hm] at hrm
+  absurd Piece.ofPlayer_injective hrm
+  simp only [Player.ne_iff_eq_neg]
 
-set_option maxHeartbeats 1600000 in
 /--
 Every `Shove` board has stride
 -/
-theorem toGameForm_hasStride (g : Shove) (p : Player) :
-    GameForm.HasStride p g.toGameForm (g.stride p) := by
-  induction w : g.weight using Nat.strong_induction_on generalizing g p with
+theorem toGameForm_hasStride (s : Shove) (p : Player) :
+    GameForm.HasStride p s.toGameForm (s.stride p) := by
+  induction w : s.weight using Nat.strong_induction_on generalizing s p with
   | _ w ih =>
   -- Helper: IH gives HasStride for any push
-  have ih_push : ∀ (m : ℕ) (q : Player), g.board m ≠ .none →
-      GameForm.HasStride q (g.push_on m).toGameForm ((g.push_on m).stride q) := by
+  have ih_push : ∀ (m : ℕ) (q : Player), s.board m ≠ .none →
+      GameForm.HasStride q (s.push_on m).toGameForm ((s.push_on m).stride q) := by
     intro m q hm
-    exact ih _ (by rw [← w]; exact weight_push_lt g m hm) (g.push_on m) q rfl
-  by_cases hs : g.stride p = 0
-  · rw [hs]; exact GameForm.hasStride_zero_iff.mpr (isSolved_of_stride_zero g hs)
+    exact ih _ (by rw [← w]; exact weight_push_lt m hm) _ _ rfl
+  by_cases hs : s.stride p = 0
+  · rw [hs]; exact GameForm.hasStride_zero_iff.mpr (isSolved_of_stride_zero hs)
   · obtain ⟨hrm, hrm_eq⟩ := rightmost_of_stride_pos hs
-    set k := g.rightmostPos with hk_def
-    have hstride_eq : g.stride p = k + 1 := by omega
+    set k := s.rightmostPos with hk_def
+    have hstride_eq : s.stride p = k + 1 := by omega
     rw [hstride_eq]
-    have hk_ne : g.board k ≠ .none := by rw [hrm]; exact Piece.ofPlayer_ne_none p
+    have hk_ne : s.board k ≠ .none := by rw [hrm]; exact Piece.ofPlayer_ne_none p
     rw [GameForm.hasStride_succ_iff]
     refine ⟨?_, ?_, ?_, ?_, ?_⟩
     · intro H
-      have h_push_k_mem : (g.push_on k).toGameForm ∈ Form.moves p g.toGameForm :=
-        toGameForm_push_mem_moves g p hrm
-      have h_push_k_opt : Form.IsOption (g.push_on k).toGameForm g.toGameForm :=
+      have h_push_k_mem : (s.push_on k).toGameForm ∈ Form.moves p s.toGameForm :=
+        toGameForm_push_mem_moves p hrm
+      have h_push_k_opt : Form.IsOption (s.push_on k).toGameForm s.toGameForm :=
         Form.IsOption.of_mem_moves h_push_k_mem
       have h_push_k_solved := GameForm.isSolved_of_isOption H h_push_k_opt
       by_cases hk_pos : 0 < k
-      · have h_stride_k : (g.push_on k).stride p = k := stride_push_at_rightmost g p rfl hk_pos hrm
+      · have h_stride_k : (s.push_on k).stride p = k := stride_push_at_rightmost p rfl hk_pos hrm
         have h_hs_k := ih_push k p hk_ne
         rw [h_stride_k] at h_hs_k
         have := (GameForm.hasStride_isSolved_iff_zero h_hs_k).mp h_push_k_solved
         omega
       · have hk_zero : (k : ℕ) = 0 := by omega
-        have h_empty : ∀ n, (g.push_on 0).board n = .none :=
-          push_rightmost_zero_empty g (by rw [← hk_def]; exact hk_zero)
-        have h_zero : (g.push_on k).toGameForm = 0 := by
+        have h_empty : ∀ n, (s.push_on 0).board n = .none :=
+          push_rightmost_zero_empty (by rw [← hk_def]; exact hk_zero)
+        have h_zero : (s.push_on k).toGameForm = 0 := by
           rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
         rw [h_zero] at h_push_k_mem
         exact GameForm.isSolved_zero_not_mem H h_push_k_mem
     · intro g' hg'
-      obtain ⟨m, hm_p, rfl⟩ := (mem_moves_toGameForm_iff g p g').mp hg'
-      have hm_ne : g.board m ≠ .none := by rw [hm_p]; exact Piece.ofPlayer_ne_none p
-      have h_stride_ge : k ≤ (g.push_on m).stride p := by
-        by_cases hm_lt : m < g.rightmostPos
-        · rw [stride_push_below g p hm_lt, hstride_eq]
+      obtain ⟨m, hm_p, rfl⟩ := (mem_moves_toGameForm_iff s p g').mp hg'
+      have hm_ne : s.board m ≠ .none := by rw [hm_p]; exact Piece.ofPlayer_ne_none p
+      have h_stride_ge : k ≤ (s.push_on m).stride p := by
+        by_cases hm_lt : m < s.rightmostPos
+        · rw [stride_push_below p hm_lt, hstride_eq]
           omega
-        · have hm_eq : m = g.rightmostPos := by
+        · have hm_eq : m = s.rightmostPos := by
             refine le_antisymm ?_ (Nat.not_lt.mp hm_lt)
-            apply rightmostPos_greatest g
+            apply rightmostPos_greatest
             rw [hm_p]
             exact Piece.ofPlayer_ne_none p
-          have := stride_push_eq_rightmostPos g p hm_ne hm_eq
+          have := stride_push_eq_rightmostPos p hm_ne hm_eq
           omega
-      exact ⟨(g.push_on m).stride p, h_stride_ge, ih_push m p hm_ne⟩
-    · refine ⟨(g.push_on k).toGameForm, toGameForm_push_mem_moves g p hrm, ?_, ?_⟩
+      exact ⟨(s.push_on m).stride p, h_stride_ge, ih_push m p hm_ne⟩
+    · refine ⟨(s.push_on k).toGameForm, toGameForm_push_mem_moves p hrm, ?_, ?_⟩
       · by_cases hk_pos : 0 < k
-        · have h_str := stride_push_at_rightmost g p rfl hk_pos hrm
+        · have h_str := stride_push_at_rightmost p rfl hk_pos hrm
           have h_hs := ih_push k p hk_ne
           rwa [h_str] at h_hs
         · have hk_zero : (k : ℕ) = 0 := by omega
-          have h_empty : ∀ n, (g.push_on 0).board n = .none :=
-            push_rightmost_zero_empty g (by rw [← hk_def]; exact hk_zero)
-          have h_zero : (g.push_on k).toGameForm = 0 := by
+          have h_empty : ∀ n, (s.push_on 0).board n = .none :=
+            push_rightmost_zero_empty (by rw [← hk_def]; exact hk_zero)
+          have h_zero : (s.push_on k).toGameForm = 0 := by
             rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
           rw [h_zero, hk_zero]
           exact GameForm.hasStride_zero_iff.mpr (GameForm.isSolved_zero p)
       · intro g'' hg'' m_val hm_val
-        obtain ⟨m', hm'_p, rfl⟩ := (mem_moves_toGameForm_iff g p g'').mp hg''
-        have hm'_ne : g.board m' ≠ .none := by rw [hm'_p]; exact Piece.ofPlayer_ne_none p
-        have h_neg_stride : (g.push_on m').stride (-p) = 0 :=
-          stride_neg_zero_of_p_move g p hrm hm'_p
+        obtain ⟨m', hm'_p, rfl⟩ := (mem_moves_toGameForm_iff s p g'').mp hg''
         have h_m_zero : m_val = 0 := by
-          have := ih_push m' (-p) hm'_ne
-          rw [h_neg_stride] at this
-          exact GameForm.hasStride_unique hm_val this
-        rw [h_m_zero] at hm_val ⊢; clear h_m_zero
-        have h_neg_good : (g.push_on k).stride (-p) = 0 :=
-          stride_neg_zero_of_p_move g p hrm hrm
+          apply GameForm.hasStride_unique hm_val
+          rw [<-stride_neg_zero_of_p_move p hrm hm'_p]
+          exact ih_push m' (-p) (Piece.ne_none_of_ofPlayer hm'_p)
+        subst h_m_zero
+        have h_neg_good : (s.push_on k).stride (-p) = 0 := stride_neg_zero_of_p_move p hrm hrm
         exact ⟨0, le_refl _, by rw [← h_neg_good]; exact ih_push k (-p) hk_ne⟩
     · intro g' hg'
-      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff g (-p) g').mp hg'
-      have hm_lt : m < k := neg_push_below_rightmost g p hrm hm_neg
-      have hm_ne : g.board m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
-      have h_stride_eq : (g.push_on m).stride p = k + 1 := by
-        rw [stride_push_below g p (by rw [← hk_def]; exact hm_lt), hstride_eq]
+      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff s (-p) g').mp hg'
+      have hm_lt : m < k := neg_push_below_rightmost hrm hm_neg
+      have hm_ne : s.board m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
+      have h_stride_eq : (s.push_on m).stride p = k + 1 := by
+        rw [stride_push_below p (by rw [← hk_def]; exact hm_lt), hstride_eq]
       use k + 1
       refine ⟨le_refl _, ?_⟩
       rw [← h_stride_eq]
       exact ih_push m p hm_ne
     · intro hne
       have ⟨g', hg'⟩ := Set.nonempty_iff_ne_empty.mpr hne
-      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff g (-p) g').mp hg'
-      have hm_lt : m < k := neg_push_below_rightmost g p hrm hm_neg
-      have hm_ne : g.board m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
-      have h_stride_eq : (g.push_on m).stride p = k + 1 := by
-        rw [stride_push_below g p (by rw [← hk_def]; exact hm_lt), hstride_eq]
-      use (g.push_on m).toGameForm
-      use (mem_moves_toGameForm_iff g (-p) _).mpr ⟨m, hm_neg, rfl⟩
+      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff s (-p) g').mp hg'
+      have hm_lt : m < k := neg_push_below_rightmost hrm hm_neg
+      have hm_ne : s.board m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
+      have h_stride_eq : (s.push_on m).stride p = k + 1 := by
+        rw [stride_push_below p (by rw [← hk_def]; exact hm_lt), hstride_eq]
+      use (s.push_on m).toGameForm
+      use (mem_moves_toGameForm_iff s (-p) _).mpr ⟨m, hm_neg, rfl⟩
       rw [← h_stride_eq]
       exact ih_push m p hm_ne
 
@@ -699,26 +689,23 @@ private def mk_with_stride (p : Player) (n : ℕ) :
         simp only [rightmostPos, beq_iff_eq, ne_eq, ite_eq_right_iff, Piece.ofPlayer_ne_none,
                    imp_false, Decidable.not_not, Nat.findGreatest_eq_iff, implies_true, true_and]
         grind only [Exists.choose_spec]
-      have : s.board s.rightmostPos = Piece.ofPlayer p := by
-        subst s
-        grind only
       refine ⟨?_, ?_, ?_⟩
       · exact Ruleset.Forms.position_mem s
       · convert toGameForm_hasStride s p
         subst s
         simp only [Shove.stride, beq_iff_eq, ite_eq_left_iff, Piece.none_ne_ofPlayer, imp_false]
-        split_ifs with h <;> grind only
+        split_ifs <;> grind only
       · convert toGameForm_hasStride s (-p)
         subst s
         simp only [Shove.stride, beq_iff_eq, right_eq_ite_iff, and_false, imp_false,
                    Nat.right_eq_add, Nat.add_eq_zero_iff, one_ne_zero]
-        split_ifs with h
+        split_ifs
         · simp [Piece.ofPlayer]
           cases p <;> simp only [reduceCtorEq, not_false_eq_true]
         · exact Piece.none_ne_ofPlayer (-p)
 
 instance : GameForm.Strided (AdditiveClosure (Ruleset.Forms Shove)) where
-  mk_with_strides l r := AdditiveClosure.mk_with_strides_aux Shove.mk_with_stride l r
+  mk_with_strides := AdditiveClosure.mk_with_strides_aux Shove.mk_with_stride
   has_stride p := AdditiveClosure.has_stride_aux p Shove.stride Shove.toGameForm_hasStride
 
 protected noncomputable def equivInt : MisereQuotient (AdditiveClosure (Ruleset.Forms Shove)) ≃ ℤ :=

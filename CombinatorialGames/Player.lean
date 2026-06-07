@@ -46,12 +46,12 @@ theorem const_of_left_eq_right {α : Sort*} {f : Player → α} (hf : f left = f
 theorem const_of_left_eq_right' {f : Player → Prop} (hf : f left ↔ f right) (p q) : f p ↔ f q :=
   (const_of_left_eq_right hf.eq ..).to_iff
 
-@[simp]
+@[simp low]
 protected lemma «forall» {p : Player → Prop} :
     (∀ x, p x) ↔ p left ∧ p right :=
   ⟨fun h ↦ ⟨h left, h right⟩, fun ⟨hl, hr⟩ ↦ fun | left => hl | right => hr⟩
 
-@[simp]
+@[simp low]
 protected lemma «exists» {p : Player → Prop} :
     (∃ x, p x) ↔ p left ∨ p right :=
   ⟨fun | ⟨left, h⟩ => .inl h | ⟨right, h⟩ => .inr h, fun | .inl h | .inr h => ⟨_, h⟩⟩
@@ -68,6 +68,10 @@ instance : InvolutiveNeg Player where
 @[simp]
 theorem ne_iff_eq_neg {a b : Player} : (a ≠ b ↔ a = -b) := by
   cases a <;> cases b <;> simp
+
+protected theorem absurd {p q : Player} (h1 : p = q) (h2 : p = -q) : False := by
+  subst h1
+  cases p <;> simp at h2
 
 instance : LE Player where
   le lhs rhs := (lhs = .right) ∨ (lhs = .left ∧ rhs = .left)
