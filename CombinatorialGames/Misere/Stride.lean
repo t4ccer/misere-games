@@ -8,6 +8,7 @@ module
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
+public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Quotient
 public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.Ruleset
@@ -265,6 +266,17 @@ theorem isSolved_right_intCast_iff (k : ℤ) : IsSolved .right (k : GameForm) �
 theorem isSolved_left_intCast_iff (k : ℤ) : IsSolved .left (k : GameForm) ↔ k ≤ 0 := by
   rw [<-isSolved_neg_iff, Player.neg_left, <-Form.intCast_neg, isSolved_right_intCast_iff]
   exact Int.neg_nonneg
+
+theorem isSolved_deadEnd {p : Player} {g : GameForm} (h_deadEnd : IsDeadEnd p g) : IsSolved p g := by
+  rw [isSolved_def]
+  refine ⟨?_, ?_, ?_⟩
+  · exact not_mem_moves_of_isEnd (isEnd_of_isDeadEnd h_deadEnd)
+  · intro h_ne_zero
+    exact zero_not_both_end h_ne_zero (isEnd_of_isDeadEnd h_deadEnd)
+  · intro gp h_isOption
+    exact isSolved_deadEnd (isDeadEnd_of_isOption h_deadEnd h_isOption)
+termination_by g
+decreasing_by form_wf
 
 /--
 Stride measures exactly how many moves away each player is from a solved position

@@ -24,6 +24,9 @@ def IsDeadEnd (p : Player) (g : G) : Prop :=
 termination_by g
 decreasing_by form_wf
 
+theorem isDeadEnd_def (p : Player) (g : G) :
+    IsDeadEnd p g ↔ IsEnd p g ∧ (∀ gp ∈ moves (-p) g, IsDeadEnd p gp) := by nth_rw 1 [IsDeadEnd]
+
 theorem isEnd_of_isDeadEnd {g : G} {p : Player} (h1 : IsDeadEnd p g) : IsEnd p g := by
   unfold IsDeadEnd at h1
   exact h1.left
@@ -49,6 +52,12 @@ theorem isDeadEnd_of_mem_moves {g gp : G} {p1 p2 : Player} (h1 : IsDeadEnd p1 g)
       : IsDeadEnd p1 gp := by
   rw [player_eq_neg_of_isDeadEnd_mem_moves h1 h2] at h2
   exact IsDeadEnd.hereditary_def h1 gp h2
+
+theorem isDeadEnd_isOption {p : Player} {g gp : G} (h1 : IsDeadEnd p g) (h2 : IsOption gp g) :
+    gp ∈ moves (-p) g := isOption_not_mem h2 (not_mem_moves_of_isDeadEnd h1)
+
+theorem isDeadEnd_of_isOption {g gp : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsOption gp g) :
+    IsDeadEnd p gp := isDeadEnd_of_mem_moves h1 (isDeadEnd_isOption h1 h2)
 
 protected theorem IsDeadEnd.add {g h : G} {p : Player} (h1 : IsDeadEnd p g) (h2 : IsDeadEnd p h) :
     IsDeadEnd p (g + h) := by
