@@ -35,3 +35,4 @@ public import CombinatorialGames.Player
 public import CombinatorialGames.Ruleset
 public import CombinatorialGames.Ruleset.Hackenbush
 public import CombinatorialGames.Ruleset.Shove
+public import CombinatorialGames.Ruleset.Strip
