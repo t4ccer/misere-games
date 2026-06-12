@@ -6,7 +6,7 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.GameForm
-public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Form.Classes
 
 universe u
 

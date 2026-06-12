@@ -6,6 +6,7 @@ Authors: Alfie Davies, Tomasz Maciosowski, Kim Morrison, Violeta Hernández Pala
 module
 
 public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.Form.Classes
 public import CombinatorialGames.Form.ClosedUnderNeg
 import Mathlib.Data.Fintype.Order
 
@@ -114,6 +115,9 @@ decreasing_by form_wf
 
 instance : ClosedUnderNeg (IsShort (G := G)) where
   neg_of := Short.neg
+
+instance : Hereditary IsShort (G := G) where
+  has_option := Moves.IsOption.short
 
 protected theorem neg_iff {x : G} : IsShort (-x) ↔ IsShort x := ClosedUnderNeg.neg_iff
 

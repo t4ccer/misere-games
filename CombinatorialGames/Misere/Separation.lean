@@ -6,7 +6,7 @@ Authors: Alfie Davies
 module
 
 public import CombinatorialGames.Form.Misere.Adjoint
-public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 
 /-!
 # Separation and downlinking

@@ -6,7 +6,7 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Misere.DeadEnding
-public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.PFree
 

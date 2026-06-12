@@ -5,15 +5,12 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Misere.Hereditary
-import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.Form.Classes
 
 universe u
 
 public section
-
-class ClosedUnderAdd (A : GameForm → Prop) where
-  has_add (g h : GameForm) (h_g : A g) (h_h : A h) : A (g + h)
 
 open Form
 
@@ -63,7 +60,8 @@ instance : ClosedUnderAdd (AdditiveClosure A) where
         apply Or.inr
         use g, h
 
-private theorem has_option' [Hereditary A] {g g' : GameForm} (h_g : AdditiveClosure A g) (h_g' : IsOption g' g) :
+private theorem has_option' {A : GameForm → Prop} [Hereditary A] {g g' : GameForm}
+    (h_g : AdditiveClosure A g) (h_g' : IsOption g' g) :
     AdditiveClosure A g' := by
   rw [additiveClosure_iff] at h_g
   obtain h_g | ⟨a, b, ha, hb, hab, ha_closure, hb_closure⟩ := h_g
@@ -81,5 +79,6 @@ private theorem has_option' [Hereditary A] {g g' : GameForm} (h_g : AdditiveClos
 termination_by birthday g
 decreasing_by additiveClosure_birthday
 
-instance [Hereditary A] : Hereditary (AdditiveClosure A) where
+instance {A : GameForm → Prop} [Hereditary A] : Hereditary (AdditiveClosure A) where
   has_option := has_option'
+

@@ -5,7 +5,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Form.Classes
 public import CombinatorialGames.GameForm
 
 open Form
@@ -26,19 +26,6 @@ class PFree {G : Type (u + 1)} [Form G] (A : G → Prop)  where
 
 instance {G : Type (u + 1)} [Form G] : PFree (G := G) IsPFree where
   pfree := id
-
-class HasNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  has_nat (n : ℕ) : A (n : G)
-
-class HasInt (A : GameForm → Prop) extends HasNat A where
-  has_int (n : ℤ) : A (n : GameForm)
-
-theorem has_one {A : GameForm → Prop} [HasNat A] : A 1 := by
-  rw [<-Nat.cast_one]
-  exact HasNat.has_nat 1
-
-class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
 
 variable {G : Type (u + 1)} [Form G]
 
@@ -78,22 +65,22 @@ theorem isPFree_of_isOption {g g' : G} (h1 : IsPFree g) (h2 : Moves.IsOption g' 
   apply Or.elim h2 <;> exact fun h2 => isPFree_of_mem_moves h1 h2
 
 @[simp]
-theorem isPFree_zero : IsPFree (0 : GameForm) := by
+theorem isPFree_zero : IsPFree (0 : G) := by
   unfold IsPFree
   apply And.intro (by simp)
-  simp only [moves_zero (G := GameForm), Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true]
+  simp only [moves_zero (G := G), Set.mem_empty_iff_false, IsEmpty.forall_iff, implies_true]
 
 @[simp]
-theorem isPFree_natCast (n : ℕ) : IsPFree (n : GameForm) := by
+theorem isPFree_natCast (n : ℕ) : IsPFree (n : G) := by
   match n with
   | .zero => exact isPFree_zero
   | .succ k =>
     unfold IsPFree
-    have h2 : MisereOutcome ((k.succ : ℤ) : GameForm) ≠ Outcome.P := by simp
+    have h2 : MisereOutcome ((k.succ : ℤ) : G) ≠ Outcome.P := by simp
     exact And.intro h2 (nat_forall_moves (isPFree_natCast k))
 
 @[simp]
-theorem isPFree_intCast (k : ℤ) : IsPFree (k : GameForm) := by
+theorem isPFree_intCast (k : ℤ) : IsPFree (k : G) := by
   match k with
   | .ofNat n => simp only [Int.ofNat_eq_natCast, Form.intCast_nat, isPFree_natCast]
   | .negSucc n =>
@@ -208,9 +195,9 @@ private lemma isSpecial_of_isPFree_not_winsGoingFirst_right_succ {g : GameForm} 
       have h_gr_is_left_move : gr ∈ moves .left (gr + 1) := by
         rw [moves_add, leftMoves_one]
         right; simp
-      rw [h_gr1_left_end] at h_gr_is_left_move
-      exfalso
-      exact h_gr_is_left_move
+      absurd h_gr_is_left_move
+      rw [isEndLike_iff_isEnd] at h_gr1_left_end
+      apply not_mem_moves_of_isEnd h_gr1_left_end
     | inr h_left_has_winning_move =>
       obtain ⟨winning_move, h_winning_mem, h_winning_wins⟩ := h_left_has_winning_move
 
@@ -359,6 +346,39 @@ theorem isPFree_add_intCast {g : GameForm} (h1 : IsPFree g) (n : ℤ) : IsPFree 
   | .negSucc m =>
     rw [Form.intCast_negSucc, <-ClosedUnderNeg.neg_iff (A := IsPFree), neg_add_rev, neg_neg, add_comm]
     exact isPFree_add_natCast h1.neg (m + 1)
+
+section Subset
+  
+variable {G : Type (u + 1)} [Form G] {A : G → Prop}
+
+def PFreeSubset (A : G → Prop) (g : G) : Prop := A g ∧ IsPFree g
+
+theorem PFreeSubset.mem {g : G} (h : PFreeSubset A g) : A g := h.1
+
+theorem PFreeSubset.isPFree {g : G} (h : PFreeSubset A g) : IsPFree g := h.2
+
+theorem PFreeSubset.mk {g : G} (h_mem : A g) (h_isPFree : IsPFree g) : PFreeSubset A g :=
+  ⟨h_mem, h_isPFree⟩
+
+theorem pfreeSubset_iff {g : G} : PFreeSubset A g ↔ A g ∧ IsPFree g := Iff.rfl
+
+instance : PFree (PFreeSubset A) where
+  pfree h := h.2
+
+instance [ClosedUnderNeg A] : ClosedUnderNeg (PFreeSubset A) where
+  neg_of h := ⟨ClosedUnderNeg.neg_of h.1, ClosedUnderNeg.neg_of (A := IsPFree) h.2⟩
+
+instance [HasInt A] : HasInt (PFreeSubset A) where
+  has_nat n := ⟨HasNat.has_nat n, isPFree_natCast n⟩
+  has_int n := ⟨HasInt.has_int n, isPFree_intCast n⟩
+
+instance [Hereditary A] : Hereditary (PFreeSubset A) where
+  has_option h1 h2 := .mk (Hereditary.has_option h1.mem h2) (isPFree_of_isOption h1.isPFree h2)
+
+instance {A : GameForm → Prop} [ClosedUnderAddNat A] : ClosedUnderAddNat (PFreeSubset A) where
+  has_add h1 n := ⟨ClosedUnderAddNat.has_add h1.1 n, isPFree_add_natCast h1.2 n⟩
+
+end Subset
 
 namespace PFree
 
@@ -523,5 +543,13 @@ theorem misereOutcome_of_isEnd_left {g : GameForm} (h1 : A g) (h2 : IsEnd .left 
 
 theorem misereOutcome_of_isEnd_right {g : GameForm} (h1 : A g) (h2 : IsEnd .right g)
     : MisereOutcome g = .N ∨ MisereOutcome g = .R := misereOutcome_of_isEnd h1 h2
+
+omit [PFree A] in
+theorem not_isEndLike_right_add_of_L {g h : GameForm} (hAg : A g) (hpfg : IsPFree g)
+    (hLg : MisereOutcome g = .L) : ¬ IsEndLike .right (g + h) := by
+  rw [isEndLike_iff_isEnd, IsEnd.add_iff]
+  rintro ⟨hg, -⟩
+  rcases PFree.misereOutcome_of_isEnd_right (A := PFreeSubset A) (.mk hAg hpfg) hg with h | h <;>
+    simp [hLg] at h
 
 end PFree

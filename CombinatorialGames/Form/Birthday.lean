@@ -108,6 +108,14 @@ theorem birthday_add (g h : G) : birthday (g + h) = birthday g + birthday h := b
 termination_by (g, h)
 decreasing_by form_wf
 
+theorem birthday_add_lt_left {g' g h : G} (hlt : birthday g' < birthday g) :
+    birthday g' + birthday h < birthday g + birthday h := by
+  gcongr
+
+theorem birthday_add_lt_right {g h' h : G} (hlt : birthday h' < birthday h) :
+    birthday g + birthday h' < birthday g + birthday h := by
+  gcongr
+
 @[simp]
 theorem birthday_ofSets (s t : Set G) [Small.{u} s] [Small.{u} t] :
     birthday !{s | t} = max (sSup (succ ∘ birthday '' s)) (sSup (succ ∘ birthday '' t)) := by

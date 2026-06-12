@@ -257,6 +257,15 @@ theorem misereOutcome_N_iff_winsGoingFirst {g : G} :
   <;> cases h_right : MiserePlayerOutcome g .right
   <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
 
+/-- If `o(x) ≥ N` then Left wins going first on `x`. -/
+theorem winsGoingFirst_left_of_ge_N {x : G} (h : MisereOutcome x ≥ .N) :
+    WinsGoingFirst .left x := by
+  rcases hc : MisereOutcome x with _ | _ | _ | _
+  · exact (misereOutcome_L_iff_winsGoingFirst.mp hc).1
+  · exact (misereOutcome_N_iff_winsGoingFirst.mp hc).1
+  · rw [hc] at h; exact absurd h (by decide)
+  · rw [hc] at h; exact absurd h (by decide)
+
 @[simp]
 theorem miserePlayerOutcome_zero (p : Player) : MiserePlayerOutcome (0 : G) p = p := by
   unfold MiserePlayerOutcome

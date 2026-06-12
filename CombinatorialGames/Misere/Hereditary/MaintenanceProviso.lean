@@ -5,17 +5,16 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.Short
-public import CombinatorialGames.Form.Misere.Outcome
-
-public section
+public import CombinatorialGames.Form.Classes
+public import CombinatorialGames.GameForm
 
 universe u
 
-open Form
-open Form.Misere.Outcome
+public section
 
 namespace Form
+
+open Form.Misere.Outcome
 
 variable {G : Type (u + 1)} [Form G]
 
@@ -33,15 +32,6 @@ variable {G : Type (u + 1)} [Form G]
 
 @[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
-
-class Hereditary (A : G → Prop) where
-  has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
-
-instance : Hereditary (fun _ => True) (G := G) where
-  has_option _ _ := trivial
-
-instance : Hereditary IsShort (G := G) where
-  has_option := Moves.IsOption.short
 
 private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)

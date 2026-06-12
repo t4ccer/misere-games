@@ -5,6 +5,7 @@ public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
+public import CombinatorialGames.Form.Classes
 public import CombinatorialGames.Form.ClosedUnderNeg
 public import CombinatorialGames.Form.Misere.Adjoint
 public import CombinatorialGames.Form.Misere.Outcome
@@ -19,9 +20,11 @@ public import CombinatorialGames.Mathlib.Small
 public import CombinatorialGames.Misere.Ambient
 public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
-public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
+public import CombinatorialGames.Misere.IntegerInvertible
 public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.OutcomeStable
+public import CombinatorialGames.Misere.OutcomeStable.PropertyX
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.Quotient

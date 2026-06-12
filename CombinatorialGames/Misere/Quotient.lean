@@ -7,8 +7,7 @@ module
 
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.GameForm
-public import CombinatorialGames.Misere.Hereditary
-public import CombinatorialGames.AdditiveClosure
+public import CombinatorialGames.Form.Classes
 
 public noncomputable section
 
@@ -66,7 +65,7 @@ variable {A : GameForm → Prop}
 
 noncomputable instance [Hereditary A] [ClosedUnderAdd A] : Add (MisereQuotient A) :=
   ⟨Quotient.map₂'
-    (fun g h => ⟨(g : GameForm) + (h : GameForm), ClosedUnderAdd.has_add g h g.prop h.prop⟩)
+    (fun g h => ⟨(g : GameForm) + (h : GameForm), ClosedUnderAdd.has_add (G := GameForm) g h g.prop h.prop⟩)
     (by
       intro x y h1 z w h2
       show (↑x + ↑z) =m A (↑y + ↑w)
@@ -82,6 +81,7 @@ noncomputable instance [Hereditary A] [ClosedUnderAdd A] : Add (MisereQuotient A
         _ = MisereOutcome ((↑w + t) + ↑y) := by rw [← add_assoc]
         _ = MisereOutcome (↑y + (↑w + t)) := by rw [add_comm]
         _ = MisereOutcome ((↑y + ↑w) + t) := by rw [add_assoc]
-    )⟩
+    )
+⟩
 
 end GameForm.MisereQuotient

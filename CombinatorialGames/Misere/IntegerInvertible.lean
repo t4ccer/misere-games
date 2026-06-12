@@ -1,0 +1,433 @@
+/-
+Copyright (c) 2026 Tomasz Maciosowski. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tomasz Maciosowski
+-/
+module
+
+public import CombinatorialGames.Misere.OutcomeStable
+
+open Form
+open Form.Misere.Outcome
+open GameForm
+open OutcomeStable
+
+universe u
+
+public section
+
+variable {A : GameForm → Prop}
+
+/--
+A set of games `A` is *integer-invertible* if it contains every integer `n`
+and each integer is invertible modulo `A`, i.e. `n + (-n) =A 0` for every integer `n`.
+
+This is [Davies, Miller, Milley (Definition 3.12 on p. 15)][davies:SumsPFreeForms:2025]
+-/
+class IntegerInvertible (A : GameForm → Prop) : Prop extends HasInt A where
+  int_add_neg_misereEQ (n : ℤ) :
+    ((n : GameForm) + (-(n : GameForm))) =m A 0
+
+instance [IntegerInvertible A] : IntegerInvertible (PFreeSubset A) where
+  has_nat n := .mk (HasNat.has_nat n) (isPFree_natCast n)
+  has_int n := .mk (HasInt.has_int n) (isPFree_intCast n)
+  int_add_neg_misereEQ n := fun x hx =>
+    IntegerInvertible.int_add_neg_misereEQ (A := A) n x hx.mem
+
+namespace IntegerInvertible
+
+-- TODO: Generalize to HasZero as it can be inferred from Hereditary on GameForm or from HasNat
+/--
+If `A` contains the identity `0` (in particular if `A` has all naturals), then the
+restricted misère equivalence `g =m A h` collapses to plain equality of (form-level)
+outcomes `o(g) = o(h)`, obtained by testing against `x = 0`.
+-/
+theorem misereOutcome_eq_of_misereEQ [HasNat A] {g h : GameForm}
+    (h1 : g =m A h) : MisereOutcome g = MisereOutcome h := by
+  have h0 : A 0 := by
+    have := HasNat.has_nat (A := A) 0
+    rwa [Nat.cast_zero] at this
+  have := h1 0 h0
+  rwa [add_zero, add_zero] at this
+
+/--
+In an integer-invertible monoid, if `G, H ∈ A`, then `G + H ≡A (G + n) + (H + (-n))`
+for every integer `n`.
+-/
+theorem misereEQ_shift [ClosedUnderAdd A] [IntegerInvertible A] {g h : GameForm}
+    (hg : A g) (hh : A h) (n : ℤ) :
+    (g + h) =m A ((g + (n : GameForm)) + (h + (-(n : GameForm)))) := by
+  have hrw : (g + (n : GameForm)) + (h + (-(n : GameForm)))
+      = (g + h) + ((n : GameForm) + (-(n : GameForm))) := by
+    rw [add_assoc, ← add_assoc (n : GameForm) h, add_comm (n : GameForm) h,
+        add_assoc h, ← add_assoc g h]
+  rw [hrw]
+  have hgh : A (g + h) := ClosedUnderAdd.has_add g h hg hh
+  have key : ((g + h) + ((n : GameForm) + (-(n : GameForm)))) =m A ((g + h) + 0) :=
+    misereEQ_add_left hgh (IntegerInvertible.int_add_neg_misereEQ n)
+  rw [add_zero] at key
+  exact key.symm
+
+/--
+The form-level version of the integer-shift remark: in an integer-invertible monoid,
+for `G, H ∈ A` the outcome of `G + H` equals the outcome of `(G + n) + (H + (-n))` for any
+integer `n`.
+-/
+theorem misereOutcome_add_shift [ClosedUnderAdd A] [IntegerInvertible A] {g h : GameForm}
+    (hg : A g) (hh : A h) (n : ℤ) :
+    MisereOutcome (g + h) = MisereOutcome ((g + (n : GameForm)) + (h + (-(n : GameForm)))) :=
+  misereOutcome_eq_of_misereEQ (misereEQ_shift hg hh n)
+
+/-
+The `N`-tipping point witness for an `R`-game (symmetric to the `L`-game case):
+`o(G + (-n(G))) = N`.
+-/
+theorem misereOutcome_add_neg_NTippingPoint_N_of_misereOutcome_R {g : GameForm}
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : A g) (hsg : IsShort g) (hR : MisereOutcome g = .R) :
+    MisereOutcome (g + (-(NTippingPoint hsg : GameForm))) = .N := by
+  have := NTippingPoint_spec hsg
+  contrapose! this
+  exact ⟨ fun h => by have := PFree.misereOutcome_add_natCast_R_of_misereOutcome_R ( NTippingPoint hsg ) hA hR; simp_all +decide, this ⟩
+
+/-
+For an `L`-game, `o(G + (r(G) - 1)) = N`.
+-/
+theorem misereOutcome_add_RTippingPoint_pred_N_of_misereOutcome_L {g : GameForm}
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
+    MisereOutcome (g + (((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) = .N := by
+  have hlt := NTippingPoint_lt_RTippingPoint_of_misereOutcome_L hA hsg hL
+  -- The shift `r - 1` is `≥ n(G)`, so `o(G + (r-1)) ≤ o(G + n(G)) = N`.
+  have h_le_N : MisereOutcome (g + (((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) ≤ .N := by
+    have hle : (NTippingPoint hsg : ℤ) ≤ (RTippingPoint hsg : ℤ) - 1 := by omega
+    have hmono := OutcomeStable.misereOutcome_add_int_antitone hA hle
+    simp only [Form.intCast_nat] at hmono
+    rwa [OutcomeStable.misereOutcome_add_NTippingPoint_N_of_misereOutcome_L hA hsg hL] at hmono
+  -- Convert the integer shift `r - 1` to the natural number shift `r - 1`.
+  have hcast : (((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)
+      = ((RTippingPoint hsg - 1 : ℕ) : GameForm) := by
+    have hz : ((RTippingPoint hsg - 1 : ℕ) : ℤ) = (RTippingPoint hsg : ℤ) - 1 := by omega
+    rw [← hz, Form.intCast_nat]
+  rw [hcast] at h_le_N ⊢
+  refine Or.resolve_right (Outcome.le_N_eq_N_or_R h_le_N) ?_
+  exact misereOutcome_add_nat_ne_R_of_lt_RTippingPoint hsg (by omega)
+
+/-- For an `L`-game, `o(G + (n(G) - 1)) = L`. -/
+theorem misereOutcome_add_NTippingPoint_pred_L_of_misereOutcome_L {g : GameForm}
+    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
+    MisereOutcome (g + (((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) = .L := by
+  have hn1 := one_le_NTippingPoint_of_misereOutcome_L hsg hL
+  have hcast : (((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)
+      = ((NTippingPoint hsg - 1 : ℕ) : GameForm) := by
+    have hz : ((NTippingPoint hsg - 1 : ℕ) : ℤ) = (NTippingPoint hsg : ℤ) - 1 := by omega
+    rw [← hz, Form.intCast_nat]
+  rw [hcast]
+  exact OutcomeStable.misereOutcome_add_nat_L_of_lt_NTippingPoint hA hsg hL (by omega)
+
+/-- The `L`-tipping point witness, in integer-shift form: `o(G + (-(l(G) : ℤ))) = L`. -/
+theorem misereOutcome_add_int_neg_LTippingPoint_L {g : GameForm} (hsg : IsShort g) :
+    MisereOutcome (g + (((-(LTippingPoint hsg : ℤ)) : ℤ) : GameForm)) = .L := by
+  have h := misereOutcome_add_neg_LTippingPoint_L hsg
+  simpa only [Form.intCast_neg, Form.intCast_nat] using h
+
+/-- If `o(G) = L` and `o(H) ∈ {N, L}`, then `o(G + H) ≥ N`. -/
+theorem misereOutcome_add_ge_N_of_misereOutcome_L_left {g h : GameForm} [OutcomeStable A]
+    (hAg : A g) (hAh : A h) (hL : MisereOutcome g = .L)
+    (hh : MisereOutcome h = .N ∨ MisereOutcome h = .L) :
+    MisereOutcome (g + h) ≥ .N := by
+  rcases hh with hN | hL'
+  · rcases OutcomeStable.misereOutcome_of_add_LN hAg hAh hL hN with h1 | h1
+    · rw [h1]
+    · rw [h1]; exact Outcome.L_ge _
+  · rw [OutcomeStable.misereOutcome_of_add_LL hAg hAh hL hL']; exact Outcome.L_ge _
+
+variable [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+         [ClosedUnderAdd A] [IntegerInvertible A]
+
+/--
+`o(G) = L`, `n(G) > l(H)` ⟹ `o(G + H) = L`.
+
+This is (i) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hLg : MisereOutcome g = .L) (hgt : LTippingPoint hsh < NTippingPoint hsg) :
+    MisereOutcome (g + h) = .L := by
+  set l := LTippingPoint hsh with hl
+  have hshift := misereOutcome_add_shift (A := A) hAg hAh (l : ℤ)
+  simp only [Form.intCast_nat] at hshift
+  have hGL : MisereOutcome (g + (l : GameForm)) = .L :=
+    misereOutcome_add_nat_L_of_lt_NTippingPoint (A := PFreeSubset A) (.mk hAg hpfg) hsg hLg hgt
+  have hHL : MisereOutcome (h + (-(l : GameForm))) = .L :=
+    ((LTippingPoint_iff hsh l).mp hl.symm).1
+  have hAgl : A (g + (l : GameForm)) := ClosedUnderAddNat.has_add hAg l
+  have hAhl : A (h + (-(l : GameForm))) := ClosedUnderAdd.has_add h _ hAh (HasInt.has_neg_int l)
+  rw [hshift]
+  exact OutcomeStable.misereOutcome_of_add_LL hAgl hAhl hGL hHL
+
+/--
+o(G) = L`, `o(H) = N`, `r(G) < l(H)` ⟹ `o(G + H) = N`.
+
+This is (ii) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint {g h : GameForm}
+    (hAg : A g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hLg : MisereOutcome g = .L) (hNh : MisereOutcome h = .N)
+    (hlt : RTippingPoint hsg < LTippingPoint hsh) :
+    MisereOutcome (g + h) = .N := by
+  have hAgr : A (g + (RTippingPoint hsg : GameForm)) := ClosedUnderAddNat.has_add hAg _
+  have hAhr : A (h + (-(RTippingPoint hsg : GameForm))) :=
+    ClosedUnderAdd.has_add h _ hAh (HasInt.has_neg_int _)
+  have hR : MisereOutcome (g + (RTippingPoint hsg : GameForm)) = .R :=
+    misereOutcome_add_RTippingPoint_R hsg
+  have hN : MisereOutcome (h + (-(RTippingPoint hsg : GameForm))) = .N :=
+    misereOutcome_add_neg_nat_N_of_misereOutcome_N (A := PFreeSubset A) (.mk hAh hpfh) hsh hNh hlt
+  have hshift := misereOutcome_add_shift (A := A) hAg hAh (RTippingPoint hsg : ℤ)
+  simp only [Form.intCast_nat] at hshift
+  have h_lower : MisereOutcome (g + h) ≥ .N :=
+    misereOutcome_add_ge_N_of_misereOutcome_L_left hAg hAh hLg (Or.inl hNh)
+  rw [hshift]
+  rcases OutcomeStable.misereOutcome_of_add_RN hAgr hAhr hR hN with hc | hc
+  · exact hc
+  · rw [hshift, hc] at h_lower
+    exact absurd h_lower (by decide)
+
+/--
+`o(G), o(H) = N` and (`l(H) < r(G)` or `l(G) < r(H)`) ⟹ `o(G + H) ≥ N`
+
+This is [Davies, Miller, Milley (Lemma 3.14 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_ge_N_of_NN {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hNg : MisereOutcome g = .N) (hNh : MisereOutcome h = .N)
+    (hcond : LTippingPoint hsh < RTippingPoint hsg ∨ LTippingPoint hsg < RTippingPoint hsh) :
+    MisereOutcome (g + h) ≥ .N := by
+  rcases hcond with hlt | hlt
+  · have hAgl : A (g + (LTippingPoint hsh : GameForm)) := ClosedUnderAddNat.has_add hAg _
+    have hAhl : A (h + (-(LTippingPoint hsh : GameForm))) :=
+      ClosedUnderAdd.has_add h _ hAh (HasInt.has_neg_int _)
+    have hgN : MisereOutcome (g + (LTippingPoint hsh : GameForm)) = .N :=
+      misereOutcome_add_nat_N_of_misereOutcome_N (A := PFreeSubset A) (.mk hAg hpfg) hsg hNg hlt
+    have hhL : MisereOutcome (h + (-(LTippingPoint hsh : GameForm))) = .L :=
+      misereOutcome_add_neg_LTippingPoint_L hsh
+    have hshift := misereOutcome_add_shift (A := A) hAg hAh (LTippingPoint hsh : ℤ)
+    simp only [Form.intCast_nat] at hshift
+    rw [hshift, add_comm]
+    exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAhl hAgl hhL (Or.inl hgN)
+  · have hAgl : A (g + (-(LTippingPoint hsg : GameForm))) :=
+      ClosedUnderAdd.has_add g _ hAg (HasInt.has_neg_int _)
+    have hAhl : A (h + (LTippingPoint hsg : GameForm)) := ClosedUnderAddNat.has_add hAh _
+    have hgL : MisereOutcome (g + (-(LTippingPoint hsg : GameForm))) = .L :=
+      misereOutcome_add_neg_LTippingPoint_L hsg
+    have hhN : MisereOutcome (h + (LTippingPoint hsg : GameForm)) = .N :=
+      misereOutcome_add_nat_N_of_misereOutcome_N (A := PFreeSubset A) (.mk hAh hpfh) hsh hNh hlt
+    have hshift := misereOutcome_add_shift (A := A) hAg hAh (-(LTippingPoint hsg : ℤ))
+    simp only [Form.intCast_neg, Form.intCast_nat, neg_neg] at hshift
+    rw [hshift]
+    exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAgl hAhl hgL (Or.inl hhN)
+
+/--
+`o(G) = L`, `n(G) > l(H)` ⟹ `o(G + H) = L`.
+
+This is (i) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint_LR {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hLg : MisereOutcome g = .L) (hlt : LTippingPoint hsh < NTippingPoint hsg) :
+    MisereOutcome (g + h) = .L :=
+  pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint hAg hpfg hAh hsg hsh hLg hlt
+
+/--
+`o(G) = L`, `o(H) = R`, and (`n(H) < n(G)` or `l(H) < r(G)`) ⟹ `o(G + H) ≥ N`.
+
+This is (ii) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_ge_N_of_LR {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hLg : MisereOutcome g = .L) (hRh : MisereOutcome h = .R)
+    (hcond : NTippingPoint hsh < NTippingPoint hsg ∨ LTippingPoint hsh < RTippingPoint hsg) :
+    MisereOutcome (g + h) ≥ .N := by
+  rcases hcond with hlt | hlt
+  · have hgL : MisereOutcome (g + (((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) = .L :=
+      misereOutcome_add_NTippingPoint_pred_L_of_misereOutcome_L (A := PFreeSubset A) (.mk hAg hpfg) hsg hLg
+    have hge : MisereOutcome (h + (-(((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) ≥ .N := by
+      have hwitN := misereOutcome_add_neg_NTippingPoint_N_of_misereOutcome_R
+        (A := PFreeSubset A) (.mk hAh hpfh) hsh hRh
+      have hle : (-(((NTippingPoint hsg : ℤ) - 1 : ℤ))) ≤ (-(NTippingPoint hsh : ℤ)) := by omega
+      have hmono := misereOutcome_add_int_antitone (A := PFreeSubset A) (.mk hAh hpfh) hle
+      simp only [Form.intCast_neg, Form.intCast_nat] at hmono
+      rwa [hwitN] at hmono
+    have hdisj : MisereOutcome (h + (-(((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) = .N
+        ∨ MisereOutcome (h + (-(((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) = .L := by
+      rcases hc : MisereOutcome (h + (-(((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)))
+        with _ | _ | _ | _
+      · exact Or.inr rfl
+      · exact Or.inl rfl
+      · rw [hc] at hge; exact absurd hge (by decide)
+      · rw [hc] at hge; exact absurd hge (by decide)
+    have hAgn : A (g + (((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) :=
+      ClosedUnderAdd.has_add g _ hAg (HasInt.has_int _)
+    have hAhn : A (h + (-(((NTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) := by
+      have hi := HasInt.has_int (A := A) (-((NTippingPoint hsg : ℤ) - 1))
+      rw [Form.intCast_neg] at hi
+      exact ClosedUnderAdd.has_add h _ hAh hi
+    have hshift := misereOutcome_add_shift (A := A) hAg hAh ((NTippingPoint hsg : ℤ) - 1)
+    rw [hshift]
+    exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAgn hAhn hgL hdisj
+  · have hgN : MisereOutcome (g + (((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) = .N :=
+      misereOutcome_add_RTippingPoint_pred_N_of_misereOutcome_L (A := PFreeSubset A) (.mk hAg hpfg) hsg hLg
+    have hhL : MisereOutcome (h + (-(((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) = .L := by
+      have hle : (-(((RTippingPoint hsg : ℤ) - 1 : ℤ))) ≤ (-(LTippingPoint hsh : ℤ)) := by omega
+      have hL := misereOutcome_add_int_L_of_le (A := PFreeSubset A) (.mk hAh hpfh) hle
+        (misereOutcome_add_int_neg_LTippingPoint_L hsh)
+      rwa [Form.intCast_neg] at hL
+    have hAgn : A (g + (((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm)) :=
+      ClosedUnderAdd.has_add g _ hAg (HasInt.has_int _)
+    have hAhn : A (h + (-(((RTippingPoint hsg : ℤ) - 1 : ℤ) : GameForm))) := by
+      have hi := HasInt.has_int (A := A) (-((RTippingPoint hsg : ℤ) - 1))
+      rw [Form.intCast_neg] at hi
+      exact ClosedUnderAdd.has_add h _ hAh hi
+    have hshift := misereOutcome_add_shift (A := A) hAg hAh ((RTippingPoint hsg : ℤ) - 1)
+    rw [hshift, add_comm]
+    exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAhn hAgn hhL (Or.inl hgN)
+
+theorem pf_misereOutcome_add_le_N_of_LR {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hLg : MisereOutcome g = .L) (hRh : MisereOutcome h = .R)
+    (hcond : NTippingPoint hsg < NTippingPoint hsh ∨ RTippingPoint hsg < LTippingPoint hsh) :
+    MisereOutcome (g + h) ≤ .N := by
+  have key := pf_misereOutcome_add_ge_N_of_LR (ClosedUnderNeg.neg_of hAh)
+    (ClosedUnderNeg.neg_of (A := IsPFree) hpfh) (ClosedUnderNeg.neg_of hAg)
+    (ClosedUnderNeg.neg_of (A := IsPFree) hpfg) (Short.neg hsh) (Short.neg hsg)
+    (misereOutcome_neg_L_iff_misereOutcome.mpr hRh)
+    (misereOutcome_neg_R_iff_misereOutcome.mpr hLg)
+    (by rw [NTippingPoint.neg, NTippingPoint.neg, LTippingPoint_neg, RTippingPoint_neg]; exact hcond)
+  have heqn : (-h) + (-g) = -(g + h) := by rw [neg_add]; exact add_comm _ _
+  rw [heqn, ← misereOutcome_conjugate_neg] at key
+  have h2 := Outcome.outcome_ge_conjugate_le key
+  rwa [Outcome.conjugate_conjugate_eq_self, show (Outcome.N).Conjugate = Outcome.N from rfl] at h2
+
+/-- 
+`o(G) = R`, `r(H) < n(G)` ⟹ `o(G + H) = R`.
+
+This is mirror of (i) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hRg : MisereOutcome g = .R) (hgt : RTippingPoint hsh < NTippingPoint hsg) :
+    MisereOutcome (g + h) = .R := by
+  have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
+  have hAng : A (-g) := ClosedUnderNeg.neg_of hAg
+  have hAnh : A (-h) := ClosedUnderNeg.neg_of hAh
+  have hpfng : IsPFree (-g) := ClosedUnderNeg.neg_of (A := IsPFree) hpfg
+  have hpfnh : IsPFree (-h) := ClosedUnderNeg.neg_of (A := IsPFree) hpfh
+  have hgt' : LTippingPoint (Short.neg hsh) < NTippingPoint (Short.neg hsg) := by
+    rw [LTippingPoint_neg, NTippingPoint.neg]; exact hgt
+  have hL := pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint
+    hAng hpfng hAnh (Short.neg hsg) (Short.neg hsh) hng hgt'
+  rw [← neg_neg (g + h), neg_add, ← misereOutcome_conjugate_neg, hL]; rfl
+
+/--
+`o(G) = R`, `o(H) = N`, `l(G) < r(H)` ⟹ `o(G + H) = N`.
+
+This is mirror of (ii) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_N_of_LTippingPoint_lt_RTippingPoint {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hRg : MisereOutcome g = .R) (hNh : MisereOutcome h = .N)
+    (hlt : LTippingPoint hsg < RTippingPoint hsh) :
+    MisereOutcome (g + h) = .N := by
+  have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
+  have hnh : MisereOutcome (-h) = .N := by rw [← misereOutcome_conjugate_neg, hNh]; rfl
+  have hAng : A (-g) := ClosedUnderNeg.neg_of hAg
+  have hAnh : A (-h) := ClosedUnderNeg.neg_of hAh
+  have hpfng : IsPFree (-g) := ClosedUnderNeg.neg_of (A := IsPFree) hpfg
+  have hpfnh : IsPFree (-h) := ClosedUnderNeg.neg_of (A := IsPFree) hpfh
+  have hlt' : RTippingPoint (Short.neg hsg) < LTippingPoint (Short.neg hsh) := by
+    rw [RTippingPoint_neg, LTippingPoint_neg]; exact hlt
+  have hN := pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint
+    hAng hAnh hpfnh (Short.neg hsg) (Short.neg hsh) hng hnh hlt'
+  rw [show g + h = -((-g) + (-h)) by rw [neg_add, neg_neg, neg_neg],
+    ← misereOutcome_conjugate_neg, hN]; rfl
+
+/--
+`o(G), o(H) = N` and (`r(H) < l(G)` or `r(G) < l(H)`) ⟹ `o(G + H) ≤ N`.
+
+This is [Davies, Miller, Milley (Lemma 3.14 on p. 16)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_le_N_of_NN {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hNg : MisereOutcome g = .N) (hNh : MisereOutcome h = .N)
+    (hcond : RTippingPoint hsh < LTippingPoint hsg ∨ RTippingPoint hsg < LTippingPoint hsh) :
+    MisereOutcome (g + h) ≤ .N := by
+  have hng : MisereOutcome (-g) = .N := by rw [← misereOutcome_conjugate_neg, hNg]; rfl
+  have hnh : MisereOutcome (-h) = .N := by rw [← misereOutcome_conjugate_neg, hNh]; rfl
+  have hAng : A (-g) := ClosedUnderNeg.neg_of hAg
+  have hAnh : A (-h) := ClosedUnderNeg.neg_of hAh
+  have hpfng : IsPFree (-g) := ClosedUnderNeg.neg_of (A := IsPFree) hpfg
+  have hpfnh : IsPFree (-h) := ClosedUnderNeg.neg_of (A := IsPFree) hpfh
+  have hcond' : LTippingPoint (Short.neg hsh) < RTippingPoint (Short.neg hsg)
+      ∨ LTippingPoint (Short.neg hsg) < RTippingPoint (Short.neg hsh) := by
+    rw [LTippingPoint_neg, RTippingPoint_neg, LTippingPoint_neg, RTippingPoint_neg]
+    exact hcond
+  have hge := pf_misereOutcome_add_ge_N_of_NN
+    hAng hpfng hAnh hpfnh (Short.neg hsg) (Short.neg hsh) hng hnh hcond'
+  have h_conj : MisereOutcome (g + h) = (MisereOutcome ((-g) + (-h))).Conjugate := by
+    rw [show (-g) + (-h) = -(g + h) by rw [neg_add], misereOutcome_conjugate_neg, neg_neg]
+  rw [h_conj]
+  have h := Outcome.outcome_ge_conjugate_le hge
+  rwa [show (Outcome.N).Conjugate = Outcome.N from rfl] at h
+
+/--
+`o(G) = R`, `r(H) < n(G)` ⟹ `o(G + H) = R`.
+
+This is (i) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint_RL {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hRg : MisereOutcome g = .R) (hlt : RTippingPoint hsh < NTippingPoint hsg) :
+    MisereOutcome (g + h) = .R :=
+  pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint hAg hpfg hAh hpfh hsg hsh hRg hlt
+
+/--
+`o(G) = R`, `o(H) = L`, and (`n(H) < n(G)` or `r(H) < l(G)`) ⟹ `o(G + H) ≤ N`.
+
+This is (ii) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+-/
+theorem pf_misereOutcome_add_le_N_of_RL {g h : GameForm}
+    (hAg : A g) (hpfg : IsPFree g) (hAh : A h) (hpfh : IsPFree h)
+    (hsg : IsShort g) (hsh : IsShort h)
+    (hRg : MisereOutcome g = .R) (hLh : MisereOutcome h = .L)
+    (hcond : NTippingPoint hsh < NTippingPoint hsg ∨ RTippingPoint hsh < LTippingPoint hsg) :
+    MisereOutcome (g + h) ≤ .N := by
+  have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
+  have hnh : MisereOutcome (-h) = .R := by rw [← misereOutcome_conjugate_neg, hLh]; rfl
+  have hAng : A (-g) := ClosedUnderNeg.neg_of hAg
+  have hAnh : A (-h) := ClosedUnderNeg.neg_of hAh
+  have hpfng : IsPFree (-g) := ClosedUnderNeg.neg_of (A := IsPFree) hpfg
+  have hpfnh : IsPFree (-h) := ClosedUnderNeg.neg_of (A := IsPFree) hpfh
+  have hcond' : NTippingPoint (Short.neg hsh) < NTippingPoint (Short.neg hsg)
+      ∨ LTippingPoint (Short.neg hsh) < RTippingPoint (Short.neg hsg) := by
+    rw [NTippingPoint.neg, NTippingPoint.neg, LTippingPoint_neg, RTippingPoint_neg]
+    exact hcond
+  have hge := pf_misereOutcome_add_ge_N_of_LR
+    hAng hpfng hAnh hpfnh (Short.neg hsg) (Short.neg hsh) hng hnh hcond'
+  have h_conj : MisereOutcome (g + h) = (MisereOutcome ((-g) + (-h))).Conjugate := by
+    rw [show (-g) + (-h) = -(g + h) by rw [neg_add], misereOutcome_conjugate_neg, neg_neg]
+  rw [h_conj]
+  have h := Outcome.outcome_ge_conjugate_le hge
+  rwa [show (Outcome.N).Conjugate = Outcome.N from rfl] at h
+
+end IntegerInvertible

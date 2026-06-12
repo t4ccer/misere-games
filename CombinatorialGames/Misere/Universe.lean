@@ -6,7 +6,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Form.Short
-public import CombinatorialGames.Misere.Hereditary
+public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 
 universe u
 
@@ -75,3 +75,4 @@ theorem Maintenance_of_subset (U : G → Prop) (pfU : G → Prop)
       exact misereGE_of_subset U h_subset grl h h_grl_ge_h
 
 end Form
+
