@@ -7,6 +7,7 @@ module
 
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.Universe
+public import CombinatorialGames.Misere.OutcomeStable.PropertyX
 
 public section
 
@@ -150,9 +151,12 @@ theorem isDeadEnding_of_isOption {g g' : G} (h1 : IsDeadEnding g) (h2 : Moves.Is
   rw [isOption_iff_mem_union, Set.mem_union] at h2
   apply Or.elim h2 <;> exact fun h2 => isDeadEnding_of_mem_moves h1 h2
 
+instance : Hereditary (IsDeadEnding (G := G)) where
+  has_option := isDeadEnding_of_isOption
+
 end Form
 
-namespace GameForm
+namespace GameForm.DeadEnding
 
 open Form
 open Form.Misere.Outcome
@@ -277,4 +281,172 @@ instance : ShortUniverse ShortDeadEnding where
           · exact (hC gp hgp).dead_ending
     }
 
-end GameForm
+instance : HasNat ShortDeadEnding where
+  has_nat n :=
+    { short := Short.natCast n
+    , dead_ending := isDeadEnding_natCast n
+    }
+
+instance : HasInt ShortDeadEnding where
+  has_int k :=
+    { short := Short.intCast k
+    , dead_ending := isDeadEnding_intCast k
+    }
+
+theorem mem_leftMoves_natSub_add_isEnd {a b : ℕ} {y g' : GameForm}
+    (hye : IsEnd .left y) :
+    g' ∈ moves .left (((a : GameForm) - (b : GameForm)) + y) ↔
+    ∃ a', a = a' + 1 ∧ g' = ((a' : GameForm) - (b : GameForm)) + y := by
+  cases a <;> simp_all +decide [ sub_eq_add_neg, moves_add, moves_neg ]
+
+theorem mem_rightMoves_natSub_add {a b : ℕ} {y g' : GameForm} :
+    g' ∈ moves .right (((a : GameForm) - (b : GameForm)) + y) ↔
+    (∃ b', b = b' + 1 ∧ g' = ((a : GameForm) - (b' : GameForm)) + y) ∨
+    (∃ yr ∈ moves .right y, g' = ((a : GameForm) - (b : GameForm)) + yr) := by
+  constructor;
+  · simp +decide [ sub_eq_add_neg, moves_add, moves_neg ];
+    rintro ( ⟨ x, hx, rfl ⟩ | ⟨ x, hx, rfl ⟩ );
+    · cases b <;> simp_all +decide [ leftMoves_natCast_succ ];
+    · exact Or.inr ⟨ x, hx, rfl ⟩;
+  · rintro ( ⟨ b', rfl, rfl ⟩ | ⟨ yr, hyr, rfl ⟩ ) <;> simp +decide [ sub_eq_add_neg, moves_add, moves_neg ];
+    · exact Or.inl ⟨ _, Or.inl rfl, rfl ⟩;
+    · exact Or.inr ⟨ yr, hyr, rfl ⟩
+
+-- TODO: Split
+private theorem winsGoingFirst_left_natSub_add :
+    ∀ (a b : ℕ) (y : GameForm), IsDeadEnding y → IsEnd .left y →
+    (a ≤ b → WinsGoingFirst .left (((a : GameForm) - (b : GameForm)) + y)) ∧
+    (a < b → ¬ WinsGoingFirst .right (((a : GameForm) - (b : GameForm)) + y)) := by
+  intro a b y hy hye
+  refine ⟨fun hab => ?_, fun hab => ?_⟩
+  · rcases Nat.eq_zero_or_pos a with rfl | hpos
+    · refine winsGoingFirst_of_isEnd ?_
+      rw [isEnd_def, Set.eq_empty_iff_forall_notMem]
+      intro g' hg'
+      rw [mem_leftMoves_natSub_add_isEnd hye] at hg'
+      obtain ⟨a', ha', _⟩ := hg'
+      exact (Nat.succ_ne_zero a' ha'.symm).elim
+    · obtain ⟨a', rfl⟩ := Nat.exists_eq_succ_of_ne_zero hpos.ne'
+      refine winsGoingFirst_of_moves ⟨((a' : GameForm) - (b : GameForm)) + y, ?_, ?_⟩
+      · rw [mem_leftMoves_natSub_add_isEnd hye]; exact ⟨a', rfl, rfl⟩
+      · rw [Player.neg_left]
+        exact (winsGoingFirst_left_natSub_add a' b y hy hye).2 (by omega)
+  · rw [not_winsGoingFirst_iff]
+    refine ⟨?_, fun g' hg' => ?_⟩
+    · rw [GameForm.isEndLike_iff_isEnd, isEnd_def]
+      intro hend
+      have hmem : ((a : GameForm) - ((b - 1 : ℕ) : GameForm)) + y
+          ∈ moves .right (((a : GameForm) - (b : GameForm)) + y) := by
+        rw [mem_rightMoves_natSub_add]
+        exact Or.inl ⟨b - 1, by omega, rfl⟩
+      rw [hend] at hmem
+      exact (Set.notMem_empty _ hmem)
+    · rw [Player.neg_right]
+      rw [mem_rightMoves_natSub_add] at hg'
+      rcases hg' with ⟨b', hb', rfl⟩ | ⟨yr, hyr, rfl⟩
+      · subst hb'
+        exact (winsGoingFirst_left_natSub_add a b' y hy hye).1 (by omega)
+      · have hyr_de : IsDeadEnding yr := isDeadEnding_of_mem_moves hy hyr
+        have hyr_e : IsEnd .left yr :=
+          isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves (isDeadEnd_of_isDeadEnding hy hye) hyr)
+        exact (winsGoingFirst_left_natSub_add a b yr hyr_de hyr_e).1 (le_of_lt hab)
+termination_by a b y => (b, y, a)
+decreasing_by
+  all_goals
+    first
+      | exact Prod.Lex.left _ _ (by omega)
+      | exact Prod.Lex.right _ (Prod.Lex.left _ _ (Moves.Subposition.of_mem_moves (by assumption)))
+      | exact Prod.Lex.right _ (Prod.Lex.right _ (by omega))
+
+private theorem winsGoingFirst_right_natSub_add (n : ℕ) (y : GameForm)
+    (hy : IsDeadEnding y) (hye : IsEnd .right y) :
+    WinsGoingFirst .right (((n : GameForm) - (n : GameForm)) + y) := by
+  have h_neg : WinsGoingFirst .right (↑n - ↑n + y) ↔ WinsGoingFirst .left (-((↑n - ↑n) + y)) := by
+    grind only [winsGoingFirst_neg_iff, Player.neg_left]
+  have h_symm : WinsGoingFirst .left (-(↑n - ↑n + y)) ↔ WinsGoingFirst .left ((↑n - ↑n) + (-y)) := by
+    simp [sub_eq_add_neg, add_comm, add_left_comm]
+  rw [h_neg, h_symm]
+  convert (winsGoingFirst_left_natSub_add n n ( -y ) _ _).1 le_rfl
+  · exact ClosedUnderNeg.neg_of hy
+  · exact IsEnd.neg_iff_neg.mpr hye
+
+private theorem nat_add_neg_misereEQ' (n : ℕ) :
+    ((n : GameForm) - (n : GameForm)) =m ShortDeadEnding 0 := by
+  induction n with
+  | zero =>
+    intro x _
+    simp only [Nat.cast_zero, sub_zero, zero_add]
+  | succ k ih =>
+    apply MisereEq.of_antisymm
+    · refine Hereditary.misereGE_of_maintenance_proviso ShortDeadEnding ?_ ?_ ?_ ?_
+      · simp [Maintenance]
+        intro gr h_gr
+        simp [sub_eq_add_neg, moves_add, moves_neg, rightMoves_natCast] at h_gr
+        rcases h_gr with (rfl | ⟨x, hx, rfl⟩)
+        · use (↑k - ↑k)
+          refine ⟨?_, misereGE_of_misereEQ ih⟩
+          simp [sub_eq_add_neg]
+        · rcases k with (_ | k)
+          · simp only [Nat.cast_zero, moves_zero, Set.mem_empty_iff_false] at hx
+          · simp only [Nat.cast_add, Nat.cast_one, leftMoves_natCast_succ, Set.mem_singleton_iff] at hx
+            simp only [Nat.cast_add, Nat.cast_one, sub_eq_add_neg, neg_add_rev] at ih
+            simp [leftMoves_natCast_succ, hx, misereGE_of_misereEQ ih] at ⊢
+      · simp [Maintenance]
+      · simp [Proviso]
+      · intro _ x hx hxe
+        exact (winsGoingFirst_left_natSub_add (k + 1) (k + 1) x hx.dead_ending (GameForm.isEndLike_iff_isEnd.mp hxe)).1 le_rfl
+    · refine Hereditary.misereGE_of_maintenance_proviso ShortDeadEnding ?_ ?_ ?_ ?_
+      · simp [Maintenance]
+      · simp only [Maintenance]
+        intro hl h_hl
+        simp [sub_eq_add_neg, moves_add, moves_neg] at h_hl
+        rcases h_hl with (rfl | ⟨x, hx, rfl⟩)
+        simp
+        rcases k with (_ | k)
+        · simp
+        · simp only [Nat.cast_add, Nat.cast_one, sub_eq_add_neg, neg_add_rev] at ih
+          simp only [Nat.cast_add, Nat.cast_one, neg_add_rev, leftMoves_natCast_succ,
+                     Set.mem_singleton_iff, exists_eq_left, or_self, exists_eq_left',
+                     misereGE_of_misereEQ ih.symm]
+      · intro _ x hx hxe
+        exact winsGoingFirst_right_natSub_add (k + 1) x hx.dead_ending (GameForm.isEndLike_iff_isEnd.mp hxe)
+      · simp [Proviso]
+
+private theorem int_add_neg_misereEQ' (n : ℤ) :
+    ((n : GameForm) - (n : GameForm)) =m ShortDeadEnding 0 := by
+  by_cases hn : 0 ≤ n
+  · convert nat_add_neg_misereEQ' (Int.natAbs n) using 1
+    match n with
+    | .ofNat k =>
+      simp only [Int.ofNat_eq_natCast, Form.intCast_nat, Int.natAbs_natCast]
+  · match n with
+    | .ofNat k =>
+    · absurd hn
+      exact Int.zero_le_ofNat _
+    | .negSucc k =>
+      convert nat_add_neg_misereEQ' (k + 1) using 1
+      simp only [Form.intCast_negSucc, neg_add_rev, add_comm, sub_eq_add_neg, neg_neg,
+                 add_left_comm, add_assoc, Nat.cast_add, Nat.cast_one]
+
+instance : IntegerInvertible ShortDeadEnding where
+  int_add_neg_misereEQ := int_add_neg_misereEQ'
+
+instance : IntegerInvertible.PropertyX ShortDeadEnding where
+  prop_left := by
+    intro g h hAg hAh hsg hsh hNg hNh hge hnge hrg hlh
+    by_cases hg0 : g = 0
+    · subst hg0
+      rw [zero_add]
+      exact hNh
+    · absurd hNg.symm.trans (lemma3_L g hg0 (isDeadEnd_of_isDeadEnding hAg.mem.dead_ending hge))
+      decide
+  prop_right := by
+    intro g h hAg hAh hsg hsh hNg hNh hge hnge hlg hrh
+    by_cases hh0 : h = 0
+    · subst hh0
+      rw [add_zero]
+      exact hNg
+    · absurd hNh.symm.trans (lemma3_R h hh0 (isDeadEnd_of_isDeadEnding hAh.mem.dead_ending hge))
+      decide
+
+end GameForm.DeadEnding

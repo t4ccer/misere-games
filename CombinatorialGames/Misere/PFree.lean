@@ -348,7 +348,7 @@ theorem isPFree_add_intCast {g : GameForm} (h1 : IsPFree g) (n : ℤ) : IsPFree 
     exact isPFree_add_natCast h1.neg (m + 1)
 
 section Subset
-  
+
 variable {G : Type (u + 1)} [Form G] {A : G → Prop}
 
 def PFreeSubset (A : G → Prop) (g : G) : Prop := A g ∧ IsPFree g
@@ -368,8 +368,10 @@ instance : PFree (PFreeSubset A) where
 instance [ClosedUnderNeg A] : ClosedUnderNeg (PFreeSubset A) where
   neg_of h := ⟨ClosedUnderNeg.neg_of h.1, ClosedUnderNeg.neg_of (A := IsPFree) h.2⟩
 
-instance [HasInt A] : HasInt (PFreeSubset A) where
+instance [HasNat A] : HasNat (PFreeSubset A) where
   has_nat n := ⟨HasNat.has_nat n, isPFree_natCast n⟩
+
+instance [HasInt A] : HasInt (PFreeSubset A) where
   has_int n := ⟨HasInt.has_int n, isPFree_intCast n⟩
 
 instance [Hereditary A] : Hereditary (PFreeSubset A) where
@@ -544,12 +546,11 @@ theorem misereOutcome_of_isEnd_left {g : GameForm} (h1 : A g) (h2 : IsEnd .left 
 theorem misereOutcome_of_isEnd_right {g : GameForm} (h1 : A g) (h2 : IsEnd .right g)
     : MisereOutcome g = .N ∨ MisereOutcome g = .R := misereOutcome_of_isEnd h1 h2
 
-omit [PFree A] in
-theorem not_isEndLike_right_add_of_L {g h : GameForm} (hAg : A g) (hpfg : IsPFree g)
+theorem not_isEndLike_right_add_of_L {g h : GameForm} (hAg : A g)
     (hLg : MisereOutcome g = .L) : ¬ IsEndLike .right (g + h) := by
   rw [isEndLike_iff_isEnd, IsEnd.add_iff]
   rintro ⟨hg, -⟩
-  rcases PFree.misereOutcome_of_isEnd_right (A := PFreeSubset A) (.mk hAg hpfg) hg with h | h <;>
+  rcases PFree.misereOutcome_of_isEnd_right hAg hg with h | h <;>
     simp [hLg] at h
 
 end PFree

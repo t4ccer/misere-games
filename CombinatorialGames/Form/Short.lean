@@ -166,13 +166,16 @@ protected theorem one : IsShort (1 : G) := by
 protected theorem sub {x y : GameForm} (hx : IsShort x) (hy : IsShort y) : IsShort (x - y) :=
   Short.add hx (Short.neg hy)
 
+@[simp]
 protected theorem natCast : ∀ n : ℕ, IsShort (n : G)
   | 0 =>  Short.zero
   | n + 1 => Short.add (Short.natCast n) Short.one
 
+@[simp]
 protected theorem ofNat (n : ℕ) [n.AtLeastTwo] : IsShort (ofNat(n) : G) :=
   Short.natCast n
 
+@[simp]
 protected theorem intCast : ∀ n : ℤ, IsShort (n : G)
   | .ofNat n => Short.natCast n
   | .negSucc n => Short.neg (Short.natCast (n + 1))

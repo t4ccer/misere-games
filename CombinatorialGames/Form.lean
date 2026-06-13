@@ -660,4 +660,9 @@ instance : SubtractionCommMonoid G where
   neg_add_rev x y := by rw [neg_add', add_comm]
   neg_eq_of_add x y h1 := by simp_all only [add_eq_zero_iff, neg_zero]
 
+@[simp]
+theorem IsEnd.sub_iff {g h : G} {p : Player} :
+    IsEnd p (g - h) ↔ (IsEnd p g ∧ IsEnd (-p) h) := by
+  rw [sub_eq_add_neg, IsEnd.add_iff, IsEnd.neg_iff_neg]
+
 end Form

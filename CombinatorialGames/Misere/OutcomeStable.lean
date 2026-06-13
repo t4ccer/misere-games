@@ -21,13 +21,21 @@ public section
 This is [Davies, Miller, Milley (Definition 3.4 on p. 9)][davies:SumsPFreeForms:2025]
 -/
 class OutcomeStable {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  misereOutcome_of_add_LL {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
+  misereOutcome_of_add_LL {g h : G}
+      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+      (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
     MisereOutcome (g + h) = .L
-  misereOutcome_of_add_RR {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
+  misereOutcome_of_add_RR {g h : G}
+      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+      (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
     MisereOutcome (g + h) = .R
-  miserePlayerOutcome_of_add_LN {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
+  miserePlayerOutcome_of_add_LN {g h : G}
+      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+      (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .left = .left
-  miserePlayerOutcome_of_add_RN {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
+  miserePlayerOutcome_of_add_RN {g h : G}
+      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+      (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MiserePlayerOutcome (g + h) .right = .right
 
 instance {G : Type (u + 1)} [Form G] (A : G → Prop) [OutcomeStable A] : OutcomeStable (PFreeSubset A) where
@@ -43,7 +51,8 @@ instance {G : Type (u + 1)} [Form G] (A : G → Prop) [OutcomeStable A] : Outcom
 namespace OutcomeStable
 
 theorem misereOutcome_of_add_LN {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
-    {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
+    {g h : G} (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+    (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
   have h5 := miserePlayerOutcome_of_add_LN h1 h2 h3 h4
   simp only [MisereOutcome, Outcome.ofPlayers, h5]
@@ -51,7 +60,8 @@ theorem misereOutcome_of_add_LN {G : Type (u + 1)} [Form G] {A : G → Prop} [Ou
   <;> simp only [reduceCtorEq, or_true, or_false]
 
 theorem misereOutcome_of_add_RN {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
-    {g h : G} (h1 : A g) (h2 : A h) (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
+    {g h : G} (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+    (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
     MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .R := by
   have h5 := miserePlayerOutcome_of_add_RN h1 h2 h3 h4
   simp only [MisereOutcome, Outcome.ofPlayers, h5]
@@ -60,8 +70,8 @@ theorem misereOutcome_of_add_RN {G : Type (u + 1)} [Form G] {A : G → Prop} [Ou
 
 @[simp]
 theorem zero_misereGE_one {A : GameForm → Prop}
-    [HasNat A] [OutcomeStable A] [PFree A] :
-    0 ≥m A 1 := by
+    [HasNat A] [OutcomeStable A] :
+    0 ≥m (PFreeSubset A) 1 := by
   rw [MisereGE]
   intro x h1
   rw [zero_add]
@@ -74,8 +84,8 @@ theorem zero_misereGE_one {A : GameForm → Prop}
     rw [h3]
 
 theorem nat_misereGE_one_add (A : GameForm → Prop)
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasNat A]
-    (n : ℕ) : n ≥m A (((1 : ℕ) + n) : ℕ) := by
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasNat A]
+    (n : ℕ) : n ≥m (PFreeSubset A) (((1 : ℕ) + n) : ℕ) := by
   by_cases h1 : n > 0
   · rw [MisereGE]
     intro x h2
@@ -85,11 +95,14 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
     cases h3 : MisereOutcome x
     · cases h4 : MisereOutcome (↑n + x)
       · simp only [ge_iff_le, Outcome.L_ge]
-      · have h4' : A (n + x) := by
+      · have h_A_nx : A (n + x) := by
           have := (ClosedUnderAddNat.has_add h2 n)
-          rwa [add_comm] at this
+          rw [add_comm] at this
+          exact this.mem
+        have h_pfree_nx := isPFree_add_natCast h2.isPFree n
+        rw [add_comm] at h_pfree_nx
         have h5 := misereOutcome_of_add_RN (A := A)
-          has_one h4'
+          has_one (PFreeSubset.mk h_A_nx h_pfree_nx)
           one_misereOutcome_R h4
         rw [add_comm]
         apply Or.elim h5 <;> intro h5 <;> simp only [ge_iff_le, Outcome.ge_R, le_refl, h5]
@@ -100,11 +113,14 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
         (HasNat.has_nat n) h2
         (pos_nat_misereOutcome_R h1) h3
       apply Or.elim h4 <;> intro h4
-      · have h4' : A (n + x) := by
+      · have h_A_nx : A (n + x) := by
           have := (ClosedUnderAddNat.has_add h2 n)
-          rwa [add_comm] at this
+          rw [add_comm] at this
+          exact this.mem
+        have h_pfree_nx := isPFree_add_natCast h2.isPFree n
+        rw [add_comm] at h_pfree_nx
         have h5 := misereOutcome_of_add_RN
-          has_one h4'
+          has_one (PFreeSubset.mk h_A_nx h_pfree_nx)
           (one_misereOutcome_R) h4
         nth_rw 2 [add_comm]
         aesop
@@ -120,8 +136,8 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
     simp only [h1, Nat.cast_zero, add_zero, Nat.cast_one, zero_misereGE_one]
 
 theorem misereGE_of_nat_le (A : GameForm → Prop)
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasNat A]
-    (n m : ℕ) (h1 : n ≤ m) : n ≥m A m := by
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasNat A]
+    (n m : ℕ) (h1 : n ≤ m) : n ≥m (PFreeSubset A) m := by
   let k := m - n
   have h0 : m = n + k := by omega
   rw [h0]
@@ -133,8 +149,8 @@ theorem misereGE_of_nat_le (A : GameForm → Prop)
     exact nat_misereGE_one_add A (n + k')
 
 theorem int_misereGE_one_add (A : GameForm → Prop)
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (n : ℤ) : n ≥m A (((1 : ℤ) + n) : ℤ) := by
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (n : ℤ) : n ≥m (PFreeSubset A) (((1 : ℤ) + n) : ℤ) := by
   by_cases h1 : n ≥ 0
   · obtain ⟨n', h_n'⟩ := (CanLift.prf n h1 : ∃ (n' : ℕ), n' = n)
     have h2 := nat_misereGE_one_add A n'
@@ -155,8 +171,8 @@ theorem int_misereGE_one_add (A : GameForm → Prop)
     exact h2
 
 theorem int_misereGE_nat_add (A : GameForm → Prop)
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (n : ℕ) (k : ℤ) : k ≥m A ((n + k) : ℤ) := by
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (n : ℕ) (k : ℤ) : k ≥m (PFreeSubset A) ((n + k) : ℤ) := by
   induction n with
   | zero => simp
   | succ m ih =>
@@ -166,8 +182,8 @@ theorem int_misereGE_nat_add (A : GameForm → Prop)
     exact MisereGE.trans ih (int_misereGE_one_add A (m + k))
 
 theorem misereGE_of_int_le (A : GameForm → Prop)
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (n m : ℤ) (h1 : n ≤ m) : n ≥m A m := by
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (n m : ℤ) (h1 : n ≤ m) : n ≥m (PFreeSubset A) m := by
   obtain ⟨k, h_k⟩ := Int.le.dest h1
   rw [<-h_k, add_comm]
   exact int_misereGE_nat_add A k n
@@ -186,8 +202,9 @@ theorem misereOutcome_add_one_le {g : GameForm} [OutcomeStable A] [HasNat A]
   obtain h | h | h := h_cases <;> simp_all +decide only [ Outcome.L_ge, Outcome.le_R_iff ]
   · convert PFree.misereOutcome_add_one_R_of_misereOutcome_R hpf h using 1
   · have h_add_one : MisereOutcome (1 + g) = .N ∨ MisereOutcome (1 + g) = .R := by
-      convert ‹OutcomeStable A›.misereOutcome_of_add_RN ( has_one : A 1 ) hA one_misereOutcome_R h using 1
-    rw [ add_comm ] ; aesop
+      convert misereOutcome_of_add_RN has_one (PFreeSubset.mk hA hpf) one_misereOutcome_R h using 1
+    rw [add_comm]
+    aesop
 
 /-
 `o(G) ≤ o(G + (-1))` for a P-free game `G` in an outcome-stable monoid with integers.
@@ -225,8 +242,8 @@ theorem misereOutcome_add_natCast_le {g : GameForm}
     exact le_trans hstep ih
 
 theorem misereOutcome_add_int_antitone {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) {k m : ℤ} (h : k ≤ m) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) :
     MisereOutcome (g + (m : GameForm)) ≤ MisereOutcome (g + (k : GameForm)) := by
   have hge := OutcomeStable.misereGE_of_int_le A k m h g hA
   rw [add_comm (g : GameForm) (m : GameForm), add_comm (g : GameForm) (k : GameForm)]
@@ -237,7 +254,7 @@ For a P-free game `G` in an outcome-stable, integer-invertible monoid, no intege
 
 This is [Davies, Miller, Milley (Lemma 3.3 on p. 9)][davies:SumsPFreeForms:2025]
 -/
-theorem misereOutcome_add_int_ne_P {g : GameForm} [PFree A] (hA : A g) (k : ℤ) :
+theorem misereOutcome_add_int_ne_P {g : GameForm} (hA : (PFreeSubset A) g) (k : ℤ) :
     MisereOutcome (g + (k : GameForm)) ≠ .P := by
   have h := isPFree_add_intCast (PFree.pfree hA) k
   unfold IsPFree at h
@@ -245,8 +262,8 @@ theorem misereOutcome_add_int_ne_P {g : GameForm} [PFree A] (hA : A g) (k : ℤ)
 
 /-- The `L`-region is downward closed: if `o(G + m) = L` and `k ≤ m`, then `o(G + k) = L`. -/
 theorem misereOutcome_add_int_L_of_le {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) {k m : ℤ} (h : k ≤ m) (hm : MisereOutcome (g + (m : GameForm)) = .L) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) (hm : MisereOutcome (g + (m : GameForm)) = .L) :
     MisereOutcome (g + (k : GameForm)) = .L := by
   have hle := misereOutcome_add_int_antitone hA h
   rw [hm] at hle
@@ -254,15 +271,15 @@ theorem misereOutcome_add_int_L_of_le {g : GameForm}
 
 /-- The `R`-region is upward closed: if `o(G + k) = R` and `k ≤ m`, then `o(G + m) = R`. -/
 theorem misereOutcome_add_int_R_of_ge {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) {k m : ℤ} (h : k ≤ m) (hk : MisereOutcome (g + (k : GameForm)) = .R) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) (hk : MisereOutcome (g + (k : GameForm)) = .R) :
     MisereOutcome (g + (m : GameForm)) = .R := by
   have hle := misereOutcome_add_int_antitone hA h
   rw [hk] at hle
   exact (Outcome.le_R_iff _).mp hle
 
 /-- The outcome of an integer shift is always one of `L`, `N`, `R` (never `P`). -/
-theorem misereOutcome_add_int_cases {g : GameForm} [PFree A] (hA : A g) (k : ℤ) :
+theorem misereOutcome_add_int_cases {g : GameForm} (hA : (PFreeSubset A) g) (k : ℤ) :
     MisereOutcome (g + (k : GameForm)) = .L ∨ MisereOutcome (g + (k : GameForm)) = .N ∨
       MisereOutcome (g + (k : GameForm)) = .R := by
   have h := misereOutcome_add_int_ne_P hA k
@@ -277,13 +294,12 @@ The `N`-tipping point of a `L`-game lies strictly above `0`, and its witness is 
 `o(G + n(G)) = N`.
 -/
 theorem misereOutcome_add_NTippingPoint_N_of_misereOutcome_L {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
     MisereOutcome (g + (NTippingPoint hsg : GameForm)) = .N := by
   rcases NTippingPoint_spec hsg with h | h
   · exact h
-  · have hneg := PFree.misereOutcome_sub_natCast_L_of_misereOutcome_L
-      (A := A) (NTippingPoint hsg) hA hL
+  · have hneg := PFree.misereOutcome_sub_natCast_L_of_misereOutcome_L (NTippingPoint hsg) hA hL
     rw [h] at hneg
     exact absurd hneg (by decide)
 
@@ -292,8 +308,8 @@ For a P-free `L`-game `G` in an outcome-stable, integer-invertible monoid, every
 strictly below the `N`-tipping point keeps outcome `L`.
 -/
 theorem misereOutcome_add_nat_L_of_lt_NTippingPoint {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     {k : ℕ} (hk : k < NTippingPoint hsg) :
     MisereOutcome (g + (k : GameForm)) = .L := by
   have hkN : MisereOutcome (g + (k : GameForm)) ≠ .N :=
@@ -317,8 +333,8 @@ theorem misereOutcome_add_nat_L_of_lt_NTippingPoint {g : GameForm}
 Positive `N`-region for an `N`-game: if `o(G) = N` and `k < r(G)`, then `o(G + k) = N`.
 -/
 theorem misereOutcome_add_nat_N_of_misereOutcome_N {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) (hsg : IsShort g) (hN : MisereOutcome g = .N)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N)
     {k : ℕ} (hk : k < RTippingPoint hsg) :
     MisereOutcome (g + (k : GameForm)) = .N := by
   have h_le_N : MisereOutcome (g + (k : GameForm)) ≤ .N := by
@@ -332,8 +348,8 @@ theorem misereOutcome_add_nat_N_of_misereOutcome_N {g : GameForm}
 Negative `N`-region for an `N`-game: if `o(G) = N` and `k < l(G)`, then `o(G + (-k)) = N`.
 -/
 theorem misereOutcome_add_neg_nat_N_of_misereOutcome_N {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) (hsg : IsShort g) (hN : MisereOutcome g = .N)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N)
     {k : ℕ} (hk : k < LTippingPoint hsg) :
     MisereOutcome (g + (-(k : GameForm))) = .N := by
   have hge : MisereOutcome (g + (-(k : GameForm))) ≥ .N := by
@@ -351,8 +367,8 @@ theorem misereOutcome_add_neg_nat_N_of_misereOutcome_N {g : GameForm}
 For an `L`-game, the `N`-tipping point lies strictly below the `R`-tipping point.
 -/
 theorem NTippingPoint_lt_RTippingPoint_of_misereOutcome_L {g : GameForm}
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    (hA : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    (hA : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
     NTippingPoint hsg < RTippingPoint hsg := by
   by_contra h
   have hle : (RTippingPoint hsg : ℤ) ≤ (NTippingPoint hsg : ℤ) := by
@@ -367,8 +383,8 @@ theorem NTippingPoint_lt_RTippingPoint_of_misereOutcome_L {g : GameForm}
 Shifting by a natural translates the `R`-tipping point: `r(G + k) = r(G) - k`.
 -/
 theorem RTippingPoint_add_natCast
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (k : ℕ)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (k : ℕ)
     (hsk : IsShort (g + (k : GameForm))) :
     RTippingPoint hsk = RTippingPoint hsg - k := by
   have h_char : ∀ m : ℕ, MisereOutcome (g + (m : GameForm)) = .R ↔ RTippingPoint hsg ≤ m := by
@@ -392,8 +408,8 @@ For a Left-win game, shifting by a natural `k ≤ n(G)` translates the `N`-tippi
 `n(G + k) = n(G) - k`.
 -/
 theorem NTippingPoint_add_natCast_of_L
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) (k : ℕ)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L) (k : ℕ)
     (hk : k ≤ NTippingPoint hsg) (hsk : IsShort (g + (k : GameForm))) :
     NTippingPoint hsk = NTippingPoint hsg - k := by
   have h_pos (j : ℕ) (hj : j < NTippingPoint hsg - k) :
@@ -403,7 +419,7 @@ theorem NTippingPoint_add_natCast_of_L
     simp only [add_assoc, Nat.cast_add]
   have h_neg (j : ℕ) (hj : j < NTippingPoint hsg - k) :
       MisereOutcome ((g + (k : GameForm)) + (-(j : GameForm))) = .L := by
-    have hAk : A (g + (k : GameForm)) := ClosedUnderAddNat.has_add hAg k
+    have hAk : (PFreeSubset A) (g + (k : GameForm)) := ClosedUnderAddNat.has_add hAg k
     have hm : MisereOutcome ((g + (k : GameForm)) + (((j : ℤ)) : GameForm)) = .L := by
       rw [Form.intCast_nat]
       exact h_pos j hj
@@ -431,8 +447,8 @@ P-free member and `GL` is a Left option of `G` with `o(GL) ≠ R`, then `n(GL) �
 This is [Davies, Miller, Milley (Lemma 3.7 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem NTippingPoint_le_RTippingPoint_of_mem_moves_left
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g gl : GameForm} (hAg : A g) (hsg : IsShort g)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g gl : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g)
     (hgl : gl ∈ moves .left g) (hglR : MisereOutcome gl ≠ .R) :
     NTippingPoint (Short.of_mem_moves hsg hgl) ≤ RTippingPoint hsg := by
   by_contra h_contra
@@ -471,16 +487,18 @@ For a P-free member `G`, if `GR` is a Right option of `G` with `o(GR) ≠ L`, th
 This is mirror of [Davies, Miller, Milley (Lemma 3.7 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem NTippingPoint_le_LTippingPoint_of_mem_moves_right
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g gr : GameForm} (hAg : A g) (hsg : IsShort g)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g gr : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g)
     (hgr : gr ∈ moves .right g) (hgrL : MisereOutcome gr ≠ .L) :
     NTippingPoint (Short.of_mem_moves hsg hgr) ≤ LTippingPoint hsg := by
-  have := @NTippingPoint_le_RTippingPoint_of_mem_moves_left
-  specialize @this A ‹_› ‹_› ‹_› ‹_› ‹_› ‹_› ( -g ) ( -gr ) ; simp_all +decide [ moves_neg ]
+  have := NTippingPoint_le_RTippingPoint_of_mem_moves_left
+            (ClosedUnderNeg.neg_of hAg) (gl := -gr)
+            (ClosedUnderNeg.neg_of hsg) (by simp [hgr]) (by simp [hgrL])
   convert this using 1
   · exact (NTippingPoint.neg (Short.of_mem_moves hsg hgr)).symm
   · exact (RTippingPoint_neg hsg).symm
 
+-- TODO: Move to TippingPoints
 /--
 If `G` is a P-free Left end with `o(G) = N`, then `r(G) = 1`.
 
@@ -522,8 +540,8 @@ exists a Left option `GL` of `G` with `o(GL) = L` and `n(GL) = r(G)`.
 This is [Davies, Miller, Milley (Lemma 3.9 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
     (IsEnd .left g ∧ RTippingPoint hsg = 1) ∨
       (∃ gl, ∃ (hgl : gl ∈ moves .left g), MisereOutcome gl = .L ∧
         NTippingPoint (Short.of_mem_moves hsg hgl) = RTippingPoint hsg) := by
@@ -564,7 +582,7 @@ theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
         · simp only [h, winsGoingFirst_right_of_misereOutcome_R, not_true_eq_false] at hwin
       have hglL' : MisereOutcome gl = .L := by
         by_cases hglN : MisereOutcome gl = .N
-        · have h_gl : A gl := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl))
+        · have h_gl := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl))
           have h_rtip : (0 : ℤ) ≤ (RTippingPoint hsg - 1 : ℕ) := Int.natCast_nonneg _
           have := misereOutcome_add_int_antitone h_gl h_rtip
           simp +decide only [Form.intCast_nat, Form.intCast_ofNat, Nat.cast_zero, add_zero, hglL, hglN] at this
@@ -622,8 +640,8 @@ end with `l(G) = 1`, or there exists a Right option `GR` of `G` with `o(GR) = R`
 This is mirror of [Davies, Miller, Milley (Lemma 3.9 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem isEnd_right_or_exists_NTippingPoint_eq_LTippingPoint_of_N
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
     (IsEnd .right g ∧ LTippingPoint hsg = 1) ∨
       (∃ gr, ∃ (hgr : gr ∈ moves .right g), MisereOutcome gr = .R ∧
         NTippingPoint (Short.of_mem_moves hsg hgr) = LTippingPoint hsg) := by
@@ -655,8 +673,8 @@ In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free 
 This is [Davies, Miller, Milley (Lemma 3.10 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hend : IsEnd .left g) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hend : IsEnd .left g) :
     RTippingPoint hsg = NTippingPoint hsg + 1 := by
   have h_outcome : MisereOutcome g = .N ∨ MisereOutcome g = .L :=
     PFree.misereOutcome_of_isEnd_left hAg hend
@@ -664,8 +682,7 @@ theorem RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
   · have h1 := RTippingPoint_eq_one_of_isEnd_left_N hsg (PFree.pfree hAg) hend hgN
     have h2 := NTippingPoint_eq_zero_of_N hsg hgN
     omega
-  · have hAgN : A (g + (NTippingPoint hsg : GameForm)) :=
-      ClosedUnderAddNat.has_add hAg (NTippingPoint hsg)
+  · have hAgN := ClosedUnderAddNat.has_add hAg (NTippingPoint hsg)
     have hsgN : IsShort (g + (NTippingPoint hsg : GameForm)) :=
       Short.add hsg (Short.natCast (NTippingPoint hsg))
     have hNN : MisereOutcome (g + (NTippingPoint hsg : GameForm)) = .N :=
@@ -711,8 +728,8 @@ A P-free Right end `G` satisfies `l(G) = n(G) + 1`.
 This is mirror of [Davies, Miller, Milley (Lemma 3.10 on p. 13)][davies:SumsPFreeForms:2025]
 -/
 theorem LTippingPoint_eq_NTippingPoint_add_one_of_isEnd_right
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hend : IsEnd .right g) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hend : IsEnd .right g) :
     LTippingPoint hsg = NTippingPoint hsg + 1 := by
   have := RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
             (ClosedUnderNeg.neg_of hAg) (Short.neg hsg) (IsEnd.neg_iff_neg.mpr hend)
@@ -724,8 +741,8 @@ In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free 
 `o(G) = L` and `GR` is a Right option of `G`, then `r(GR) ≥ n(G)`.
 -/
 theorem RTippingPoint_ge_NTippingPoint_of_mem_moves_right
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g gr : GameForm} (hAg : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g gr : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     (hgr : gr ∈ moves .right g) :
     NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) := by
   have h_RTippingPoint : ∀ r < NTippingPoint hsg, MisereOutcome (gr + (r : GameForm)) ≠ .R := by
@@ -746,11 +763,11 @@ theorem RTippingPoint_ge_NTippingPoint_of_mem_moves_right
 For a P-free member `G` with `o(G) = R` and `GL` a Left option of `G`, we have `l(GL) ≥ n(G)`.
 -/
 theorem LTippingPoint_ge_NTippingPoint_of_mem_moves_left
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g gl : GameForm} (hAg : A g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g gl : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
     (hgl : gl ∈ moves .left g) :
     NTippingPoint hsg ≤ LTippingPoint (Short.of_mem_moves hsg hgl) := by
-  obtain ⟨hAng, hsng⟩ : A (-g) ∧ IsShort (-g) := by
+  obtain ⟨hAng, hsng⟩ : (PFreeSubset A) (-g) ∧ IsShort (-g) := by
     exact ⟨ ClosedUnderNeg.neg_of hAg, Short.neg hsg ⟩
   have h_neg_gl : -gl ∈ moves .right (-g) := by
     convert moves_neg .right g ▸ Set.mem_neg.mpr ?_ using 1 ; aesop
@@ -765,8 +782,8 @@ In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free 
 `o(G) = L`, then there exists a Right option `GR` of `G` with `r(GR) = n(G)`.
 -/
 theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
       ∃ gr, ∃ (hgr : gr ∈ moves .right g),
       RTippingPoint (Short.of_mem_moves hsg hgr) = NTippingPoint hsg := by
   obtain ⟨gr, h_gr_mem, h_gr⟩ : ∃ gr ∈ moves .right g, ¬WinsGoingFirst .left (gr + (NTippingPoint hsg : GameForm)) := by
@@ -802,11 +819,11 @@ theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
 For a P-free member `G` with `o(G) = R`, there exists a Left option `GL` of `G` with `l(GL) = n(G)`.
 -/
 theorem exists_mem_moves_left_LTippingPoint_eq_NTippingPoint
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hR : MisereOutcome g = .R) :
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R) :
     ∃ gl, ∃ (hgl : gl ∈ moves .left g),
       LTippingPoint (Short.of_mem_moves hsg hgl) = NTippingPoint hsg := by
-  have := exists_mem_moves_right_RTippingPoint_eq_NTippingPoint ( ClosedUnderNeg.neg_of hAg ) ( Short.neg hsg ) ?_
+  have := exists_mem_moves_right_RTippingPoint_eq_NTippingPoint (ClosedUnderNeg.neg_of hAg) (Short.neg hsg) ?_
   · obtain ⟨ gr, hgr, h ⟩ := this
     -- By definition of `moves`, we know that `gr ∈ (-g)ᴿ` implies there exists `gl ∈ gᴸ` such that `gr = -gl`.
     obtain ⟨gl, hgl, rfl⟩ : ∃ gl ∈ gᴸ, gr = -gl := by
@@ -821,8 +838,8 @@ theorem exists_mem_moves_left_LTippingPoint_eq_NTippingPoint
 For a Left-win game, the outcome is `N` throughout the closed-open interval `[n(G), r(G))`.
 -/
 theorem misereOutcome_add_nat_N_of_misereOutcome_L
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     {m : ℕ} (hm1 : NTippingPoint hsg ≤ m) (hm2 : m < RTippingPoint hsg) :
     MisereOutcome (g + (m : GameForm)) = .N := by
   cases h : MisereOutcome (g + (m : ℤ))
@@ -848,8 +865,8 @@ and `n(GL) = r(G)`.
 This is [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
 -/
 theorem exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     (hne : NTippingPoint hsg ≠ RTippingPoint hsg - 1) :
     ∃ gl, ∃ (hgl : gl ∈ moves .left g), MisereOutcome gl = .L ∧
       NTippingPoint (Short.of_mem_moves hsg hgl) = RTippingPoint hsg := by
@@ -956,8 +973,8 @@ there exists a Right option `GR` of `G` with `o(GR) = R` and `n(GR) = l(G)`.
 This is mirror of [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
 -/
 theorem exists_mem_moves_right_R_NTippingPoint_eq_LTippingPoint
-    [OutcomeStable A] [PFree A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
-    {g : GameForm} (hAg : A g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
+    [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
+    {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
     (hne : NTippingPoint hsg ≠ LTippingPoint hsg - 1) :
     ∃ gr, ∃ (hgr : gr ∈ moves .right g), MisereOutcome gr = .R ∧
       NTippingPoint (Short.of_mem_moves hsg hgr) = LTippingPoint hsg := by
@@ -976,7 +993,7 @@ theorem exists_mem_moves_right_R_NTippingPoint_eq_LTippingPoint
 
 theorem misereOutcome_ne_R_of_mem_moves_right_of_L
     [OutcomeStable A] [ClosedUnderAddNat A] [ClosedUnderNeg A] [HasInt A] [Hereditary A]
-    {g gr : GameForm} (hAg : A g)
+    {g gr : GameForm} (hAg : (PFreeSubset A) g)
     (hpfg : IsPFree g) (hsg : IsShort g) (hLg : MisereOutcome g = .L)
     (hgr : gr ∈ moves .right g) : MisereOutcome gr ≠ .R := by
   have h1 : NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) :=
@@ -988,24 +1005,21 @@ theorem misereOutcome_ne_R_of_mem_moves_right_of_L
 
 theorem misereOutcome_right_option_of_L_cases
     [OutcomeStable A] [ClosedUnderAddNat A] [ClosedUnderNeg A] [HasInt A] [Hereditary A]
-    {g gr : GameForm} (hAg : A g) (hpfg : IsPFree g)
+    {g gr : GameForm} (hAg : (PFreeSubset A g))
     (hsg : IsShort g) (hLg : MisereOutcome g = .L) (hgr : gr ∈ moves .right g) :
     MisereOutcome gr = .L ∨ MisereOutcome gr = .N := by
-  have hR := misereOutcome_ne_R_of_mem_moves_right_of_L hAg hpfg hsg hLg hgr
-  have hP : MisereOutcome gr ≠ .P :=
-    PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) (isPFree_of_mem_moves hpfg hgr)
   rcases h : MisereOutcome gr with _ | _ | _ | _
   · exact Or.inl rfl
   · exact Or.inr rfl
-  · exact absurd h hP
-  · exact absurd h hR
+  · exact absurd h (PFree.misereOutcome_ne_P_of_pfree (isPFree_of_mem_moves hAg.isPFree hgr))
+  · exact absurd h (misereOutcome_ne_R_of_mem_moves_right_of_L hAg hAg.isPFree hsg hLg hgr)
 
 theorem NTippingPoint_lt_LTippingPoint_of_misereOutcome_R
     [OutcomeStable A] [ClosedUnderAddNat A] [ClosedUnderNeg A] [HasInt A] [Hereditary A]
-    {g : GameForm} (hAg : A g)
-    (hpfg : IsPFree g) (hsg : IsShort g) (hRg : MisereOutcome g = .R) :
+    {g : GameForm} (hAg : (PFreeSubset A) g)
+    (hsg : IsShort g) (hRg : MisereOutcome g = .R) :
     NTippingPoint hsg < LTippingPoint hsg := by
-  have := NTippingPoint_lt_RTippingPoint_of_misereOutcome_L (A := PFreeSubset A)
-    (.mk (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of (A := IsPFree) hpfg)) (Short.neg hsg)
+  have := NTippingPoint_lt_RTippingPoint_of_misereOutcome_L
+    (ClosedUnderNeg.neg_of hAg) (Short.neg hsg)
     (by rw [misereOutcome_neg_L_iff_misereOutcome]; exact hRg)
   rwa [NTippingPoint.neg hsg, RTippingPoint_neg hsg] at this

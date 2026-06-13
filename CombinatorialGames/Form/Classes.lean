@@ -64,5 +64,38 @@ theorem misereEQ_add_left [ClosedUnderAdd A] {g h c : G}
 class Hereditary (A : G → Prop) where
   has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
 
+theorem Hereditary.of_mem_moves {A : G → Prop} [Hereditary A]
+  {p : Player} {g g' : G} (hA : A g) (h_mem : g' ∈ moves p g) : A g' :=
+  Hereditary.has_option hA (IsOption.of_mem_moves h_mem)
+
 instance : Hereditary (fun _ => True) (G := G) where
   has_option _ _ := trivial
+
+theorem ClosedUnderAddNat.has_add_neg {A : G → Prop} [ClosedUnderAddNat A] [ClosedUnderNeg A]
+    {g : G} (hAg : A g) (n : ℕ) :
+    A (g + (-n)) := by
+  have := ClosedUnderNeg.neg_of (ClosedUnderAddNat.has_add (ClosedUnderNeg.neg_of hAg) n)
+  simp at this
+  rwa [add_comm] at this
+
+theorem ClosedUnderAddNat.has_add_int {A : G → Prop} [ClosedUnderAddNat A] [ClosedUnderNeg A] [HasInt A]
+    {g : G} (hAg : A g) (n : ℤ) :
+    A (g + n) := by
+  match n with
+  | .ofNat k =>
+    simp only [Int.ofNat_eq_natCast, Form.intCast_nat]
+    exact ClosedUnderAddNat.has_add hAg k
+  | .negSucc k =>
+    simp only [Form.intCast_negSucc, neg_add_rev]
+    rw [<-Form.intCast_one, <-add_assoc, <-sub_eq_add_neg g, Form.intCast_ofNat, sub_eq_add_neg]
+    have := ClosedUnderNeg.neg_of (ClosedUnderAddNat.has_add (ClosedUnderNeg.neg_of hAg) 1)
+    simp only [neg_add_rev, neg_neg] at this
+    rw [add_comm] at this
+    exact ClosedUnderAddNat.has_add_neg this k
+
+theorem ClosedUnderAddNat.has_add_int_neg {A : G → Prop} [ClosedUnderAddNat A] [ClosedUnderNeg A] [HasInt A]
+    {g : G} (hAg : A g) (n : ℤ) :
+    A (g + (-n)) := by
+  have := ClosedUnderNeg.neg_of (ClosedUnderAddNat.has_add_int (ClosedUnderNeg.neg_of hAg) n)
+  simp only [neg_add_rev, neg_neg] at this
+  rwa [add_comm] at this
