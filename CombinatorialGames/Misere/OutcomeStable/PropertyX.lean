@@ -19,11 +19,14 @@ universe u
 public section
 
 /--
-A set of games `A` has Property X if, for all P-free `G, H ∈ A` with `o(G) = o(H) = N`:
+A set of games $\mathcal{A}$ has Property X if,
+for all $G, H \in \operatorname{pf}(\mathcal{A})$ with
+$\operatorname{o}(G) = \operatorname{o}(H) = \mathscr{N}$
 
-1. if `r(G) = l(H) = 1`, where `G` is a Left end but `H` is not, then `o(G + H) = N`; and
-2. (the symmetric statement) if `l(G) = r(H) = 1`, where `H` is a Right end but `G` is not,
-   then `o(G + H) = N`.
+1. if $\operatorname{r}(G) = \operatorname{l}(H) = 1$, where $G$ is a Left end but $H$ is not,
+   then $\operatorname{o}(G + H) = N$; and
+2. if $\operatorname{l}(G) = \operatorname{r}(H) = 1$, where $H$ is a Right end but $G$ is not,
+   then $\operatorname{o}(G + H) = N$.
 
 This is [Davies, Miller, Milley (Definition 3.16 on p. 18)][davies:SumsPFreeForms:2025]
 -/
@@ -42,34 +45,60 @@ class PropertyX (A : GameForm → Prop) : Prop where
     MisereOutcome (g + h) = .N
 
 /--
-The conjunction of the eight implications of Lemma 3.17 for a fixed pair `(G, H)`.
+The conjunction of the eight implications of Lemma 3.17 for a fixed pair $(G, H)$.
 We package them in a structure so that the (mutual) induction can return all of them at once.
 -/
 structure Lemma317Claim (g h : GameForm) (hsg : IsShort g) (hsh : IsShort h) : Prop where
-  /-- 1(a): `o(G) = L`, `o(H) = N`, `n(G) = l(H)` ⟹ `o(G + H) = L`. -/
+  /--
+  1(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{N}$,
+        $\operatorname{n}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{L}$.
+  -/
   p1a : MisereOutcome g = .L → MisereOutcome h = .N →
     NTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .L
-  /-- 1(b): `o(G) = L`, `o(H) = N`, `r(G) = l(H)` ⟹ `o(G + H) = N`. -/
+  /--
+  1(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{N}$,
+        $\operatorname{r}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
+  -/
   p1b : MisereOutcome g = .L → MisereOutcome h = .N →
     RTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .N
-  /-- 2(a): `o(G) = R`, `o(H) = N`, `n(G) = r(H)` ⟹ `o(G + H) = R`. -/
+  /--
+  2(a): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) = \mathscr{N}$,
+        $\operatorname{n}(G) = \operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{R}$.
+  -/
   p2a : MisereOutcome g = .R → MisereOutcome h = .N →
     NTippingPoint hsg = RTippingPoint hsh → MisereOutcome (g + h) = .R
-  /-- 2(b): `o(G) = R`, `o(H) = N`, `l(G) = r(H)` ⟹ `o(G + H) = N`. -/
+  /--
+  2(b): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) = \mathscr{N}$,
+        $\operatorname{l}(G) = \operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
+  -/
   p2b : MisereOutcome g = .R → MisereOutcome h = .N →
     LTippingPoint hsg = RTippingPoint hsh → MisereOutcome (g + h) = .N
-  /-- 3: `o(G), o(H) = N`, `r(G) = l(H)` or `l(G) = r(H)` ⟹ `o(G + H) = N`. -/
+  /--
+  3: if $\operatorname{o}(G), \operatorname{o}(H) = \mathscr{N}$,
+     $\operatorname{r}(G) = \operatorname{l}(H)$ or $\operatorname{l}(G) = \operatorname{r}(H)$
+     then $\operatorname{o}(G + H) = \mathscr{N}$.
+  -/
   p3 : MisereOutcome g = .N → MisereOutcome h = .N →
     (RTippingPoint hsg = LTippingPoint hsh ∨ LTippingPoint hsg = RTippingPoint hsh) →
     MisereOutcome (g + h) = .N
-  /-- 4(a): `o(G) = L`, `o(H) = R`, `n(G) = l(H)` ⟹ `o(G + H) = L`. -/
+  /--
+  4(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
+        $\operatorname{n}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{L}$.
+  -/
   p4a : MisereOutcome g = .L → MisereOutcome h = .R →
     NTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .L
-  /-- 4(b): `o(G) = L`, `o(H) = R`, `n(G) = n(H)` or `r(G) = l(H)` ⟹ `o(G + H) = N`. -/
+  /--
+  4(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
+        $\operatorname{n}(G) = \operatorname{n}(H)$ or $\operatorname{r}(G) = \operatorname{l}(H)$
+        then $\operatorname{o}(G + H) = \mathscr{N}$.
+  -/
   p4b : MisereOutcome g = .L → MisereOutcome h = .R →
     (NTippingPoint hsg = NTippingPoint hsh ∨ RTippingPoint hsg = LTippingPoint hsh) →
     MisereOutcome (g + h) = .N
-  /-- 4(c): `o(G) = L`, `o(H) = R`, `r(G) = n(H)` ⟹ `o(G + H) = R`. -/
+  /--
+  4(c): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
+        $\operatorname{r}(G) = \operatorname{n}(H)$ then $\operatorname{o}(G + H) = \mathscr{R}$.
+  -/
   p4c : MisereOutcome g = .L → MisereOutcome h = .R →
     RTippingPoint hsg = NTippingPoint hsh → MisereOutcome (g + h) = .R
 
@@ -77,7 +106,7 @@ variable {A : GameForm → Prop}
 
 /--
 The induction hypothesis available when proving `Lemma317Claim` for `(g, h)`: the full
-claim holds for every P-free pair `(g', h')` in `A` of strictly smaller total birthday.
+claim holds for every P-free pair `(g', h')` in $\mathcal{A}$ of strictly smaller total birthday.
 -/
 private def Lemma317IH (g h : GameForm) : Prop :=
   ∀ g' h' (hsg' : IsShort g') (hsh' : IsShort h'),
@@ -465,9 +494,8 @@ private theorem lemma317_p4c {g h : GameForm}
   exact key
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid with Property X,
-the tipping-point "equality" configurations of two P-free members determine the
-outcome of their sum, as packaged in `Lemma317Claim`.
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid that has Property X,
+and $G, H \in \operatorname{pf}(\mathcal{A})$, then `Lemma317Claim` holds.
 
 This is [Davies, Miller, Milley (Lemma 3.17 on p. 18)][davies:SumsPFreeForms:2025]
 -/
@@ -488,8 +516,9 @@ theorem lemma_3_17 {g h : GameForm} (hsg : IsShort g) (hsh : IsShort h)
 termination_by birthday g + birthday h
 decreasing_by exact hlt
 
-/-- In an outcome-stable, hereditary, integer-invertible monoid with Property X,
-the sum of two P-free members is never a `P`-position.
+/--
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid with Property X,
+and $G, H \in \operatorname{pf}(\mathcal{A})$, then $\operatorname{o}(G + H) \ne \mathscr{P}$.
 
 This is [Davies, Miller, Milley (Lemma 3.18 on p. 22)][davies:SumsPFreeForms:2025]
 -/
@@ -539,8 +568,8 @@ theorem misereOutcome_ne_P_of_propertyX {g h : GameForm}
   rcases hmain with h | h <;> rw [hP] at h <;> exact absurd h (by decide)
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid with Property X,
-the sum of two P-free members is again P-free.
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid with Property X,
+then $\operatorname{pf}(\mathcal{A})$ is a monoid.
 
 This is [Davies, Miller, Milley (Lemma 3.19 on p. 23)][davies:SumsPFreeForms:2025]
 -/
@@ -565,10 +594,9 @@ decreasing_by
 end Helpers
 
 /--
-Let `A` be a subsemigroup (closed under addition, all members lying in `S`) of an outcome-stable,
-hereditary, integer-invertible monoid `S` with Property X.
-Then the set of (short) P-free members of `A` is closed under addition: if `G, H ∈ pf(A)`
-then `G + H ∈ pf(A)`.  Hence `pf(A)` is a semigroup (or is empty).
+If $\mathcal{A}$ is a subsemigroup of an outcome-stable, hereditary, and integer-invertible monoid
+that has Property X, then either $\operatorname{pf}(\mathcal{A})$ is a semigroup
+or else $\operatorname{pf}(\mathcal{A}) = \emptyset$.
 
 This is [Davies, Miller, Milley (Corollary 3.21 on p. 23)][davies:SumsPFreeForms:2025]
 -/

@@ -150,20 +150,27 @@ theorem NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
 noncomputable def NTippingPoint {g : GameForm} (h1 : IsShort g) : ℕ :=
   Nat.find (NTippingPoint.aux h1)
 
-/-- The defining property of the `N`-tipping point: at `n(G)` itself, either the positive or
-the negative shift has outcome `N`. -/
+/--
+The defining property of the $\mathscr{N}$-tipping point: at $\operatorname{n}(G)$ itself,
+either the positive or the negative shift has outcome $\mathscr{N}$.
+-/
 theorem NTippingPoint_spec {g : GameForm} (h1 : IsShort g) :
     MisereOutcome (g + (NTippingPoint h1 : GameForm)) = .N ∨
       MisereOutcome (g + (-(NTippingPoint h1 : GameForm))) = .N :=
   Nat.find_spec (NTippingPoint.aux h1)
 
-/-- Minimality of the `N`-tipping point: below `n(G)`, neither the positive nor the negative
-shift has outcome `N`. -/
+/--
+Minimality of the $\mathscr{N}$-tipping point: below $\operatorname{n}(G)$,
+neither the positive nor the negative shift has outcome $\mathscr{N}$.
+-/
 theorem NTippingPoint_min {g : GameForm} (h1 : IsShort g) {k : ℕ} (hk : k < NTippingPoint h1) :
     ¬ (MisereOutcome (g + (k : GameForm)) = .N ∨
         MisereOutcome (g + (-(k : GameForm))) = .N) :=
   Nat.find_min (NTippingPoint.aux h1) hk
 
+/--
+$\operatorname{n}(-G) = \operatorname{n}(G)$
+-/
 @[simp]
 theorem NTippingPoint.neg {g : GameForm} (h1 : IsShort g) : NTippingPoint (Short.neg h1) = NTippingPoint h1 := by
   unfold NTippingPoint
@@ -213,58 +220,59 @@ theorem LTippingPoint_iff {g : GameForm} (h1 : IsShort g) (n : ℕ) :
     omega
 
 /--
-Negation sends the `R`-tipping point to the `L`-tipping point: `r(-G) = l(G)`.
+Negation sends the $\mathscr{R}$-tipping point to the $\mathscr{L}$-tipping point:
+$\operatorname{r}(-G) = \operatorname{l}(G)$.
 -/
 theorem RTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
     RTippingPoint (Short.neg hsg) = LTippingPoint hsg := by
-  -- By definition of RTippingPoint, we have RTippingPoint (Short.neg hsg) = l if and only if MisereOutcome ((-g) + l) = .R and for all x, MisereOutcome ((-g) + x) = .R → l ≤ x.
   apply (RTippingPoint_iff (Short.neg hsg) (LTippingPoint hsg)).mpr
   constructor
-  · have h_neg : MisereOutcome (-g + (LTippingPoint hsg : GameForm)) = (MisereOutcome (g + (-(LTippingPoint hsg : GameForm)))).Conjugate := by
-      rw [ show -g + ↑ ( LTippingPoint hsg ) = - ( g + -↑ ( LTippingPoint hsg ) ) by
-            rw [ neg_add ]
-            rw [ neg_neg ] ]
+  · have : -g + ↑ (LTippingPoint hsg) = -( g + -↑ (LTippingPoint hsg)) := by rw [neg_add, neg_neg]
+    have h_neg :
+        MisereOutcome (-g + (LTippingPoint hsg : GameForm))
+        = (MisereOutcome (g + (-(LTippingPoint hsg : GameForm)))).Conjugate := by
+      rw [this]
       exact (misereOutcome_conjugate_neg _).symm
-    (
-    have := LTippingPoint_iff hsg ( LTippingPoint hsg ) |>.1 rfl; aesop;)
+    have := LTippingPoint_iff hsg ( LTippingPoint hsg ) |>.1 rfl
+    simp_all only [neg_add_rev, neg_neg]
+    decide
   · intro x hx
     have h_conj : MisereOutcome (g + (-(x : GameForm))) = .L := by
+      have : -g + ↑x = - ( g + -↑x ) := by rw [neg_add, neg_neg]
       have h_neg : MisereOutcome (-g + x) = (MisereOutcome (g + (-x))).Conjugate := by
-        rw [ show -g + ↑x = - ( g + -↑x ) by
-              rw [ neg_add, neg_neg ], misereOutcome_conjugate_neg ]
-      (
-      cases h : MisereOutcome ( g + -↑x ) <;> simp_all +decide only [Outcome.Conjugate])
+        rw [this, misereOutcome_conjugate_neg]
+      cases h : MisereOutcome (g + -↑x) <;> simp_all +decide only [Outcome.Conjugate]
     exact (LTippingPoint_iff hsg (LTippingPoint hsg)).mp rfl |>.2 _ h_conj
 
 /--
-Negation sends the `L`-tipping point to the `R`-tipping point: `l(-G) = r(G)`.
+Negation sends the $\mathscr{L}$-tipping point to the $\mathscr{R}$-tipping point:
+$\operatorname{l}(-G) = \operatorname{r}(G)$.
 -/
 theorem LTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
     LTippingPoint (Short.neg hsg) = RTippingPoint hsg := by
-  have hLTippingPoint_neg : LTippingPoint (Short.neg hsg) = RTippingPoint hsg := by
-    have hLTippingPoint_neg_aux : ∀ n : ℕ, MisereOutcome ((-g) + (-(n : GameForm))) = .L ↔ MisereOutcome (g + (n : GameForm)) = .R := by
-      intro n
-      have h_neg_add : (-g) + (-(n : GameForm)) = -(g + (n : GameForm)) := by
-        exact (neg_add g (n : GameForm)).symm
-      rw [h_neg_add] at *; (
-      rw [ ← misereOutcome_conjugate_neg ] ; simp +decide only [Outcome.Conjugate]
-      cases h : MisereOutcome ( g + n ) <;> simp +decide)
-    rw [ LTippingPoint_iff ]
-    exact ⟨ hLTippingPoint_neg_aux _ |>.2 ( RTippingPoint_iff _ _ |>.1 rfl |>.1 ), fun n hn => RTippingPoint_iff _ _ |>.1 rfl |>.2 _ ( hLTippingPoint_neg_aux _ |>.1 hn ) ⟩
-  exact hLTippingPoint_neg
+  have : RTippingPoint hsg = RTippingPoint (ClosedUnderNeg.neg_of (ClosedUnderNeg.neg_of hsg)) := by
+    simp only [neg_neg]
+  rw [this, RTippingPoint_neg]
 
-/-- The `R`-tipping point is a witness: `o(G + r(G)) = R`. -/
+/--
+The $\mathscr{R}$-tipping point is a witness:
+$\operatorname{o}(G + \operatorname{r}(G)) = \mathscr{R}$.
+-/
 theorem misereOutcome_add_RTippingPoint_R {g : GameForm} (hsg : IsShort g) :
     MisereOutcome (g + (RTippingPoint hsg : GameForm)) = .R :=
   ((RTippingPoint_iff hsg (RTippingPoint hsg)).mp rfl).left
 
-/-- The `L`-tipping point is a witness: `o(G + (-l(G))) = L`. -/
+/--
+The $\mathscr{L}$-tipping point is a witness:
+$\operatorname{o}(G - \operatorname{l}(G)) = \mathscr{L}$.
+-/
 theorem misereOutcome_add_neg_LTippingPoint_L {g : GameForm} (hsg : IsShort g) :
     MisereOutcome (g + (-(LTippingPoint hsg : GameForm))) = .L :=
   ((LTippingPoint_iff hsg (LTippingPoint hsg)).mp rfl).left
 
-/-
-Minimality of the `R`-tipping point: below `r(G)`, the positive shift is not `R`.
+/--
+Minimality of the $\mathscr{R}$-tipping point:
+below $\operatorname{r}(G)$, the positive shift is not $\mathscr{R}$.
 -/
 theorem misereOutcome_add_nat_ne_R_of_lt_RTippingPoint {g : GameForm} (hsg : IsShort g)
     {k : ℕ} (hk : k < RTippingPoint hsg) :
@@ -273,7 +281,8 @@ theorem misereOutcome_add_nat_ne_R_of_lt_RTippingPoint {g : GameForm} (hsg : IsS
   exact ( RTippingPoint_iff hsg _ |>.mp rfl |>.2 _ hk )
 
 /-
-Minimality of the `L`-tipping point: below `l(G)`, the negative shift is not `L`.
+Minimality of the $\mathscr{L}$-tipping point:
+below $\operatorname{l}(G)$, the negative shift is not $\mathscr{L}$.
 -/
 theorem misereOutcome_add_neg_nat_ne_L_of_lt_LTippingPoint {g : GameForm} (hsg : IsShort g)
     {k : ℕ} (hk : k < LTippingPoint hsg) :
@@ -282,7 +291,9 @@ theorem misereOutcome_add_neg_nat_ne_L_of_lt_LTippingPoint {g : GameForm} (hsg :
   have h := ((LTippingPoint_iff hsg (LTippingPoint hsg)).mp rfl).2 k hL
   omega
 
-/-- For an `L`-game, `1 ≤ n(G)`. -/
+/--
+For a Left-win game, $1 \le \operatorname{n}(G)$.
+-/
 theorem one_le_NTippingPoint_of_misereOutcome_L {g : GameForm} (hsg : IsShort g)
     (hL : MisereOutcome g = .L) : 1 ≤ NTippingPoint hsg := by
   by_contra h
@@ -293,7 +304,7 @@ theorem one_le_NTippingPoint_of_misereOutcome_L {g : GameForm} (hsg : IsShort g)
     exact absurd hs (by decide)
 
 /--
-An next-win game has `N`-tipping point `0`.
+For a next-win game, $\operatorname{n}(G) = 0$.
 -/
 theorem NTippingPoint_eq_zero_of_N {g : GameForm} (hsg : IsShort g)
     (hN : MisereOutcome g = .N) : NTippingPoint hsg = 0 := by
@@ -301,4 +312,3 @@ theorem NTippingPoint_eq_zero_of_N {g : GameForm} (hsg : IsShort g)
   obtain ⟨ k, hk ⟩ := Nat.exists_eq_succ_of_ne_zero hN
   have := NTippingPoint_min hsg (hk.symm ▸ Nat.succ_pos _)
   simpa only [ne_eq, Nat.cast_zero, add_zero, neg_zero, or_self] using this
-

@@ -68,6 +68,9 @@ theorem misereOutcome_of_add_RN {G : Type (u + 1)} [Form G] {A : G → Prop} [Ou
   cases MiserePlayerOutcome (g + h) Player.left
   <;> simp only [reduceCtorEq, or_true, or_false]
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{N}$ then $0 \ge_{\operatorname{pf}(\mathcal{A})} 1$.
+-/
 @[simp]
 theorem zero_misereGE_one {A : GameForm → Prop}
     [HasNat A] [OutcomeStable A] :
@@ -83,6 +86,10 @@ theorem zero_misereGE_one {A : GameForm → Prop}
   · have h3 := misereOutcome_of_add_RR has_one h1 one_misereOutcome_R h2
     rw [h3]
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{N}$
+then $n \ge_{\operatorname{pf}(\mathcal{A})} 1 + n$.
+-/
 theorem nat_misereGE_one_add (A : GameForm → Prop)
     [OutcomeStable A] [ClosedUnderAddNat A] [HasNat A]
     (n : ℕ) : n ≥m (PFreeSubset A) (((1 : ℕ) + n) : ℕ) := by
@@ -135,6 +142,10 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
   · simp only [gt_iff_lt, not_lt, nonpos_iff_eq_zero] at h1
     simp only [h1, Nat.cast_zero, add_zero, Nat.cast_one, zero_misereGE_one]
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n, m \in \mathbb{N}$, and $n \le m$
+then $n \ge_{\operatorname{pf}(\mathcal{A})} m$.
+-/
 theorem misereGE_of_nat_le (A : GameForm → Prop)
     [OutcomeStable A] [ClosedUnderAddNat A] [HasNat A]
     (n m : ℕ) (h1 : n ≤ m) : n ≥m (PFreeSubset A) m := by
@@ -148,6 +159,10 @@ theorem misereGE_of_nat_le (A : GameForm → Prop)
     rw [<-add_assoc, add_comm (n + k') 1]
     exact nat_misereGE_one_add A (n + k')
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{Z}$
+then $n \ge_{\operatorname{pf}(\mathcal{A})} 1 + n$.
+-/
 theorem int_misereGE_one_add (A : GameForm → Prop)
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (n : ℤ) : n ≥m (PFreeSubset A) (((1 : ℤ) + n) : ℤ) := by
@@ -170,6 +185,10 @@ theorem int_misereGE_one_add (A : GameForm → Prop)
     simp only [neg_sub, sub_neg_eq_add] at h2
     exact h2
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{N}$, $k \in \mathbb{Z}$
+then $k \ge_{\operatorname{pf}(\mathcal{A})} n + k$.
+-/
 theorem int_misereGE_nat_add (A : GameForm → Prop)
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (n : ℕ) (k : ℤ) : k ≥m (PFreeSubset A) ((n + k) : ℤ) := by
@@ -181,6 +200,10 @@ theorem int_misereGE_nat_add (A : GameForm → Prop)
     rw [h1]
     exact MisereGE.trans ih (int_misereGE_one_add A (m + k))
 
+/--
+If $\mathcal{A}$ is outcome-stable, $n, m \in \mathbb{Z}$, and $n \le m$
+then $n \ge_{\operatorname{pf}(\mathcal{A})} m$.
+-/
 theorem misereGE_of_int_le (A : GameForm → Prop)
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (n m : ℤ) (h1 : n ≤ m) : n ≥m (PFreeSubset A) m := by
@@ -190,8 +213,9 @@ theorem misereGE_of_int_le (A : GameForm → Prop)
 
 variable {A : GameForm → Prop}
 
-/-
-`o(G + 1) ≤ o(G)` for a P-free game `G` in an outcome-stable monoid with integers.
+/--
+If $\mathcal{A}$ is outcome-stable and $G \in \operatorname{pf}(\mathcal{A})$
+then $\operatorname{o}(G + 1) \le \operatorname{o}(G)$.
 -/
 theorem misereOutcome_add_one_le {g : GameForm} [OutcomeStable A] [HasNat A]
     (hA : A g) (hpf : IsPFree g) :
@@ -206,8 +230,9 @@ theorem misereOutcome_add_one_le {g : GameForm} [OutcomeStable A] [HasNat A]
     rw [add_comm]
     aesop
 
-/-
-`o(G) ≤ o(G + (-1))` for a P-free game `G` in an outcome-stable monoid with integers.
+/--
+If $\mathcal{A}$ is outcome-stable and $G \in \operatorname{pf}(\mathcal{A})$
+then $\operatorname{o}(G) \le \operatorname{o}(G - 1)$.
 -/
 theorem misereOutcome_le_add_negOne {g : GameForm} [OutcomeStable A] [HasNat A] [ClosedUnderNeg A]
     (hA : A g) (hpf : IsPFree g) :
@@ -222,9 +247,9 @@ theorem misereOutcome_le_add_negOne {g : GameForm} [OutcomeStable A] [HasNat A] 
   cases h : MisereOutcome g <;> cases h' : MisereOutcome ( g + -1 ) <;> simp_all +decide only [Outcome.Conjugate]
   all_goals rw [ eq_comm ] at h_neg_add; simp_all +decide
 
-/-
-Adding a natural number is non-increasing in the outcome order:
-`o(G + n) ≤ o(G)` for a P-free game `G` in an outcome-stable monoid with naturals.
+/--
+If $\mathcal{A}$ is outcome-stable, $G \in \operatorname{pf}(\mathcal{A})$, and $n \in \mathbb{N}$
+then $\operatorname{o}(G + n) \le \operatorname{o}(G)$.
 -/
 theorem misereOutcome_add_natCast_le {g : GameForm}
     [OutcomeStable A] [HasNat A] [ClosedUnderAdd A]
@@ -241,6 +266,10 @@ theorem misereOutcome_add_natCast_le {g : GameForm}
     rw [hcast]
     exact le_trans hstep ih
 
+/--
+If $\mathcal{A}$ is outcome-stable, $G \in \operatorname{pf}(\mathcal{A})$, and $k, m \in \mathbb{Z}$
+and $k \le m$ then $\operatorname{o}(G + m) \le \operatorname{o}(G + k)$.
+-/
 theorem misereOutcome_add_int_antitone {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) :
@@ -250,7 +279,7 @@ theorem misereOutcome_add_int_antitone {g : GameForm}
   exact hge
 
 /--
-For a P-free game `G` in an outcome-stable, integer-invertible monoid, no integer shift is a `P`-position.
+If $G$ is $\mathscr{P}$-free and $n$ is an integer then $G + n$ is also $\mathscr{P}$-free.
 
 This is [Davies, Miller, Milley (Lemma 3.3 on p. 9)][davies:SumsPFreeForms:2025]
 -/
@@ -260,7 +289,11 @@ theorem misereOutcome_add_int_ne_P {g : GameForm} (hA : (PFreeSubset A) g) (k : 
   unfold IsPFree at h
   exact h.1
 
-/-- The `L`-region is downward closed: if `o(G + m) = L` and `k ≤ m`, then `o(G + k) = L`. -/
+/--
+The $\mathscr{L}$-region is downward closed:
+if $\operatorname{o}(G + m) = \mathscr{L}$ and $k \le m$,
+then $\operatorname{o}(G + k) = \mathscr{L}$.
+-/
 theorem misereOutcome_add_int_L_of_le {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) (hm : MisereOutcome (g + (m : GameForm)) = .L) :
@@ -269,7 +302,11 @@ theorem misereOutcome_add_int_L_of_le {g : GameForm}
   rw [hm] at hle
   exact le_antisymm (Outcome.L_ge _) hle
 
-/-- The `R`-region is upward closed: if `o(G + k) = R` and `k ≤ m`, then `o(G + m) = R`. -/
+/--
+The $\mathscr{R}$-region is upward closed:
+if $\operatorname{o}(G + k) = \mathscr{R}$ and $k \le m$,
+then $\operatorname{o}(G + m) = \mathscr{R}$.
+-/
 theorem misereOutcome_add_int_R_of_ge {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (hA : (PFreeSubset A) g) {k m : ℤ} (h : k ≤ m) (hk : MisereOutcome (g + (k : GameForm)) = .R) :
@@ -278,7 +315,10 @@ theorem misereOutcome_add_int_R_of_ge {g : GameForm}
   rw [hk] at hle
   exact (Outcome.le_R_iff _).mp hle
 
-/-- The outcome of an integer shift is always one of `L`, `N`, `R` (never `P`). -/
+/--
+The outcome of an integer shift is always one of
+$\mathscr{L}$, $\mathscr{N}$, $\mathscr{R}$ (never $\mathscr{P}$).
+-/
 theorem misereOutcome_add_int_cases {g : GameForm} (hA : (PFreeSubset A) g) (k : ℤ) :
     MisereOutcome (g + (k : GameForm)) = .L ∨ MisereOutcome (g + (k : GameForm)) = .N ∨
       MisereOutcome (g + (k : GameForm)) = .R := by
@@ -290,8 +330,8 @@ theorem misereOutcome_add_int_cases {g : GameForm} (hA : (PFreeSubset A) g) (k :
   · exact Or.inr (Or.inr rfl)
 
 /--
-The `N`-tipping point of a `L`-game lies strictly above `0`, and its witness is the positive shift:
-`o(G + n(G)) = N`.
+The $\mathscr{N}$-tipping point of a Left-win game lies strictly above $0$,
+and its witness is the positive shift: $\operatorname{o}(G + \operatorname{n}(G)) = \mathscr{N}$.
 -/
 theorem misereOutcome_add_NTippingPoint_N_of_misereOutcome_L {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -303,10 +343,6 @@ theorem misereOutcome_add_NTippingPoint_N_of_misereOutcome_L {g : GameForm}
     rw [h] at hneg
     exact absurd hneg (by decide)
 
-/--
-For a P-free `L`-game `G` in an outcome-stable, integer-invertible monoid, every natural shift
-strictly below the `N`-tipping point keeps outcome `L`.
--/
 theorem misereOutcome_add_nat_L_of_lt_NTippingPoint {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     (hA : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
@@ -329,8 +365,10 @@ theorem misereOutcome_add_nat_L_of_lt_NTippingPoint {g : GameForm}
   · rw [hcase] at hmono
     exact absurd hmono (by decide)
 
-/-
-Positive `N`-region for an `N`-game: if `o(G) = N` and `k < r(G)`, then `o(G + k) = N`.
+/--
+Positive $\mathscr{N}$-region for an next-win game:
+if $\operatorname{o}(G) = \mathscr{N}$ and $k < \operatorname{r}(G)$,
+then $\operatorname{o}(G + k) = \mathscr{N}$.
 -/
 theorem misereOutcome_add_nat_N_of_misereOutcome_N {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -344,8 +382,10 @@ theorem misereOutcome_add_nat_N_of_misereOutcome_N {g : GameForm}
   exact Or.resolve_right (Outcome.le_N_eq_N_or_R h_le_N)
     (misereOutcome_add_nat_ne_R_of_lt_RTippingPoint hsg hk)
 
-/-
-Negative `N`-region for an `N`-game: if `o(G) = N` and `k < l(G)`, then `o(G + (-k)) = N`.
+/--
+Negative $\mathscr{N}$-region for an next-win game:
+if $\operatorname{o}(G) = \mathscr{N}$ and $k < \operatorname{l}(G)$,
+then $\operatorname{o}(G - k) = \mathscr{N}$.
 -/
 theorem misereOutcome_add_neg_nat_N_of_misereOutcome_N {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -363,8 +403,9 @@ theorem misereOutcome_add_neg_nat_N_of_misereOutcome_N {g : GameForm}
   · rw [h] at hge; exact absurd hge (by decide)
   · rw [h] at hge; exact absurd hge (by decide)
 
-/-
-For an `L`-game, the `N`-tipping point lies strictly below the `R`-tipping point.
+/--
+For a Left-win game, the $\mathscr{N}$-tipping point lies strictly below the
+$\mathscr{R}$-tipping point.
 -/
 theorem NTippingPoint_lt_RTippingPoint_of_misereOutcome_L {g : GameForm}
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -380,7 +421,8 @@ theorem NTippingPoint_lt_RTippingPoint_of_misereOutcome_L {g : GameForm}
   exact absurd hmono (by decide)
 
 /--
-Shifting by a natural translates the `R`-tipping point: `r(G + k) = r(G) - k`.
+Shifting by a natural translates the $\mathscr{R}$-tipping point:
+$\operatorname{r}(G + k) = \operatorname{r}(G) - k$.
 -/
 theorem RTippingPoint_add_natCast
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -404,8 +446,8 @@ theorem RTippingPoint_add_natCast
   grind only
 
 /--
-For a Left-win game, shifting by a natural `k ≤ n(G)` translates the `N`-tipping point:
-`n(G + k) = n(G) - k`.
+For a Left-win game, shifting by a natural $k \le \operatorname{n}(G)$ translates the
+$\mathscr{N}$-tipping point: $\operatorname{n}(G + k) = \operatorname{n}(G) - k$.
 -/
 theorem NTippingPoint_add_natCast_of_L
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
@@ -441,8 +483,9 @@ theorem NTippingPoint_add_natCast_of_L
     exact h_upper_bound _ hlt (NTippingPoint_spec hsk)
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a
-P-free member and `GL` is a Left option of `G` with `o(GL) ≠ R`, then `n(GL) ≤ r(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$, then $\operatorname{n}(G^L) \le \operatorname{r}(G)$
+for all Left options $G^L$ of $G$ with $\operatorname{o}(G^L) \ne \mathscr{R}$.
 
 This is [Davies, Miller, Milley (Lemma 3.7 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -482,7 +525,9 @@ theorem NTippingPoint_le_RTippingPoint_of_mem_moves_left
           (Nat.not_le.mp h_contra)
 
 /--
-For a P-free member `G`, if `GR` is a Right option of `G` with `o(GR) ≠ L`, then `n(GR) ≤ l(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$, then $\operatorname{n}(G^R) \le \operatorname{l}(G)$
+for all Right options $G^R$ of $G$ with $\operatorname{o}(G^R) \ne \mathscr{L}$.
 
 This is mirror of [Davies, Miller, Milley (Lemma 3.7 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -500,7 +545,8 @@ theorem NTippingPoint_le_LTippingPoint_of_mem_moves_right
 
 -- TODO: Move to TippingPoints
 /--
-If `G` is a P-free Left end with `o(G) = N`, then `r(G) = 1`.
+If $G$ is a $\mathscr{P}$-free Left end with $\operatorname{o}(G) = \mathscr{N}$,
+then $\operatorname{r}(G) = 1$.
 
 This is [Davies, Miller, Milley (Lemma 3.8 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -533,9 +579,11 @@ theorem RTippingPoint_eq_one_of_isEnd_left_N {g : GameForm} (hsg : IsShort g)
   simp_all only [Nat.cast_zero, add_zero, reduceCtorEq]
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a
-P-free member with `o(G) = N`, then either `G` is a Left end with `r(G) = 1`, or there
-exists a Left option `GL` of `G` with `o(GL) = L` and `n(GL) = r(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{N}$,
+then either $G$ is Left end-like with $\operatorname{r}(G) = 1$, or else there exists a Left
+option $G^L$ of $G$ with $\operatorname{o}(G^L) = \mathscr{L}$
+such that $\operatorname{n}(G^L) = r(G)$.
 
 This is [Davies, Miller, Milley (Lemma 3.9 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -633,9 +681,11 @@ theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
       exact h_contra.right
 
 /--
-For a P-free member `G` with `o(G) = N`, either `G` is a Right
-end with `l(G) = 1`, or there exists a Right option `GR` of `G` with `o(GR) = R` and
-`n(GR) = l(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{N}$,
+then either $G$ is Right end-like with $\operatorname{l}(G) = 1$, or else there exists a Left
+option $G^R$ of $G$ with $\operatorname{o}(G^R) = \mathscr{R}$
+such that $\operatorname{n}(G^R) = l(G)$.
 
 This is mirror of [Davies, Miller, Milley (Lemma 3.9 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -668,7 +718,9 @@ theorem isEnd_right_or_exists_NTippingPoint_eq_LTippingPoint_of_N
   · rw [ ← misereOutcome_conjugate_neg, hN, Outcome.Conjugate ]
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free Left end, then `r(G) = n(G) + 1`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ is a Left end
+then $\operatorname{r}(G) = \operatorname{n}(G) + 1$.
 
 This is [Davies, Miller, Milley (Lemma 3.10 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -723,7 +775,9 @@ theorem RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
     omega
 
 /--
-A P-free Right end `G` satisfies `l(G) = n(G) + 1`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ is a Right end
+then $\operatorname{l}(G) = \operatorname{n}(G) + 1$.
 
 This is mirror of [Davies, Miller, Milley (Lemma 3.10 on p. 13)][davies:SumsPFreeForms:2025]
 -/
@@ -737,8 +791,9 @@ theorem LTippingPoint_eq_NTippingPoint_add_one_of_isEnd_right
   rwa [NTippingPoint.neg] at this
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free member with
-`o(G) = L` and `GR` is a Right option of `G`, then `r(GR) ≥ n(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary, integer-invertible monoid,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+and $G^R$ is a Right option of $G$, then $\operatorname{r}(G^R) \ge \operatorname{n}(G)$.
 -/
 theorem RTippingPoint_ge_NTippingPoint_of_mem_moves_right
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
@@ -760,7 +815,9 @@ theorem RTippingPoint_ge_NTippingPoint_of_mem_moves_right
   exact ⟨_, h_RTippingPoint, RTippingPoint_iff _ _ |>.mp rfl |>.left⟩
 
 /--
-For a P-free member `G` with `o(G) = R` and `GL` a Left option of `G`, we have `l(GL) ≥ n(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary, integer-invertible monoid,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+and $G^L$ is a Left option of $G$, then $\operatorname{l}(G^L) \ge \operatorname{n}(G)$.
 -/
 theorem LTippingPoint_ge_NTippingPoint_of_mem_moves_left
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
@@ -778,8 +835,9 @@ theorem LTippingPoint_ge_NTippingPoint_of_mem_moves_left
   · exact (RTippingPoint_neg (Short.of_mem_moves hsg hgl)).symm
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free member with
-`o(G) = L`, then there exists a Right option `GR` of `G` with `r(GR) = n(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary, integer-invertible monoid,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+then there exists a Right option $G^R$ of $G$ with $\operatorname{r}(G^R) = \operatorname{n}(G)$.
 -/
 theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
@@ -816,7 +874,9 @@ theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
   exact le_antisymm h_r_le_n (RTippingPoint_ge_NTippingPoint_of_mem_moves_right hAg hsg hL h_gr_mem)
 
 /--
-For a P-free member `G` with `o(G) = R`, there exists a Left option `GL` of `G` with `l(GL) = n(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary, integer-invertible monoid,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$
+then there exists a Left option $G^L$ of $G$ with $\operatorname{l}(G^L) = \operatorname{n}(G)$.
 -/
 theorem exists_mem_moves_left_LTippingPoint_eq_NTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
@@ -834,9 +894,6 @@ theorem exists_mem_moves_left_LTippingPoint_eq_NTippingPoint
     grind only [NTippingPoint.neg, RTippingPoint_neg, LTippingPoint_neg]
   · exact misereOutcome_neg_L_iff_misereOutcome.mpr hR
 
-/--
-For a Left-win game, the outcome is `N` throughout the closed-open interval `[n(G), r(G))`.
--/
 theorem misereOutcome_add_nat_N_of_misereOutcome_L
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
@@ -858,11 +915,12 @@ theorem misereOutcome_add_nat_N_of_misereOutcome_L
     convert misereOutcome_add_nat_ne_R_of_lt_RTippingPoint hsg hm2 using 1
 
 /--
-In an outcome-stable, hereditary, integer-invertible monoid, if `G` is a P-free member with
-`o(G) = L` and `n(G) ≠ r(G) - 1`, then there exists a Left option `GL` of `G` with `o(GL) = L`
-and `n(GL) = r(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$,
+then if $\operatorname{n}(G) \ne \operatorname{r}(G) - 1$ then there exists some option $G^L$ with
+$\operatorname{o}(G^L) = \mathscr{L}$ such that $\operatorname{n}(G^L) = \operatorname{r}(G)$.
 
-This is [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
+This is (1) in [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
 -/
 theorem exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
@@ -967,10 +1025,12 @@ theorem exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint
       decide
 
 /--
-For a P-free member `G` with `o(G) = R` and `n(G) ≠ l(G) - 1`,
-there exists a Right option `GR` of `G` with `o(GR) = R` and `n(GR) = l(G)`.
+If $\mathcal{A}$ is outcome-stable, hereditary monoid containing $1$ and $-1$,
+and $G \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$,
+then if $\operatorname{n}(G) \ne \operatorname{l}(G) - 1$ then there exists some option $G^R$ with
+$\operatorname{o}(G^R) = \mathscr{R}$ such that $\operatorname{n}(G^R) = \operatorname{l}(G)$.
 
-This is mirror of [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
+This is mirror of (1) in [Davies, Miller, Milley (Lemma 3.11 on p. 14)][davies:SumsPFreeForms:2025]
 -/
 theorem exists_mem_moves_right_R_NTippingPoint_eq_LTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
