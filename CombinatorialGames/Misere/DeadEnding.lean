@@ -154,30 +154,10 @@ theorem isDeadEnding_of_isOption {g g' : G} (h1 : IsDeadEnding g) (h2 : Moves.Is
 instance : Hereditary (IsDeadEnding (G := G)) where
   has_option := isDeadEnding_of_isOption
 
-end Form
-
-namespace GameForm.DeadEnding
-
-open Form
-open Form.Misere.Outcome
-
-private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
-    MisereOutcome g = Outcome.ofPlayer p := by
-  rw [misereOutcome_eq_player_iff]
-  apply And.intro (winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd h2))
-  simp only [not_winsGoingFirst_iff, neg_neg, isEndLike_iff_isEnd]
-  apply And.intro (zero_not_both_end h1 (isEnd_of_isDeadEnd h2))
-  intro gr h4
-  exact winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h2 h4))
-
-theorem lemma3_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
-    MisereOutcome g = .L := lemma3.aux h1 h2
-
-theorem lemma3_R (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .right g) :
-    MisereOutcome g = .R := lemma3.aux h1 h2
+namespace DeadEnding
 
 @[simp]
-theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEnding h) :
+protected theorem IsDeadEnding.add {g h : G} (h1 : IsDeadEnding g) (h2 : IsDeadEnding h) :
     IsDeadEnding (g + h) := by
   unfold IsDeadEnding
   simp only [moves_add, Set.mem_union, Set.mem_image]
@@ -192,7 +172,7 @@ theorem IsDeadEnding.add {g h : GameForm} (h1 : IsDeadEnding g) (h2 : IsDeadEndi
 termination_by (g, h)
 decreasing_by all_goals form_wf
 
-private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g)) : IsDeadEnding g := by
+private protected theorem IsDeadEnding.neg {g : G} (h1 : IsDeadEnding (-g)) : IsDeadEnding g := by
   unfold IsDeadEnding at h1 ⊢
   obtain ⟨h1, h2⟩ := h1
   apply And.intro
@@ -206,18 +186,18 @@ private protected theorem IsDeadEnding.neg {g : GameForm} (h1 : IsDeadEnding (-g
 termination_by g
 decreasing_by form_wf
 
-instance : ClosedUnderNeg (IsDeadEnding (G := GameForm)) where
+instance : ClosedUnderNeg (IsDeadEnding (G := G)) where
   neg_of {g} h := by
     rw [<-neg_neg g] at h
     exact IsDeadEnding.neg h
 
 @[simp]
-theorem isDeadEnding_zero : IsDeadEnding (0 : GameForm) := by
+theorem isDeadEnding_zero : IsDeadEnding (0 : G) := by
   unfold IsDeadEnding IsDeadEnd
   simp
 
 @[simp]
-theorem isDeadEnding_natCast (n : ℕ) : IsDeadEnding (n : GameForm) := by
+theorem isDeadEnding_natCast (n : ℕ) : IsDeadEnding (n : G) := by
   match n with
   | .zero => exact isDeadEnding_zero
   | .succ k =>
@@ -227,7 +207,7 @@ theorem isDeadEnding_natCast (n : ℕ) : IsDeadEnding (n : GameForm) := by
     simp only [succ_nat_end_right.mp h, isDeadEnd_right_natCast k.succ]
 
 @[simp]
-theorem isDeadEnding_intCast (k : ℤ) : IsDeadEnding (k : GameForm) := by
+theorem isDeadEnding_intCast (k : ℤ) : IsDeadEnding (k : G) := by
   match k with
   | .ofNat n => exact isDeadEnding_natCast n
   | .negSucc n =>
@@ -236,21 +216,21 @@ theorem isDeadEnding_intCast (k : ℤ) : IsDeadEnding (k : GameForm) := by
     exact isDeadEnding_natCast (n + 1)
 
 @[simp]
-theorem isDeadEnding_one : IsDeadEnding (1 : GameForm) := by
+theorem isDeadEnding_one : IsDeadEnding (1 : G) := by
   rw [<-Form.intCast_one]
   exact isDeadEnding_intCast 1
 
-structure ShortDeadEnding (g : GameForm) : Prop where
+structure ShortDeadEnding (g : G) : Prop where
   short : IsShort g
   dead_ending : IsDeadEnding g
 
-instance : Hereditary ShortDeadEnding where
+instance : Hereditary (ShortDeadEnding (G := G)) where
   has_option h1 h2 :=
   { short := Short.isOption h1.short h2
   , dead_ending := isDeadEnding_of_isOption h1.dead_ending h2
   }
 
-instance : ShortUniverse ShortDeadEnding where
+instance : ShortUniverse (ShortDeadEnding (G := G)) where
   zero_mem :=
   { short := by
       rw [short_def]
@@ -281,36 +261,51 @@ instance : ShortUniverse ShortDeadEnding where
           · exact (hC gp hgp).dead_ending
     }
 
-instance : HasNat ShortDeadEnding where
+instance : HasNat (ShortDeadEnding (G := G)) where
   has_nat n :=
     { short := Short.natCast n
     , dead_ending := isDeadEnding_natCast n
     }
 
-instance : HasInt ShortDeadEnding where
+instance : HasInt (ShortDeadEnding (G := G)) where
   has_int k :=
     { short := Short.intCast k
     , dead_ending := isDeadEnding_intCast k
     }
 
-theorem mem_leftMoves_natSub_add_isEnd {a b : ℕ} {y g' : GameForm}
-    (hye : IsEnd .left y) :
-    g' ∈ moves .left (((a : GameForm) - (b : GameForm)) + y) ↔
-    ∃ a', a = a' + 1 ∧ g' = ((a' : GameForm) - (b : GameForm)) + y := by
-  cases a <;> simp_all +decide [ sub_eq_add_neg, moves_add, moves_neg ]
+end DeadEnding
 
-theorem mem_rightMoves_natSub_add {a b : ℕ} {y g' : GameForm} :
-    g' ∈ moves .right (((a : GameForm) - (b : GameForm)) + y) ↔
-    (∃ b', b = b' + 1 ∧ g' = ((a : GameForm) - (b' : GameForm)) + y) ∨
-    (∃ yr ∈ moves .right y, g' = ((a : GameForm) - (b : GameForm)) + yr) := by
-  constructor;
-  · simp +decide [ sub_eq_add_neg, moves_add, moves_neg ];
-    rintro ( ⟨ x, hx, rfl ⟩ | ⟨ x, hx, rfl ⟩ );
-    · cases b <;> simp_all +decide [ leftMoves_natCast_succ ];
-    · exact Or.inr ⟨ x, hx, rfl ⟩;
-  · rintro ( ⟨ b', rfl, rfl ⟩ | ⟨ yr, hyr, rfl ⟩ ) <;> simp +decide [ sub_eq_add_neg, moves_add, moves_neg ];
-    · exact Or.inl ⟨ _, Or.inl rfl, rfl ⟩;
-    · exact Or.inr ⟨ yr, hyr, rfl ⟩
+end Form
+
+namespace GameForm.DeadEnding
+
+open Form
+open Form.Misere.Outcome
+open Form.DeadEnding
+
+/--
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+-/
+private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
+    MisereOutcome g = Outcome.ofPlayer p := by
+  rw [misereOutcome_eq_player_iff]
+  apply And.intro (winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd h2))
+  simp only [not_winsGoingFirst_iff, neg_neg, isEndLike_iff_isEnd]
+  apply And.intro (zero_not_both_end h1 (isEnd_of_isDeadEnd h2))
+  intro gr h4
+  exact winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h2 h4))
+
+/--
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+-/
+theorem isDeadEnd_left_misereOutcome_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
+    MisereOutcome g = .L := lemma3.aux h1 h2
+
+/--
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+-/
+theorem isDeadEnd_right_misereOutcome_R (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .right g) :
+    MisereOutcome g = .R := lemma3.aux h1 h2
 
 -- TODO: Split
 private theorem winsGoingFirst_left_natSub_add :
@@ -438,7 +433,7 @@ instance : IntegerInvertible.PropertyX ShortDeadEnding where
     · subst hg0
       rw [zero_add]
       exact hNh
-    · absurd hNg.symm.trans (lemma3_L g hg0 (isDeadEnd_of_isDeadEnding hAg.mem.dead_ending hge))
+    · absurd hNg.symm.trans (isDeadEnd_left_misereOutcome_L g hg0 (isDeadEnd_of_isDeadEnding hAg.mem.dead_ending hge))
       decide
   prop_right := by
     intro g h hAg hAh hsg hsh hNg hNh hge hnge hlg hrh
@@ -446,7 +441,7 @@ instance : IntegerInvertible.PropertyX ShortDeadEnding where
     · subst hh0
       rw [add_zero]
       exact hNg
-    · absurd hNh.symm.trans (lemma3_R h hh0 (isDeadEnd_of_isDeadEnding hAh.mem.dead_ending hge))
+    · absurd hNh.symm.trans (isDeadEnd_right_misereOutcome_R h hh0 (isDeadEnd_of_isDeadEnding hAh.mem.dead_ending hge))
       decide
 
 end GameForm.DeadEnding

@@ -665,4 +665,23 @@ theorem IsEnd.sub_iff {g h : G} {p : Player} :
     IsEnd p (g - h) ↔ (IsEnd p g ∧ IsEnd (-p) h) := by
   rw [sub_eq_add_neg, IsEnd.add_iff, IsEnd.neg_iff_neg]
 
+theorem mem_leftMoves_natSub_add_isEnd {a b : ℕ} {y g' : G}
+    (hye : IsEnd .left y) :
+    g' ∈ moves .left (((a : G) - (b : G)) + y) ↔
+    ∃ a', a = a' + 1 ∧ g' = ((a' : G) - (b : G)) + y := by
+  cases a <;> simp_all +decide [ sub_eq_add_neg, moves_add, moves_neg ]
+
+theorem mem_rightMoves_natSub_add {a b : ℕ} {y g' : G} :
+    g' ∈ moves .right (((a : G) - (b : G)) + y) ↔
+    (∃ b', b = b' + 1 ∧ g' = ((a : G) - (b' : G)) + y) ∨
+    (∃ yr ∈ moves .right y, g' = ((a : G) - (b : G)) + yr) := by
+  constructor;
+  · simp [sub_eq_add_neg, moves_add, moves_neg]
+    rintro (⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩)
+    · cases b <;> simp_all [leftMoves_natCast_succ]
+    · exact Or.inr ⟨x, hx, rfl⟩
+  · rintro (⟨ b', rfl, rfl⟩ | ⟨yr, hyr, rfl⟩) <;> simp [sub_eq_add_neg, moves_add, moves_neg]
+    · exact Or.inl ⟨_, Or.inl rfl, rfl⟩
+    · exact Or.inr ⟨yr, hyr, rfl⟩
+
 end Form

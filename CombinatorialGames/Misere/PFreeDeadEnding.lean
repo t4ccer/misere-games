@@ -27,7 +27,7 @@ private theorem eq_zero_of_misereOutcome {g : GameForm} (hg : IsDeadEnding g)
     (hN : MisereOutcome g = .N) (h_left_end : IsEnd .left g) : g = 0 := by
   by_contra h_ne_zero
   have h_left_dead := isDeadEnd_of_isDeadEnding hg h_left_end
-  exact absurd (GameForm.DeadEnding.lemma3_L g h_ne_zero h_left_dead) (by simp [hN])
+  exact absurd (DeadEnding.isDeadEnd_left_misereOutcome_L g h_ne_zero h_left_dead) (by simp [hN])
 
 mutual
 
@@ -141,7 +141,7 @@ def PFreeDeadEnding.isDeadEnding {g : GameForm} (h_g : PFreeDeadEnding g) : IsDe
 def PFreeDeadEnding.isShort {g : GameForm} (h_g : PFreeDeadEnding g) : IsShort g :=
   h_g.mem.short
 
-instance : OutcomeStable DeadEnding.ShortDeadEnding where
+instance : OutcomeStable (DeadEnding.ShortDeadEnding (G := GameForm)) where
   misereOutcome_of_add_LL hg hh hgL hhL := misereOutcome_of_add_LL.aux
     (.mk hg.mem.dead_ending hg.isPFree) (.mk hh.mem.dead_ending hh.isPFree) hgL hhL
   misereOutcome_of_add_RR hg hh hgR hhR := misereOutcome_of_add_RR.aux
@@ -151,13 +151,13 @@ instance : OutcomeStable DeadEnding.ShortDeadEnding where
   miserePlayerOutcome_of_add_RN hg hh hgR hhN := miserePlayerOutcome_of_add_RN.aux
     (.mk hg.mem.dead_ending hg.isPFree) (.mk hh.mem.dead_ending hh.isPFree) hgR hhN
 
-instance : ClosedUnderAddNat DeadEnding.ShortDeadEnding where
+instance : ClosedUnderAddNat (DeadEnding.ShortDeadEnding (G := GameForm)) where
   has_add h_g n :=
     { dead_ending := DeadEnding.IsDeadEnding.add h_g.dead_ending (DeadEnding.isDeadEnding_natCast n)
     , short := Short.add (h_g.short) (Short.natCast n)
     }
 
-instance : ClosedUnderAdd DeadEnding.ShortDeadEnding where
+instance : ClosedUnderAdd (DeadEnding.ShortDeadEnding (G := GameForm)) where
   has_add _ _  h_g h_h :=
     { dead_ending := DeadEnding.IsDeadEnding.add h_g.dead_ending h_h.dead_ending
     , short := Short.add h_g.short h_h.short
