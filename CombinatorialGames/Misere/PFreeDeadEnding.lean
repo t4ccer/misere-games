@@ -485,17 +485,10 @@ decreasing_by form_wf
 private theorem isEnd_right_exists_intCast_misereEQ {g : GameForm}
     (h_g : PFreeDeadEnding g) (h_isEnd : IsEnd .right g) :
     ∃ n : ℕ, g =m PFreeDeadEnding ((n : ℤ) : GameForm) := by
-  obtain ⟨a, ha⟩ := isEnd_left_exists_intCast_misereEQ
+  obtain ⟨n, ha⟩ := isEnd_left_exists_intCast_misereEQ
       (ClosedUnderNeg.neg_of h_g) (IsEnd.neg_iff_neg.mpr h_isEnd)
-  use a
-  have h_neg : (-g) =m PFreeDeadEnding (-((a : ℤ) : GameForm)) := by
-    rw [<-Form.intCast_neg]
-    exact ha
-  apply MisereEq.of_antisymm
-  · have := misereGE_of_misereEQ (MisereEQ.symm h_neg)
-    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
-  · have := misereGE_of_misereEQ h_neg
-    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
+  use n
+  rwa [Form.intCast_neg n, misereEQ_neg_iff] at ha
 
 /--
 If $G \in \operatorname{pf}(\mathcal{E})$ is an end then it equals to some integer.

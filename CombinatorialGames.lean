@@ -6,7 +6,6 @@ public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
 public import CombinatorialGames.Form.Classes
-public import CombinatorialGames.Form.ClosedUnderNeg
 public import CombinatorialGames.Form.Misere.Adjoint
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Form.Short

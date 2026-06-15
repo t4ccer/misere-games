@@ -7,7 +7,6 @@ module
 
 public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.Form.Classes
-public import CombinatorialGames.Form.ClosedUnderNeg
 import Mathlib.Data.Fintype.Order
 
 /-!

@@ -5,7 +5,7 @@ Authors: Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Form
 
 universe u
 
@@ -37,30 +37,6 @@ class ClosedUnderAdd (A : G → Prop) where
 
 variable {A : G → Prop}
 
-/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère inequality. -/
-theorem misereGE_add_right [ClosedUnderAdd A] {g h c : G}
-    (hc : A c) (h1 : g ≥m A h) : (g + c) ≥m A (h + c) := by
-  intro x hx
-  have hcx : A (c + x) := ClosedUnderAdd.has_add c x hc hx
-  have := h1 (c + x) hcx
-  rwa [← add_assoc, ← add_assoc] at this
-
-/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère equivalence. -/
-theorem misereEQ_add_right [ClosedUnderAdd A] {g h c : G}
-    (hc : A c) (h1 : g =m A h) : (g + c) =m A (h + c) := by
-  intro x hx
-  have hcx : A (c + x) := ClosedUnderAdd.has_add c x hc hx
-  have := h1 (c + x) hcx
-  rwa [← add_assoc, ← add_assoc] at this
-
-/-- Adding a fixed element `c ∈ A` on the left preserves the restricted misère equivalence. -/
-theorem misereEQ_add_left [ClosedUnderAdd A] {g h c : G}
-    (hc : A c) (h1 : g =m A h) : (c + g) =m A (c + h) := by
-  have := misereEQ_add_right hc h1
-  intro x hx
-  have h2 := this x hx
-  rwa [add_comm c g, add_comm c h]
-
 class Hereditary (A : G → Prop) where
   has_option {g g' : G} (h1 : A g) (h2 : Moves.IsOption g' g) : A g'
 
@@ -70,6 +46,21 @@ theorem Hereditary.of_mem_moves {A : G → Prop} [Hereditary A]
 
 instance : Hereditary (fun _ => True) (G := G) where
   has_option _ _ := trivial
+
+class ClosedUnderNeg (A : G → Prop) where
+  neg_of {g : G} (h1 : A g) : A (-g)
+
+instance : ClosedUnderNeg (fun _ => True) (G := G) where
+  neg_of _ := trivial
+
+@[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
+theorem ClosedUnderNeg.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g : G}
+    : A (-g) ↔ A g := by
+  constructor
+  · intro h1
+    have h2 := ClosedUnderNeg.neg_of h1
+    rwa [neg_neg (G := G)] at h2
+  · exact ClosedUnderNeg.neg_of
 
 theorem ClosedUnderAddNat.has_add_neg {A : G → Prop} [ClosedUnderAddNat A] [ClosedUnderNeg A]
     {g : G} (hAg : A g) (n : ℕ) :

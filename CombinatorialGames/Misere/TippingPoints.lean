@@ -5,6 +5,7 @@ Authors: Alfie Davies
 -/
 module
 
+public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Form.Short
 
 open Form

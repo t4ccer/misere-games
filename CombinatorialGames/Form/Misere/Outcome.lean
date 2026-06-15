@@ -5,7 +5,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.ClosedUnderNeg
+public import CombinatorialGames.Form.Classes
 public import CombinatorialGames.Form.Birthday
 
 public section
@@ -423,7 +423,7 @@ theorem misereGE_rw_right {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : a �
   rw [h2 x hx]
   exact h1 x hx
 
-theorem misereGE_of_misereEQ  {A : G → Prop} {g h : G} (h1 : g =m A h) : g ≥m A h := by
+theorem misereGE_of_misereEQ {A : G → Prop} {g h : G} (h1 : g =m A h) : g ≥m A h := by
   intro x hx
   have := h1 x hx
   exact Std.le_of_eq (Eq.symm this)
@@ -433,6 +433,30 @@ theorem misereGE_of_subset (U : G → Prop) {V : G → Prop}
   unfold MisereGE at h2 ⊢
   intro x hv
   exact h2 x (h_v_subset_u x hv)
+
+/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère inequality. -/
+theorem misereGE_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
+    (hc : A c) (h1 : g ≥m A h) : (g + c) ≥m A (h + c) := by
+  intro x hx
+  have hcx : A (c + x) := ClosedUnderAdd.has_add c x hc hx
+  have := h1 (c + x) hcx
+  rwa [← add_assoc, ← add_assoc] at this
+
+/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère equivalence. -/
+theorem misereEQ_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
+    (hc : A c) (h1 : g =m A h) : (g + c) =m A (h + c) := by
+  intro x hx
+  have hcx : A (c + x) := ClosedUnderAdd.has_add c x hc hx
+  have := h1 (c + x) hcx
+  rwa [← add_assoc, ← add_assoc] at this
+
+/-- Adding a fixed element `c ∈ A` on the left preserves the restricted misère equivalence. -/
+theorem misereEQ_add_left {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
+    (hc : A c) (h1 : g =m A h) : (c + g) =m A (c + h) := by
+  have := misereEQ_add_right hc h1
+  intro x hx
+  have h2 := this x hx
+  rwa [add_comm c g, add_comm c h]
 
 @[simp]
 theorem MisereGE.refl {A : G → Prop} (g : G) : g ≥m A g := by
@@ -473,6 +497,21 @@ theorem ClosedUnderNeg.neg_ge_neg_iff {A : G → Prop} [ClosedUnderNeg A]
     simp only [neg_neg] at h2
     exact h2
   · exact not_ge_neg_iff.aux h1
+
+private theorem misereEQ_neg' {A : G → Prop} [ClosedUnderNeg A] {g h : G} (h1 : (-g) =m A (-h)) :
+    g =m A h := by
+  apply MisereEq.of_antisymm
+  · have := misereGE_of_misereEQ (MisereEQ.symm h1)
+    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
+  · have := misereGE_of_misereEQ h1
+    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
+
+theorem misereEQ_neg_iff {A : G → Prop} [ClosedUnderNeg A] {g h : G} :
+    ((-g) =m A (-h)) ↔ (g =m A h) := by
+  constructor <;> intro h1
+  · exact misereEQ_neg' h1
+  · rw [<-neg_neg g, <-neg_neg h] at h1
+    exact misereEQ_neg' h1
 
 @[simp]
 theorem one_misereOutcome_R : MisereOutcome (1 : G) = .R := by

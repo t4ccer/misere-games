@@ -5,7 +5,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.Classes
+public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.GameForm
 
 open Form
