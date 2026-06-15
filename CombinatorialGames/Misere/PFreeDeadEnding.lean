@@ -397,3 +397,114 @@ theorem reduction_a_eq_neg_ba_c {a b c : ℤ} (h1 : 1 ≤ a) (h2 : 1 ≤ b) (h3 
       exact MisereGE.refl ((a' + 1) : GameForm)
     · simp [Proviso, isEnd_def]
     · simp [Proviso, isEnd_def]
+
+private theorem misereEQ_intCast_pred_of_options {g : GameForm.{u}} (n : ℤ) (hn : n ≤ 0)
+    (h_isEnd : IsEnd .left g)
+    (h_all_ge : ∀ gr ∈ moves .right g, gr ≥m PFreeDeadEnding ((n : ℤ) : GameForm))
+    (h_exists_n : ∃ gr ∈ moves .right g, ((n : ℤ) : GameForm) ≥m PFreeDeadEnding gr) :
+    g =m PFreeDeadEnding ((n - 1 : ℤ) : GameForm) := by
+  have hRM : moves .right ((n - 1 : ℤ) : GameForm.{u}) = {((n : ℤ) : GameForm.{u})} := by
+    have key : ((n - 1 : ℤ)) = -((1 - n : ℤ)) := by omega
+    rw [key, Form.intCast_neg, moves_neg, Player.neg_right, leftMoves_intCast (by omega),
+       show ((1 - n : ℤ) - 1) = -n by omega, Form.intCast_neg, Set.neg_singleton, neg_neg]
+  have hL0 : moves .left ((n - 1 : ℤ) : GameForm.{u}) = ∅ := by
+    have := isEnd_of_isDeadEnd (isDeadEnd_left_nonpos_intCast (G := GameForm.{u}) (n - 1) (by omega))
+    rwa [isEnd_def] at this
+  have hLg : moves .left g = ∅ := by rwa [isEnd_def] at h_isEnd
+  have hEnd_h : IsEnd .left ((n - 1 : ℤ) : GameForm.{u}) :=
+    isEnd_of_isDeadEnd (isDeadEnd_left_nonpos_intCast (G := GameForm.{u}) (n - 1) (by omega))
+  have hge : g ≥m PFreeDeadEnding ((n - 1 : ℤ) : GameForm) := by
+    apply Form.Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
+    · intro gr hgr
+      exact Or.inl ⟨((n : ℤ) : GameForm), by rw [hRM]; rfl, h_all_ge gr hgr⟩
+    · intro hl hhl; rw [hL0] at hhl; exact absurd hhl (Set.notMem_empty _)
+    · intro hcontra
+      obtain ⟨gr, hgr, _⟩ := h_exists_n
+      rw [GameForm.isEndLike_iff_isEnd, isEnd_def] at hcontra
+      rw [hcontra] at hgr; exact absurd hgr (Set.notMem_empty _)
+    · exact fun _ => strong_of_isEnd h_isEnd
+  have hle : ((n - 1 : ℤ) : GameForm) ≥m PFreeDeadEnding g := by
+    apply Form.Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding
+    · intro hr hhr
+      rw [hRM, Set.mem_singleton_iff] at hhr
+      obtain ⟨gr, hgr, hgex⟩ := h_exists_n
+      exact Or.inl ⟨gr, hgr, by rw [hhr]; exact hgex⟩
+    · intro gl hgl; rw [hLg] at hgl; exact absurd hgl (Set.notMem_empty _)
+    · intro hcontra
+      rw [GameForm.isEndLike_iff_isEnd, isEnd_def, hRM] at hcontra
+      exact absurd hcontra (by simp)
+    · exact fun _ => strong_of_isEnd hEnd_h
+  exact MisereEq.of_antisymm hge hle
+
+private theorem exists_intCast_of_options_misereEQ {g : GameForm.{u}}
+    (h_isEnd_left : IsEnd .left g) (h_not_isEnd_right : ¬IsEnd .right g)
+    (h_mem_right : ∀ gr ∈ moves .right g, ∃ n : ℕ, gr =m PFreeDeadEnding ((-(n : ℤ) : ℤ) : GameForm)) :
+    ∃ n : ℕ, g =m PFreeDeadEnding ((-(n : ℤ) : ℤ) : GameForm) := by
+  set S := {n : ℕ | ∃ gr ∈ moves Player.right g, gr =m PFreeDeadEnding ((-(n : ℤ) : ℤ) : GameForm)}
+    with hS_def
+  have h_S_nonempty : S.Nonempty := by
+    have : (moves .right g).Nonempty := by
+      rw [isEnd_def] at h_not_isEnd_right
+      exact Set.nonempty_iff_empty_ne.mpr fun a ↦ h_not_isEnd_right (Eq.symm a)
+    exact this.elim fun x hx => (h_mem_right x hx).elim fun a ha => ⟨a, x, hx, ha⟩
+  set M := sInf S with hM_def
+  obtain ⟨gr0, h_gr0_mem, h_gr0_eq⟩ :
+      ∃ gr0 ∈ moves Player.right g, gr0 =m PFreeDeadEnding ((-(M : ℤ) : ℤ) : GameForm) :=
+    Nat.sInf_mem h_S_nonempty
+  have h_M_le : ∀ a ∈ S, M ≤ a := fun a ha => Nat.sInf_le ha
+  have h_misereEQ : g =m PFreeDeadEnding ((-(M : ℤ) - 1 : ℤ) : GameForm) := by
+    refine misereEQ_intCast_pred_of_options ((-(M : ℤ) : ℤ)) (by omega) h_isEnd_left ?_
+      ⟨gr0, h_gr0_mem, misereGE_of_misereEQ h_gr0_eq.symm⟩
+    intro gr h_gr_mem
+    obtain ⟨a, ha⟩ := h_mem_right gr h_gr_mem
+    have h_M_le_a : M ≤ a := h_M_le a ⟨gr, h_gr_mem, ha⟩
+    exact misereGE_rw_left (MisereEQ.symm ha)
+      (PFreeDeadEnding.misereGE_of_int_le (-M : ℤ) (-a : ℤ) (by omega))
+  exact ⟨M + 1, by simpa [neg_add_eq_sub] using h_misereEQ⟩
+
+private theorem isEnd_left_exists_intCast_misereEQ {g : GameForm}
+    (h_g : PFreeDeadEnding g) (h_isEnd_left : IsEnd .left g) :
+    ∃ n : ℕ, g =m PFreeDeadEnding ((-(n : ℤ) : ℤ) : GameForm) := by
+  by_cases h_isEnd_right : IsEnd .right g
+  · use 0
+    have h_g_eq_zero : g = 0 := both_ends_eq_zero h_isEnd_left h_isEnd_right
+    subst h_g_eq_zero
+    intro x _
+    simp
+  · have h_isDeadEnd_g := isDeadEnd_of_isDeadEnding h_g.isDeadEnding h_isEnd_left
+    have h_opt : ∀ gr ∈ moves .right g,
+        ∃ n : ℕ, gr =m PFreeDeadEnding ((-(n : ℤ) : ℤ) : GameForm) := by
+      intro gr h_gr
+      have h_pf_deadEnding_gr := Hereditary.of_mem_moves h_g h_gr
+      have h_isEnd_gr := isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h_isDeadEnd_g h_gr)
+      exact isEnd_left_exists_intCast_misereEQ h_pf_deadEnding_gr h_isEnd_gr
+    exact exists_intCast_of_options_misereEQ h_isEnd_left h_isEnd_right h_opt
+termination_by g
+decreasing_by form_wf
+
+private theorem isEnd_right_exists_intCast_misereEQ {g : GameForm}
+    (h_g : PFreeDeadEnding g) (h_isEnd : IsEnd .right g) :
+    ∃ n : ℕ, g =m PFreeDeadEnding ((n : ℤ) : GameForm) := by
+  obtain ⟨a, ha⟩ := isEnd_left_exists_intCast_misereEQ
+      (ClosedUnderNeg.neg_of h_g) (IsEnd.neg_iff_neg.mpr h_isEnd)
+  use a
+  have h_neg : (-g) =m PFreeDeadEnding (-((a : ℤ) : GameForm)) := by
+    rw [<-Form.intCast_neg]
+    exact ha
+  apply MisereEq.of_antisymm
+  · have := misereGE_of_misereEQ (MisereEQ.symm h_neg)
+    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
+  · have := misereGE_of_misereEQ h_neg
+    rwa [<-ClosedUnderNeg.neg_ge_neg_iff, neg_neg, neg_neg] at this
+
+/--
+If $G \in \operatorname{pf}(\mathcal{E})$ is an end then it equals to some integer.
+-/
+theorem isEnd_exists_intCast_misereEQ {p : Player} {g : GameForm} (h_g : PFreeDeadEnding g)
+    (h_isEnd : IsEnd p g) :
+    ∃ k : ℤ, g =m PFreeDeadEnding ((k : ℤ) : GameForm) := by
+  cases p
+  · obtain ⟨a, ha⟩ := isEnd_left_exists_intCast_misereEQ h_g h_isEnd
+    exact ⟨-(a : ℤ), ha⟩
+  · obtain ⟨a, ha⟩ := isEnd_right_exists_intCast_misereEQ h_g h_isEnd
+    exact ⟨(a : ℤ), ha⟩

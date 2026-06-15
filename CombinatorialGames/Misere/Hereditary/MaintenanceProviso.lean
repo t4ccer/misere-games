@@ -30,6 +30,10 @@ variable {G : Type (u + 1)} [Form G]
 @[expose] def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
   ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
 
+theorem strong_of_isEnd {A : GameForm → Prop} {p : Player} {g : GameForm}
+    (he : IsEnd p g) : Strong A g p :=
+  fun _x _ hx => winsGoingFirst_add_of_isEnd he (GameForm.isEndLike_iff_isEnd.mp hx)
+
 @[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
 
