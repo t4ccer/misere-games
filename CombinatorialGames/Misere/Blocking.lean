@@ -254,6 +254,9 @@ instance : HasNat (ShortBlocking (G := G)) where
     { short := Short.natCast n
     , blocking := isBlocking_natCast n }
 
+instance : ClosedUnderAddNat (ShortBlocking (G := G)) where
+  has_add h_g n := ClosedUnderAdd.has_add _ _ h_g (HasNat.has_nat n)
+
 instance : HasInt (ShortBlocking (G := G)) where
   has_int k :=
     { short := Short.intCast k
@@ -343,7 +346,7 @@ private theorem nat_add_neg_misereEQ_blocking (n : ℕ) :
         intro gr h_gr
         simp_all only [sub_eq_add_neg, Nat.cast_add, Nat.cast_one, neg_add_rev, Set.mem_image,
                        moves_add, rightMoves_natCast, Set.image_empty, rightMoves_one, moves_zero,
-                       Set.union_self, moves_neg, Player.le_left, Player.neg_right, and_true, 
+                       Set.union_self, moves_neg, Player.le_left, Player.neg_right, and_true,
                        Player.le_left_eq, leftMoves_one, Set.neg_singleton,neg_zero, ↓existsAndEq,
                        Set.image_singleton, zero_add, Set.singleton_union, Set.empty_union,
                        exists_eq_or_imp, Set.mem_empty_iff_false, false_and, exists_const,
