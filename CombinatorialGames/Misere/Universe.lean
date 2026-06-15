@@ -17,6 +17,7 @@ open Form.Misere.Outcome
 
 public section
 
+-- TODO: Use ClosedUnderAdd
 class ClosedUnderSum (A : G → Prop) [Add G] where
   closed_sum (g h : G) (h1 : A g) (h2 : A h) : A (g + h)
 

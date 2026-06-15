@@ -18,6 +18,7 @@ public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.SimpleGraph
 public import CombinatorialGames.Mathlib.Small
 public import CombinatorialGames.Misere.Ambient
+public import CombinatorialGames.Misere.Blocking
 public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
