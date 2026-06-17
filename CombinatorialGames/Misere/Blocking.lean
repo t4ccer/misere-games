@@ -381,6 +381,9 @@ private theorem int_add_neg_misereEQ_blocking (n : ℤ) :
   convert nat_add_neg_misereEQ_blocking ( Int.natAbs n ) using 1;
   cases n <;> simp [sub_eq_add_neg, add_comm, add_left_comm]
 
+/--
+This is [Davies, Miller, Milley (Lemma 4.5 on p. 26)][davies:SumsPFreeForms:2025]
+-/
 instance : IntegerInvertible ShortBlocking where
   int_add_neg_misereEQ := int_add_neg_misereEQ_blocking
 

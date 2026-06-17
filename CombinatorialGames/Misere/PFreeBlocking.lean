@@ -342,6 +342,9 @@ instance : IntegerInvertible.PropertyX ShortBlocking where
       exact (misereOutcome_R_iff_winsGoingFirst.mp
               (misereOutcome_R_add_isEnd_right hgr_pfb hAh hgrR hge)).right
 
+/--
+This is [Davies, Miller, Milley (Lemma 4.9 on p. 27)][davies:SumsPFreeForms:2025]
+-/
 instance : ClosedUnderAdd PFreeBlocking where
   has_add g h h_g h_h := by
     apply PFreeSubset.mk
