@@ -16,7 +16,6 @@ universe u
 variable {G : Type (u + 1)} [Form G]
 
 open Form
-open Form.Misere.Outcome
 
 public section
 
@@ -312,44 +311,3 @@ theorem iUnion_of_directed {ι : Sort*} [Nonempty ι] (A : ι → G → Prop)
         exact ⟨k, fun b hb => hik b (hi b hb), fun c hc => hjk c (hj c hc)⟩)
 
 end ShortUniverse
-
-namespace Form
-
-namespace Maintenance
-
-theorem of_subset (A : G → Prop) (B : G → Prop)
-    (h_subset : ∀g, B g → A g) (g h : G) {p : Player}
-    (h_maintenance_a : Maintenance A g h p) : Maintenance B g h p := by
-  unfold Maintenance at h_maintenance_a ⊢
-  cases p
-  · simp at h_maintenance_a ⊢
-    intro hl h_hl_mem
-    apply Or.elim (h_maintenance_a hl h_hl_mem)
-    · intro ⟨gl, h_gl, h_gl_ge_hl⟩
-      apply Or.inl
-      use gl
-      apply And.intro h_gl
-      exact misereGE_of_subset A h_subset gl hl h_gl_ge_hl
-    · intro ⟨hlr, h_hlr, h_g_ge_hlr⟩
-      apply Or.inr
-      use hlr
-      apply And.intro h_hlr
-      exact misereGE_of_subset A h_subset g hlr h_g_ge_hlr
-  · simp at h_maintenance_a ⊢
-    intro hl h_hl_mem
-    apply Or.elim (h_maintenance_a hl h_hl_mem)
-    · intro ⟨hr, h_hr, h_hl_ge_hr⟩
-      apply Or.inl
-      use hr
-      apply And.intro h_hr
-      exact misereGE_of_subset A h_subset hl hr h_hl_ge_hr
-    · intro ⟨grl, h_grl, h_grl_ge_h⟩
-      apply Or.inr
-      use grl
-      apply And.intro h_grl
-      exact misereGE_of_subset A h_subset grl h h_grl_ge_h
-
-end Maintenance
-
-end Form
-

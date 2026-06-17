@@ -20,6 +20,14 @@ public section
 
 namespace Form
 
+/-- A set `A` is *promain* (within the ambient `IsAmbient`) when comparison of
+ambient forms modulo `A` is decided entirely by the maintenance and proviso
+conditions. -/
+@[expose] def Promain (IsAmbient A : G → Prop) : Prop :=
+  ∀ ⦃g h : G⦄, IsAmbient g → IsAmbient h →
+    (g ≥m A h ↔ Maintenance A g h .right ∧ Maintenance A g h .left ∧
+               Proviso A g h .right ∧ Proviso A h g .left)
+
 /--
 This is an interface used to show that $G\ge_\mathcal{U}H$ implies
 `Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`).
@@ -324,10 +332,8 @@ theorem maintenance_proviso_of_misereGE
     proviso_right_of_misereGE hge,
     proviso_left_of_misereGE hge⟩
 
-theorem misereGE_iff_maintenance_proviso [Hereditary A]
-    {g h : G} (h_g : IsAmbient g) (h_h : IsAmbient h) :
-    g ≥m A h ↔ Maintenance A g h .right ∧ Maintenance A g h .left ∧
-               Proviso A g h .right ∧ Proviso A h g .left := by
+theorem misereGE_iff_maintenance_proviso [Hereditary A] : Promain IsAmbient A := by
+  intro g h h_g h_h
   constructor
   · intro h_ge
     exact maintenance_proviso_of_misereGE (IsAmbient := IsAmbient) h_g h_h h_ge
@@ -335,5 +341,17 @@ theorem misereGE_iff_maintenance_proviso [Hereditary A]
     exact Hereditary.misereGE_of_maintenance_proviso A h_mghr h_mghl h_pghr h_pghl
 
 end ComparisonSet
+
+namespace Maintenance
+
+theorem of_subset {A B : G → Prop} (h_subset : ∀ g, B g → A g) {g h : G} {p : Player}
+    (h_maintenance : Maintenance A g h p) : Maintenance B g h p := by
+  have h_ge {x y : G} (hxy : x ≥m A y) : x ≥m B y := misereGE_of_subset A h_subset x y hxy
+  cases p <;>
+    exact fun y hy => (h_maintenance y hy).imp
+      (Exists.imp fun _ => And.imp_right h_ge)
+      (Exists.imp fun _ => And.imp_right h_ge)
+
+end Maintenance
 
 end Form
