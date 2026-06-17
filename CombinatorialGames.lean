@@ -25,6 +25,7 @@ public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 public import CombinatorialGames.Misere.IntegerInvertible
 public import CombinatorialGames.Misere.NonInvertible
+public import CombinatorialGames.Misere.Normal
 public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.OutcomeStable.PropertyX
 public import CombinatorialGames.Misere.PFree
