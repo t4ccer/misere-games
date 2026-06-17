@@ -5,7 +5,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
-public import CombinatorialGames.Form.Short
+public import CombinatorialGames.Misere.Closures
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 public import Mathlib.Data.Set.Finite.Lattice
 public import Mathlib.Order.Directed
@@ -18,21 +18,6 @@ open Form
 open Form.Misere.Outcome
 
 public section
-
--- TODO: Use ClosedUnderAdd
-class ClosedUnderSum (A : G → Prop) [Add G] where
-  closed_sum (g h : G) (h1 : A g) (h2 : A h) : A (g + h)
-
-class ClosedUnderDicotic (IsAmbient : G → Prop) (A : G → Prop) where
-  closed_dicotic (B C : Set G) [Small B] [Small C]
-      (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c) :
-    B.Nonempty → C.Nonempty → IsAmbient (!{B | C} : G) → A (!{B | C} : G)
-
-abbrev ClosedUnderLongDicotic (A : G → Prop) :=
-  ClosedUnderDicotic (fun _ => True) A
-
-abbrev ClosedUnderShortDicotic (A : G → Prop) :=
-  ClosedUnderDicotic IsShort A
 
 class Universe (IsAmbient : G → Prop) (A : G → Prop) extends
     ClosedUnderSum A, Hereditary A, ClosedUnderNeg A, ClosedUnderDicotic IsAmbient A where
