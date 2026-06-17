@@ -48,6 +48,9 @@ class Form (G : Type (v + 1)) extends Moves G, OfSets G fun _ ↦ True, Involuti
   isEndLike_ofEnd' (p : Player) (x : G) (h1 : moves p x = ∅) : IsEndLike p x
   isEndLike_add_iff' (p : Player) (x y : G) : IsEndLike p (x + y) ↔ IsEndLike p x ∧ IsEndLike p y
   isEndLike_neg_iff_neg' (p : Player) (g : G) : IsEndLike p (-g) ↔ IsEndLike (-p) g
+  ofSets_moves_of_not_isEndLike' (g : G)
+    [Small.{v} (moves .left g)] [Small.{v} (moves .right g)]
+    (h : ∀ p, ¬ IsEndLike p g) : !{fun p => moves p g} = g
 
 namespace Moves
 
@@ -147,6 +150,11 @@ instance instSmallElemMoves (p : Player) (x : G) : Small.{u} (moves p x) := smal
 
 @[simp]
 theorem moves_ofSets (p : Player) (st : Player → Set G) [Small.{u} (st .left)] [Small.{u} (st .right)] : moves p !{st}= st p := moves_ofSets' p st
+
+/-- Away from end-like positions, a form is determined by its sets of moves. -/
+theorem ofSets_moves_of_not_isEndLike {g : G} (h : ∀ p, ¬ IsEndLike p g) :
+    !{fun p => moves p g} = g :=
+  ofSets_moves_of_not_isEndLike' g h
 
 @[simp high]
 theorem leftMoves_ofSets (s t : Set G) [Small.{u} s] [Small.{u} t] : moves .left !{s | t} = s :=

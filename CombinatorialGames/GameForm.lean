@@ -352,6 +352,7 @@ instance : Form GameForm where
   smallElemMoves' := instSmallElemMoves
   ofSets_isEndLike_iff' p s t _ _ := Eq.congr_right rfl
   ofSets_add_ofSets'' := ofSets_add_ofSets
+  ofSets_moves_of_not_isEndLike' := @fun g _ _ _ => ofSets_moves g
 
 @[simp]
 theorem isEndLike_iff_isEnd {g : GameForm} {p : Player} : IsEndLike p g ↔ IsEnd p g := by

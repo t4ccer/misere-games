@@ -654,6 +654,11 @@ noncomputable instance : Form AugmentedForm where
     · simp only [moves_ofSetsWithTombs]
       aesop
     · simp
+  ofSets_moves_of_not_isEndLike' := @fun g _ _ hg => by
+    ext p
+    · simp [moves_ofSets']
+    · simp only [hasTombstone_ofSets, false_iff]
+      exact fun h => hg p (Or.inl h)
 
 lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
     IsEndLike p g ↔ (g.hasTombstone p ∨ (Form.IsEnd p g)) := by rfl
