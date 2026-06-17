@@ -5,6 +5,7 @@ Authors: Alfie Davies, Tomasz Maciosowski
 -/
 module
 
+public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.Universe
 public import CombinatorialGames.Misere.OutcomeStable.PropertyX
@@ -445,3 +446,66 @@ instance : IntegerInvertible.PropertyX ShortDeadEnding where
       decide
 
 end GameForm.DeadEnding
+
+namespace Form
+
+universe u
+
+variable {G : Type (u + 1)} [Form G]
+
+open Form.Misere.Outcome
+
+/-- For Left dead ends `g` and `h` (with `A` promain), comparison `g ≥m A h`
+reduces to the Right proviso plus maintenance of Right's moves. -/
+theorem misereGE_iff_strong_of_isDeadEnd_left
+    {A IsAmbient : G → Prop} (h_promain : Promain IsAmbient A)
+    {g h : G} (h_g_dead : IsDeadEnd .left g) (h_h_dead : IsDeadEnd .left h)
+    (h_g : IsAmbient g) (h_h : IsAmbient h) :
+    g ≥m A h ↔
+      (IsEndLike .right g → Strong A h .right) ∧
+      (∀ gr ∈ moves .right g, ∃ hr ∈ moves .right h, gr ≥m A hr) := by
+  rw [h_promain h_g h_h]
+  constructor
+  · intro ⟨h_maint_right, _, h_proviso_right, _⟩
+    refine ⟨h_proviso_right, fun gr h_gr => ?_⟩
+    rcases h_maint_right gr h_gr with ⟨hr, h_hr, h_ge⟩ | ⟨grl, h_grl, _⟩
+    · exact ⟨hr, h_hr, h_ge⟩
+    · exact absurd h_grl (not_mem_moves_of_isDeadEnd (isDeadEnd_of_mem_moves h_g_dead h_gr))
+  · intro ⟨h_right_strong, h_right_moves⟩
+    refine ⟨fun gr h_gr => Or.inl (h_right_moves gr h_gr), ?_, h_right_strong, ?_⟩
+    · intro hl h_hl
+      exact absurd h_hl (not_mem_moves_of_isDeadEnd h_h_dead)
+    · intro _ x _ h_x_left_end
+      exact winsGoingFirst_of_isEndLike
+        (IsEndLike.add_iff.mpr
+          ⟨isEndLike_of_isEnd (isEnd_of_isDeadEnd h_g_dead), h_x_left_end⟩)
+
+/-- For Left dead ends, if `A` has a form that is an end for both players (such
+as `0`), the Right proviso simplifies to Right end-like positions being
+preserved. -/
+theorem misereGE_iff_isEndLike_of_isDeadEnd_left
+    {A IsAmbient : G → Prop} (h_promain : Promain IsAmbient A)
+    (hA_end : ∃ x, A x ∧ IsEnd .left x ∧ IsEnd .right x)
+    {g h : G} (h_g_dead : IsDeadEnd .left g) (h_h_dead : IsDeadEnd .left h)
+    (h_g : IsAmbient g) (h_h : IsAmbient h) :
+    g ≥m A h ↔
+      (IsEndLike .right g → IsEndLike .right h) ∧
+      (∀ gr ∈ moves .right g, ∃ hr ∈ moves .right h, gr ≥m A hr) := by
+  rw [misereGE_iff_strong_of_isDeadEnd_left h_promain h_g_dead h_h_dead h_g h_h]
+  refine and_congr_left' ⟨fun h_right_strong h_g_right_end => ?_,
+    fun h_right_end h_g_right_end x _ h_x_right_end => winsGoingFirst_of_isEndLike
+      (IsEndLike.add_iff.mpr ⟨h_right_end h_g_right_end, h_x_right_end⟩)⟩
+  obtain ⟨x, hxA, hx_left_end, hx_right_end⟩ := hA_end
+  have h_win : WinsGoingFirst .right (h + x) :=
+    h_right_strong h_g_right_end x hxA (isEndLike_of_isEnd hx_right_end)
+  rw [winsGoingFirst_iff] at h_win
+  rcases h_win with h_hx_right_end | ⟨hx', h_hx', h_not_win⟩
+  · exact (IsEndLike.add_iff.mp h_hx_right_end).left
+  · simp only [moves_add, Set.mem_union, Set.mem_image] at h_hx'
+    rcases h_hx' with ⟨hr, h_hr, rfl⟩ | ⟨xr, h_xr, rfl⟩
+    · exact absurd (winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr
+        ⟨isEndLike_of_isEnd (isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h_h_dead h_hr)),
+          isEndLike_of_isEnd hx_left_end⟩)) h_not_win
+    · exact absurd h_xr (not_mem_moves_of_isEnd hx_right_end)
+
+end Form
