@@ -192,6 +192,15 @@ theorem short_adjoint {g : G} (h1 : IsShort g) : IsShort (g°) := by
 termination_by g
 decreasing_by all_goals form_wf
 
+open Classical in
+protected theorem moves (p : Player) (g : G) :
+    moves p (g°) = if IsEnd (-p) g then {(0 : G)} else ( · °) '' moves (-p) g := by
+  rw [Form.adjoint]
+  by_cases hl : IsEnd .left g <;> by_cases hr : IsEnd .right g <;> cases p <;>
+    simp only [hl, hr, and_true, and_false, and_self, if_true, if_false,
+      Player.neg_left, Player.neg_right, leftMoves_ofSets, rightMoves_ofSets,
+      Set.image_eq_range]
+
 end Adjoint
 
 end Form

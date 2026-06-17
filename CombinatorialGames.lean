@@ -2,6 +2,7 @@ module
 
 public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.AugmentedForm
+public import CombinatorialGames.AugmentedForm.Lift
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
@@ -24,6 +25,7 @@ public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 public import CombinatorialGames.Misere.IntegerInvertible
+public import CombinatorialGames.Misere.LiftIncomparable
 public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.Normal
 public import CombinatorialGames.Misere.OutcomeStable
