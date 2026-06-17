@@ -3,6 +3,7 @@ module
 public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.AugmentedForm.Lift
+public import CombinatorialGames.AugmentedForm.Short
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
