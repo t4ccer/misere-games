@@ -36,6 +36,7 @@ public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.Preservation
 public import CombinatorialGames.Misere.Quotients
 public import CombinatorialGames.Misere.Separation
+public import CombinatorialGames.Misere.ShortIncomparable
 public import CombinatorialGames.Misere.Stride
 public import CombinatorialGames.Misere.TippingPoints
 public import CombinatorialGames.Misere.Universe
