@@ -16,9 +16,6 @@ open Form
 
 public section
 
-class ClosedUnderSum (A : G → Prop) [Add G] where
-  closed_sum (g h : G) (h1 : A g) (h2 : A h) : A (g + h)
-
 class ClosedUnderDicotic (IsAmbient : G → Prop) (A : G → Prop) where
   closed_dicotic (B C : Set G) [Small B] [Small C]
       (hB : ∀ b ∈ B, A b) (hC : ∀ c ∈ C, A c) :
@@ -30,8 +27,8 @@ abbrev ClosedUnderLongDicotic (A : G → Prop) :=
 abbrev ClosedUnderShortDicotic (A : G → Prop) :=
   ClosedUnderDicotic IsShort A
 
-instance : ClosedUnderSum (IsShort (G := G)) where
-  closed_sum _ _ := Short.add
+instance : ClosedUnderAdd (IsShort (G := G)) where
+  has_add _ _ := Short.add
 
 instance : Hereditary (IsShort (G := G)) where
   has_option := Short.isOption
@@ -39,55 +36,53 @@ instance : Hereditary (IsShort (G := G)) where
 instance : ClosedUnderDicotic (IsShort (G := G)) (IsShort (G := G)) where
   closed_dicotic _ _ _ _ _ _ _ _ hShort := hShort
 
-namespace ClosedUnderSum
+namespace Form.ClosedUnderAdd
 
-omit [Form G]
-
-theorem sInf_closed [Add G] {S : Set (G → Prop)}
-    (hS : ∀ A ∈ S, ClosedUnderSum A) : ClosedUnderSum (sInf S) where
-  closed_sum g h hg hh := by
+theorem sInf_closed {S : Set (G → Prop)}
+    (hS : ∀ A ∈ S, ClosedUnderAdd A) : ClosedUnderAdd (sInf S) where
+  has_add g h hg hh := by
     simp only [sInf_apply, iInf_Prop_eq] at hg hh ⊢
     intro P
-    haveI : ClosedUnderSum (fun x => P.1 x) := hS P P.2
-    exact ClosedUnderSum.closed_sum g h (hg P) (hh P)
+    haveI : ClosedUnderAdd (fun x => P.1 x) := hS P P.2
+    exact ClosedUnderAdd.has_add g h (hg P) (hh P)
 
 /-- The closure operator sending a predicate to the smallest predicate containing it
 and closed under addition. -/
-noncomputable abbrev closureOperator [Add G] : ClosureOperator (G → Prop) :=
-  ClosureOperator.ofCompletePred (fun A : G → Prop => ClosedUnderSum A) fun _ hS =>
+noncomputable abbrev closureOperator : ClosureOperator (G → Prop) :=
+  ClosureOperator.ofCompletePred (fun A : G → Prop => ClosedUnderAdd A) fun _ hS =>
     sInf_closed hS
 
 /-- The smallest predicate containing `A` and closed under addition. -/
-noncomputable abbrev closure [Add G] (A : G → Prop) : G → Prop :=
+noncomputable abbrev closure (A : G → Prop) : G → Prop :=
   closureOperator A
 
-theorem subset_closure [Add G] (A : G → Prop) : A ≤ closure A :=
+theorem subset_closure (A : G → Prop) : A ≤ closure A :=
   closureOperator.le_closure A
 
-theorem mem_closure_of_mem [Add G] {A : G → Prop} {g : G} (hg : A g) : closure A g :=
+theorem mem_closure_of_mem {A : G → Prop} {g : G} (hg : A g) : closure A g :=
   subset_closure A g hg
 
-instance closure_closed [Add G] (A : G → Prop) : ClosedUnderSum (closure A) := by
+instance closure_closed (A : G → Prop) : ClosedUnderAdd (closure A) := by
   simpa only [ClosureOperator.ofCompletePred_isClosed] using
     (closureOperator (G := G)).isClosed_closure A
 
-theorem add_mem_closure [Add G] {A : G → Prop} {g h : G}
+theorem add_mem_closure {A : G → Prop} {g h : G}
     (hg : closure A g) (hh : closure A h) : closure A (g + h) :=
-  ClosedUnderSum.closed_sum g h hg hh
+  ClosedUnderAdd.has_add g h hg hh
 
-theorem closure_min [Add G] {A B : G → Prop} (hAB : A ≤ B) [ClosedUnderSum B] :
+theorem closure_min {A B : G → Prop} (hAB : A ≤ B) [ClosedUnderAdd B] :
     closure A ≤ B :=
   ClosureOperator.closure_min (c := closureOperator) hAB (by
     simpa only [ClosureOperator.ofCompletePred_isClosed] using
-      (inferInstance : ClosedUnderSum B))
+      (inferInstance : ClosedUnderAdd B))
 
-theorem closure_le [Add G] {A B : G → Prop} [ClosedUnderSum B] : closure A ≤ B ↔ A ≤ B :=
+theorem closure_le {A B : G → Prop} [ClosedUnderAdd B] : closure A ≤ B ↔ A ≤ B :=
   ⟨(subset_closure A).trans, fun h => closure_min h⟩
 
-theorem closure_mono [Add G] {A B : G → Prop} (hAB : A ≤ B) : closure A ≤ closure B :=
+theorem closure_mono {A B : G → Prop} (hAB : A ≤ B) : closure A ≤ closure B :=
   closure_min (hAB.trans (subset_closure B))
 
-end ClosedUnderSum
+end Form.ClosedUnderAdd
 
 namespace Form
 

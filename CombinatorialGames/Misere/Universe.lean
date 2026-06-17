@@ -20,7 +20,7 @@ open Form
 public section
 
 class Universe (IsAmbient : G → Prop) (A : G → Prop) extends
-    ClosedUnderSum A, Hereditary A, ClosedUnderNeg A, ClosedUnderDicotic IsAmbient A where
+    ClosedUnderAdd A, Hereditary A, ClosedUnderNeg A, ClosedUnderDicotic IsAmbient A where
   zero_mem : A 0
   isAmbient_of_mem {g : G} : A g → IsAmbient g
 
@@ -29,7 +29,7 @@ class LongUniverse (A : G → Prop) extends Universe (fun _ => True) A
 class ShortUniverse (A : G → Prop) extends Universe IsShort A
 
 instance : LongUniverse (fun _ : G => True) where
-  closed_sum _ _ _ _ := trivial
+  has_add _ _ _ _ := trivial
   has_option _ _ := trivial
   neg_of _ := trivial
   closed_dicotic _ _ _ _ _ _ _ _ _ := trivial
@@ -66,12 +66,12 @@ theorem sInf_closed (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient]
     {S : Set (Set.Iic IsAmbient)}
     (hS : ∀ A ∈ S, Universe IsAmbient (A : G → Prop)) :
     Universe IsAmbient ((sInf S : Set.Iic IsAmbient) : G → Prop) where
-  closed_sum g h hg hh := by
+  has_add g h hg hh := by
     refine sInf_mem_of_forall_mem
-      (ClosedUnderSum.closed_sum g h ((sInf S).2 g hg) ((sInf S).2 h hh)) ?_
+      (ClosedUnderAdd.has_add g h ((sInf S).2 g hg) ((sInf S).2 h hh)) ?_
     intro U hUS
     haveI : Universe IsAmbient (U : G → Prop) := hS U hUS
-    exact ClosedUnderSum.closed_sum g h (mem_of_sInf_mem hUS hg) (mem_of_sInf_mem hUS hh)
+    exact ClosedUnderAdd.has_add g h (mem_of_sInf_mem hUS hg) (mem_of_sInf_mem hUS hh)
   has_option hg h := by
     refine sInf_mem_of_forall_mem (Hereditary.has_option ((sInf S).2 _ hg) h) ?_
     intro U hUS
@@ -158,8 +158,8 @@ intersection of the ambient spaces.
 theorem iInter {ι : Sort*} (IsAmbient A : ι → G → Prop)
     [∀ i, Universe (IsAmbient i) (A i)] :
     Universe (fun g => ∀ i, IsAmbient i g) (fun g => ∀ i, A i g) where
-  closed_sum g h hg hh i :=
-    ClosedUnderSum.closed_sum g h (hg i) (hh i)
+  has_add g h hg hh i :=
+    ClosedUnderAdd.has_add g h (hg i) (hh i)
   has_option hg h i :=
     Hereditary.has_option (hg i) h
   neg_of hg i :=
@@ -193,11 +193,11 @@ theorem iUnion_of_directed {ι : Sort*} [Nonempty ι] (IsAmbient A : ι → G �
       B.Nonempty → C.Nonempty → (∃ i, IsAmbient i (!{B | C} : G)) →
       ∃ i, (∀ b ∈ B, A i b) ∧ (∀ c ∈ C, A i c) ∧ IsAmbient i (!{B | C} : G)) :
     Universe (fun g => ∃ i, IsAmbient i g) (fun g => ∃ i, A i g) where
-  closed_sum g h hg hh := by
+  has_add g h hg hh := by
     obtain ⟨i, hi⟩ := hg
     obtain ⟨j, hj⟩ := hh
     obtain ⟨k, hik, hjk⟩ := h_directed i j
-    exact ⟨k, ClosedUnderSum.closed_sum g h (hik.1 g hi) (hjk.1 h hj)⟩
+    exact ⟨k, ClosedUnderAdd.has_add g h (hik.1 g hi) (hjk.1 h hj)⟩
   has_option hg h := by
     obtain ⟨i, hi⟩ := hg
     exact ⟨i, Hereditary.has_option hi h⟩
@@ -226,11 +226,11 @@ theorem iUnion_of_directed_of_fixed_ambient {ι : Sort*} [Nonempty ι]
       B.Nonempty → C.Nonempty → IsAmbient (!{B | C} : G) →
       ∃ i, (∀ b ∈ B, A i b) ∧ (∀ c ∈ C, A i c)) :
     Universe IsAmbient (fun g => ∃ i, A i g) where
-  closed_sum g h hg hh := by
+  has_add g h hg hh := by
     obtain ⟨i, hi⟩ := hg
     obtain ⟨j, hj⟩ := hh
     obtain ⟨k, hik, hjk⟩ := h_directed i j
-    exact ⟨k, ClosedUnderSum.closed_sum g h (hik g hi) (hjk h hj)⟩
+    exact ⟨k, ClosedUnderAdd.has_add g h (hik g hi) (hjk h hj)⟩
   has_option hg h := by
     obtain ⟨i, hi⟩ := hg
     exact ⟨i, Hereditary.has_option hi h⟩

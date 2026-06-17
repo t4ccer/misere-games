@@ -240,7 +240,7 @@ instance : ShortUniverse (ShortDeadEnding (G := G)) where
   , dead_ending := isDeadEnding_zero
   }
   isAmbient_of_mem h := h.short
-  closed_sum _ _ h_g h_h :=
+  has_add _ _ h_g h_h :=
     { short := Short.add h_g.short h_h.short
     , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
     }

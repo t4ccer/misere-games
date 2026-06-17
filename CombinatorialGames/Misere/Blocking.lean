@@ -247,7 +247,7 @@ instance : ShortUniverse (ShortBlocking (G := G)) where
   , blocking := isBlocking_zero
   }
   isAmbient_of_mem h := h.short
-  closed_sum := ClosedUnderAdd.has_add
+  has_add := ClosedUnderAdd.has_add
 
 instance : HasNat (ShortBlocking (G := G)) where
   has_nat n :=

@@ -29,7 +29,7 @@ public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.OutcomeStable.PropertyX
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.PFreeDeadEnding
-public import CombinatorialGames.Misere.Quotient
+public import CombinatorialGames.Misere.Quotients
 public import CombinatorialGames.Misere.Separation
 public import CombinatorialGames.Misere.Stride
 public import CombinatorialGames.Misere.TippingPoints

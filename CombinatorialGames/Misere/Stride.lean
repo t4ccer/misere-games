@@ -9,7 +9,7 @@ public import CombinatorialGames.GameForm
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.DeadEnding
-public import CombinatorialGames.Misere.Quotient
+public import CombinatorialGames.Misere.Quotients
 public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.Ruleset
 
@@ -990,8 +990,8 @@ theorem misereQuotient_linearOrder (a b : MisereQuotient A) : a ≤ b ∨ b ≤ 
   obtain ⟨lb, hlb⟩ := Strided.has_stride (A := A) .left hb
   obtain ⟨rb, hrb⟩ := Strided.has_stride (A := A) .right hb
   rcases le_total ((lb : ℤ) - rb) ((la : ℤ) - ra) with h | h
-  · exact Or.inl (misereGE_of_stride_diff_le hlb hrb hla hra h)
-  · exact Or.inr (misereGE_of_stride_diff_le hla hra hlb hrb h)
+  · exact Or.inl (Form.MisereQuotient.out_le_out.mpr (misereGE_of_stride_diff_le hlb hrb hla hra h))
+  · exact Or.inr (Form.MisereQuotient.out_le_out.mpr (misereGE_of_stride_diff_le hla hra hlb hrb h))
 
 /--
 The stride difference of a game in a strided class `A`.
@@ -1038,7 +1038,7 @@ noncomputable def MisereQuotient.strideDiff : MisereQuotient A → ℤ := by
   exact Strided.strideDiff_eq_of_misereEQ g.prop h.prop heq
 
 theorem MisereQuotient.strideDiff_mk (g : GameForm) (hg : A g) :
-    strideDiff (MisereQuotient.mk A g hg) = Strided.strideDiff g hg := by
+    strideDiff (MisereQuotient.mk ⟨g, hg⟩) = Strided.strideDiff g hg := by
   simp only [strideDiff, MisereQuotient.mk, Quotient.lift_mk]
 
 /--
@@ -1076,7 +1076,7 @@ theorem MisereQuotient.strideDiff_surjective : Function.Surjective (strideDiff (
       simp only [Int.negSucc_eq, neg_add_rev, Int.reduceNeg, Nat.cast_zero, Nat.cast_add,
                  Nat.cast_one, zero_sub]
   obtain ⟨t, ht_A, ht_l, ht_r⟩ := Strided.mk_with_strides (A := A) n m
-  use Form.MisereQuotient.mk A t ht_A
+  use Form.MisereQuotient.mk ⟨t, ht_A⟩
   rw [MisereQuotient.strideDiff_mk]
   exact strideDiff_eq ht_l ht_r
 
@@ -1125,32 +1125,24 @@ The ordering on the misère quotient corresponds to `≥` on stride differences:
 -/
 theorem MisereQuotient.mk_le_iff_strideDiff
     (g h : GameForm) (hg : A g) (hh : A h) :
-    MisereQuotient.mk A g hg ≤ MisereQuotient.mk A h hh ↔
+    MisereQuotient.mk ⟨g, hg⟩ ≤ MisereQuotient.mk ⟨h, hh⟩ ↔
       Strided.strideDiff g hg ≥ Strided.strideDiff h hh := by
   obtain ⟨lg, hlg⟩ := Strided.has_stride (A := A) .left hg
   obtain ⟨rg, hrg⟩ := Strided.has_stride (A := A) .right hg
   obtain ⟨lh, hlh⟩ := Strided.has_stride (A := A) .left hh
   obtain ⟨rh, hrh⟩ := Strided.has_stride (A := A) .right hh
-  rw [strideDiff_eq hlg hrg, strideDiff_eq hlh hrh]
+  rw [strideDiff_eq hlg hrg, strideDiff_eq hlh hrh, Form.MisereQuotient.mk_le_mk]
   constructor
-  · intro hab
-    have hge : h ≥m A g :=
-      misereGE_rw_left (Form.MisereQuotient.mk_out_equiv h)
-        (misereGE_rw_right (MisereEQ.symm (Form.MisereQuotient.mk_out_equiv g)) hab)
-    exact stride_diff_le_of_misereGE hge hlh hrh hlg hrg
   · intro hge
-    have h_ge : h ≥m A g :=
-      misereGE_of_stride_diff_le hlh hrh hlg hrg hge
-    exact misereGE_rw_left (MisereEQ.symm (Form.MisereQuotient.mk_out_equiv h))
-      (misereGE_rw_right (Form.MisereQuotient.mk_out_equiv g) h_ge)
+    exact stride_diff_le_of_misereGE hge hlh hrh hlg hrg
+  · intro hle
+    exact misereGE_of_stride_diff_le hlh hrh hlg hrg hle
 
 theorem MisereQuotient.le_iff_strideDiff_ge (a b : MisereQuotient A) :
     a ≤ b ↔ MisereQuotient.strideDiff a ≥ MisereQuotient.strideDiff b := by
   induction a, b using Quotient.inductionOn₂ with
   | _ a b =>
     simp only [MisereQuotient.strideDiff, Quotient.lift_mk]
-    show Form.MisereQuotient.mk A a a.prop ≤ Form.MisereQuotient.mk A b b.prop ↔
-      Strided.strideDiff a a.prop ≥ Strided.strideDiff b b.prop
     exact mk_le_iff_strideDiff a b a.prop b.prop
 
 /--
