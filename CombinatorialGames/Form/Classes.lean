@@ -46,7 +46,11 @@ theorem HasInt.has_neg_int {A : G → Prop} [HasInt A] (n : ℕ) : A (-(n : G)) 
   have hi := HasInt.has_int (A := A) (-(n : ℤ))
   rwa [Form.intCast_neg, Form.intCast_nat] at hi
 
-theorem has_one {A : G → Prop} [HasNat A] : A 1 := by
+theorem HasNat.zero {A : G → Prop} [HasNat A] : A 0 := by
+  rw [<-Nat.cast_zero]
+  exact HasNat.has_nat 0
+
+theorem HasNat.one {A : G → Prop} [HasNat A] : A 1 := by
   rw [<-Nat.cast_one]
   exact HasNat.has_nat 1
 
