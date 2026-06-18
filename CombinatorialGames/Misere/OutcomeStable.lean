@@ -80,10 +80,10 @@ theorem zero_misereGE_one {A : GameForm → Prop}
   rw [zero_add]
   cases h2 : MisereOutcome x
   · exact Outcome.L_ge (MisereOutcome (1 + x))
-  · have h3 := misereOutcome_of_add_RN has_one h1 one_misereOutcome_R h2
+  · have h3 := misereOutcome_of_add_RN HasNat.one h1 one_misereOutcome_R h2
     apply Or.elim h3 <;> intro h3 <;> simp only [h3, ge_iff_le, le_refl, Outcome.ge_R]
   · exact False.elim (misereOutcome_ne_P_of_pfree h1 h2)
-  · have h3 := misereOutcome_of_add_RR has_one h1 one_misereOutcome_R h2
+  · have h3 := misereOutcome_of_add_RR HasNat.one h1 one_misereOutcome_R h2
     rw [h3]
 
 /--
@@ -109,7 +109,7 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
         have h_pfree_nx := isPFree_add_natCast h2.isPFree n
         rw [add_comm] at h_pfree_nx
         have h5 := misereOutcome_of_add_RN (A := A)
-          has_one (PFreeSubset.mk h_A_nx h_pfree_nx)
+          HasNat.one (PFreeSubset.mk h_A_nx h_pfree_nx)
           one_misereOutcome_R h4
         rw [add_comm]
         apply Or.elim h5 <;> intro h5 <;> simp only [ge_iff_le, Outcome.ge_R, le_refl, h5]
@@ -127,7 +127,7 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
         have h_pfree_nx := isPFree_add_natCast h2.isPFree n
         rw [add_comm] at h_pfree_nx
         have h5 := misereOutcome_of_add_RN
-          has_one (PFreeSubset.mk h_A_nx h_pfree_nx)
+          HasNat.one (PFreeSubset.mk h_A_nx h_pfree_nx)
           (one_misereOutcome_R) h4
         nth_rw 2 [add_comm]
         aesop
@@ -226,7 +226,7 @@ theorem misereOutcome_add_one_le {g : GameForm} [OutcomeStable A] [HasNat A]
   obtain h | h | h := h_cases <;> simp_all +decide only [ Outcome.L_ge, Outcome.le_R_iff ]
   · convert PFree.misereOutcome_add_one_R_of_misereOutcome_R hpf h using 1
   · have h_add_one : MisereOutcome (1 + g) = .N ∨ MisereOutcome (1 + g) = .R := by
-      convert misereOutcome_of_add_RN has_one (PFreeSubset.mk hA hpf) one_misereOutcome_R h using 1
+      convert misereOutcome_of_add_RN HasNat.one (PFreeSubset.mk hA hpf) one_misereOutcome_R h using 1
     rw [add_comm]
     aesop
 
