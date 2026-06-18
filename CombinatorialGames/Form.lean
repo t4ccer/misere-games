@@ -408,6 +408,10 @@ instance : IntCast G where
 
 @[norm_cast] protected theorem intCast_one : ((1 : ℤ) : G) = 1 := by simp
 
+@[norm_cast] protected theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp
+
+@[norm_cast] protected theorem natCast_one : ((1 : ℕ) : G) = 1 := by simp
+
 @[simp, norm_cast] protected theorem intCast_neg (n : ℤ) : ((-n : ℤ) : G) = -(n : G) := by
   cases n with
   | ofNat n =>
