@@ -7,6 +7,7 @@ module
 
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.GameForm
+public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 
 open Form
 open Form.Misere.Outcome
@@ -552,5 +553,46 @@ theorem not_isEndLike_right_add_of_L {g h : GameForm} (hAg : A g)
   rintro ⟨hg, -⟩
   rcases PFree.misereOutcome_of_isEnd_right hAg hg with h | h <;>
     simp [hLg] at h
+
+theorem isStrongTest_left {g : GameForm} (hp : IsPFree g)
+    (ho : MisereOutcome g ≠ .R) : IsStrongTest .left g := by
+  rw [isStrongTest_def]
+  by_cases hend : IsEnd .left g
+  · exact Or.inl hend
+  · have hwin : WinsGoingFirst .left g := by
+      by_contra hnl
+      by_cases hnr : WinsGoingFirst .right g
+      · exact ho (misereOutcome_R_iff_winsGoingFirst.mpr ⟨hnr, hnl⟩)
+      · exact (PFree.misereOutcome_ne_P_of_pfree hp)
+          ((misereOutcome_P_iff_winsGoingFirst' (p := .left)).mpr ⟨hnl, hnr⟩)
+    rw [winsGoingFirst_iff] at hwin
+    obtain ⟨gl, hgl, hglnr⟩ := hwin.resolve_left (by simpa [isEndLike_iff_isEnd] using hend)
+    rw [Player.neg_left] at hglnr
+    have hglp : IsPFree gl := isPFree_of_mem_moves hp hgl
+    have hglL : MisereOutcome gl = .L := by
+      rw [misereOutcome_L_iff_winsGoingFirst]
+      refine ⟨?_, hglnr⟩
+      by_contra hnl2
+      exact (PFree.misereOutcome_ne_P_of_pfree hglp)
+        ((misereOutcome_P_iff_winsGoingFirst' (p := .left)).mpr ⟨hnl2, hglnr⟩)
+    refine Or.inr ⟨gl, hgl, hglL, ?_, ?_⟩
+    · exact isStrongTest_left hglp (by rw [hglL]; decide)
+    · intro glr hglr
+      rw [Player.neg_left] at hglr
+      have hglrwin : WinsGoingFirst .left glr := (not_winsGoingFirst_iff.mp hglnr).2 glr hglr
+      have hglrp : IsPFree glr := isPFree_of_mem_moves hglp hglr
+      have hglrR : MisereOutcome glr ≠ .R := fun hR =>
+        (misereOutcome_R_iff_winsGoingFirst.mp hR).2 hglrwin
+      exact isStrongTest_left hglrp hglrR
+termination_by g
+decreasing_by form_wf
+
+theorem isStrongTest_right {g : GameForm} (h_isPFree : IsPFree g)
+    (h_outcome : MisereOutcome g ≠ .L) : IsStrongTest .right g := by
+  apply (IsStrongTest.neg_iff (p := .left) (g := g)).mp
+  apply isStrongTest_left
+  · exact ClosedUnderNeg.neg_of h_isPFree
+  · rw [Ne, misereOutcome_neg_R_iff_misereOutcome]
+    exact h_outcome
 
 end PFree

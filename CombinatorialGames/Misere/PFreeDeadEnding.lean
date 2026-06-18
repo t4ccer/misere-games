@@ -138,6 +138,9 @@ abbrev PFreeDeadEnding (g : GameForm) : Prop := (PFreeSubset DeadEnding.ShortDea
 def PFreeDeadEnding.isDeadEnding {g : GameForm} (h_g : PFreeDeadEnding g) : IsDeadEnding g :=
   h_g.mem.dead_ending
 
+instance : DeadEnding PFreeDeadEnding where
+  isDeadEnding h := h.isDeadEnding
+
 def PFreeDeadEnding.isShort {g : GameForm} (h_g : PFreeDeadEnding g) : IsShort g :=
   h_g.mem.short
 
@@ -208,6 +211,21 @@ theorem a_one_pfreeDeadEnding {a : ℤ} (h0 : 0 ≤ a) : PFreeDeadEnding (!{{(a 
     apply And.intro
     · simp [a_one_MisereOutcome, h0]
     · intro p; cases p <;> simp
+
+theorem misereGE_of_maintenance_proviso
+    {g h : GameForm} (hg : IsPFree g) (hh : IsPFree h)
+    (h_m_r : Maintenance PFreeDeadEnding g h .right) (h_m_l : Maintenance PFreeDeadEnding g h .left)
+    (h_p_r : IsEnd .right g → MisereOutcome h ≠ .L) (h_p_l : IsEnd .left h → MisereOutcome g ≠ .R)
+    : g ≥m PFreeDeadEnding h := by
+  refine Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding h_m_r h_m_l ?_ ?_
+  · intro h_isEnd
+    rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
+    rw [PFree.strong_right_iff_misereOutcome_L hh]
+    exact h_p_r h_isEnd
+  · intro h_isEnd
+    rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
+    rw [PFree.strong_left_iff_misereOutcome_R hg]
+    exact h_p_l h_isEnd
 
 theorem reduction_a_one_int {a : ℤ} (h0 : 0 ≤ a)
     : (!{{(a : GameForm)} | {1}}) =m PFreeDeadEnding ((a + 1) : ℤ) := by
