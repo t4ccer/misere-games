@@ -34,6 +34,23 @@ theorem strong_of_isEnd {A : GameForm → Prop} {p : Player} {g : GameForm}
     (he : IsEnd p g) : Strong A g p :=
   fun _x _ hx => winsGoingFirst_add_of_isEnd he (GameForm.isEndLike_iff_isEnd.mp hx)
 
+private theorem strong_neg_imp {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm}
+    (h_strong : Strong A (-g) p) :
+    Strong A g (-p) := by
+  intro x hx h_endLike
+  simp only [← winsGoingFirst_neg_iff, neg_add_rev]
+  have := h_strong (-x) (ClosedUnderNeg.neg_of hx) ((isEndLike_neg_iff_neg' p x).mpr h_endLike)
+  rwa [add_comm]
+
+protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm} :
+    Strong A (-g) p ↔ Strong A g (-p) := by
+  constructor
+  · exact strong_neg_imp
+  · intro h_strong
+    rw [<-neg_neg g] at h_strong
+    have := strong_neg_imp h_strong
+    rwa [neg_neg p] at this
+
 @[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
 
