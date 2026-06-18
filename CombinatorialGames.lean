@@ -44,3 +44,4 @@ public import CombinatorialGames.Ruleset.Hackenbush
 public import CombinatorialGames.Ruleset.Push
 public import CombinatorialGames.Ruleset.Shove
 public import CombinatorialGames.Ruleset.Strip
+public import CombinatorialGames.Tactic.DocAlias
