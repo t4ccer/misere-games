@@ -514,23 +514,94 @@ theorem misereEQ_neg_iff {A : G → Prop} [ClosedUnderNeg A] {g h : G} :
     exact misereEQ_neg' h1
 
 @[simp]
+theorem winsGoingFirst_left_intCast_iff (n : ℤ) : WinsGoingFirst .left (n : G) ↔ n ≤ 0 := by
+  have not_winsGoingFirst_left_natCast_pos {n : ℕ} (h_pos : 0 < n) :
+      ¬WinsGoingFirst .left (n : G) := by
+    rw [not_winsGoingFirst_iff]
+    constructor
+    · simp [Nat.ne_zero_iff_zero_lt.mpr h_pos]
+    · intro g' h_g'_mem
+      simp [leftMoves_eq_natCast_zero_lt h_pos] at h_g'_mem
+      subst h_g'_mem
+      match (n - 1) with
+      | 0 =>
+        norm_cast
+        exact winsGoingFirst_zero _
+      | k + 1 =>
+        apply winsGoingFirst_of_isEndLike
+        rw [natCast_isEndLike_iff]
+        exact succ_nat_end_right.mpr rfl
+  constructor <;> intro h1
+  · match n with
+    | .ofNat n =>
+      simp at h1
+      have : n = 0 := by
+        by_contra h2
+        absurd h1
+        apply not_winsGoingFirst_left_natCast_pos
+        exact Nat.ne_zero_iff_zero_lt.mp h2
+      exact Int.toNat_eq_zero.mp this
+    | .negSucc n =>
+      exact Int.negSucc_le_zero n
+  · match n with
+    | .ofNat n =>
+      simp only [Int.ofNat_eq_natCast, Int.natCast_nonpos_iff] at h1
+      subst h1
+      simp only [Int.ofNat_eq_natCast, Int.cast_ofNat_Int, Form.intCast_ofNat, Nat.cast_zero,
+                 isEnd_zero, winsGoingFirst_of_isEnd]
+    | .negSucc n =>
+      simp only [Form.intCast_negSucc, neg_add_rev, IsEndLike.add_iff, winsGoingFirst_of_isEndLike,
+                 IsEndLike.neg_iff_neg, Player.neg_left, Player.right_le, Player.le_right_eq,
+                 one_isEndLike_right, natCast_isEndLike_iff, natCast_isEnd_right, and_self]
+
+@[simp]
+theorem winsGoingFirst_left_natCast_iff (n : ℕ) : WinsGoingFirst .left (n : G) ↔ n = 0 := by
+  rw [<-Form.intCast_nat, winsGoingFirst_left_intCast_iff]
+  exact Int.natCast_nonpos_iff
+
+@[simp]
+theorem winsGoingFirst_right_intCast_iff (n : ℤ) : WinsGoingFirst .right (n : G) ↔ 0 ≤ n := by
+  constructor <;> intro h1
+  · match n with
+    | .ofNat n => simp
+    | .negSucc n =>
+      absurd h1
+      rw [not_winsGoingFirst_iff]
+      simp
+      intro g h_g
+      match n with
+      | 0 => simp at h_g
+      | n + 1 =>
+        simp only [Nat.cast_add, Nat.cast_one, leftMoves_natCast_succ, Set.mem_singleton_iff] at h_g
+        subst h_g
+        apply winsGoingFirst_of_isEndLike
+        simp
+  · match n with
+    | .ofNat n => simp
+
+@[simp]
+theorem winsGoingFirst_right_natCast (n : ℕ) : WinsGoingFirst .right (n : G) := by
+  rw [<-Form.intCast_nat, winsGoingFirst_right_intCast_iff]
+  exact Int.natCast_nonneg n
+
+@[simp]
+theorem not_winsGoingFirst_left_one : ¬WinsGoingFirst .left (1 : G) := by
+  rw [<-Form.intCast_one, winsGoingFirst_left_intCast_iff]
+  omega
+
+@[simp]
+theorem winsGoingFirst_right_one : WinsGoingFirst .right (1 : G) := by
+  rw [<-Form.natCast_one]
+  simp only [Nat.cast_one, one_isEndLike_right, winsGoingFirst_of_isEndLike]
+
+@[simp]
 theorem one_misereOutcome_R : MisereOutcome (1 : G) = .R := by
-  simp only [misereOutcome_R_iff_winsGoingFirst]
-  constructor
-  · exact winsGoingFirst_of_isEndLike one_isEndLike_right
-  · rw [not_winsGoingFirst_iff]
-    simp [isEnd_def]
+  simp [misereOutcome_R_iff_winsGoingFirst]
 
 @[simp]
 theorem pos_nat_misereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
-  induction n, h1 using Nat.le_induction with
-  | base => simp
-  | succ k h2 ih =>
-    rw [Nat.cast_add, Nat.cast_one, misereOutcome_R_iff_winsGoingFirst]
-    constructor
-    · exact winsGoingFirst_of_isEnd (natCast_isEnd_right (k + 1))
-    · rw [not_winsGoingFirst_iff]
-      simp [isEnd_def]
+  simp [misereOutcome_R_iff_winsGoingFirst]
+  exact Nat.ne_zero_iff_zero_lt.mpr h1
 
 @[simp]
 theorem pos_int_misereOutcome_R {n : ℤ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
