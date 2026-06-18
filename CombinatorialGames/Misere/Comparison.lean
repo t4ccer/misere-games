@@ -170,7 +170,7 @@ private theorem downlinkWitness_mem_of_comparison
 
 instance instComparisonSetUniverse : ComparisonSet IsAmbient A where
   separating_pair_of_not_misereGE {g} {h} hg hh h_not_ge := by
-    cases leftSeparating_or_rightSeparating_of_not_misereGE h_not_ge with
+    cases not_misereGE_iff_separating.mp h_not_ge with
     | inl h_left =>
         refine ⟨h_left, ?_⟩
         refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left

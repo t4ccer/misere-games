@@ -81,62 +81,74 @@ $\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
 abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .right g h
 
+theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
+    g ≥m A h ↔ ¬ LeftSeparating A g h ∧ ¬ RightSeparating A g h := by
+  constructor
+  · intro hge
+    refine ⟨?_, ?_⟩
+    · rintro ⟨x, hx, h1, h2⟩
+      have hcmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) .left
+      rw [miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h2] at hcmp
+      have hg : MiserePlayerOutcome (g + x) .left = .right := by
+        cases hgx : MiserePlayerOutcome (g + x) .left with
+        | left => exact absurd (miserePlayerOutcome_eq_iff_winsGoingFirst.mp hgx) h1
+        | right => rfl
+      rw [hg] at hcmp
+      exact Player.left_le_right hcmp
+    · rintro ⟨x, hx, h1, h2⟩
+      have hcmp := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) .right
+      have hh : MiserePlayerOutcome (h + x) .right = .left := by
+        cases hhx : MiserePlayerOutcome (h + x) .right with
+        | left => rfl
+        | right => exact absurd (miserePlayerOutcome_eq_iff_winsGoingFirst.mp hhx) h2
+      rw [miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h1, hh] at hcmp
+      exact Player.left_le_right hcmp
+  · rintro ⟨h1, h2⟩
+    by_contra h_not_ge
+    rw [MisereGE] at h_not_ge
+    simp only [not_forall] at h_not_ge
+    obtain ⟨x, hx, h_not_outcome_ge⟩ := h_not_ge
+    have h_not_player_ge :
+        ¬∀ p, MiserePlayerOutcome (g + x) p ≥ MiserePlayerOutcome (h + x) p := by
+      intro h_player_ge
+      exact h_not_outcome_ge (misereOutcome_ge_iff_miserePlayerOutcome_ge.mpr h_player_ge)
+    simp only [Player.forall, not_and_or] at h_not_player_ge
+    cases h_not_player_ge with
+    | inl h_left =>
+        absurd h1
+        cases hg : MiserePlayerOutcome (g + x) .left
+        <;> cases hh : MiserePlayerOutcome (h + x) .left
+        <;> simp [hg, hh] at h_left
+        refine ⟨x, hx, ?_, ?_⟩
+        · intro h_win
+          have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
+          rw [hg] at h_out
+          cases h_out
+        · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hh
+    | inr h_right =>
+        absurd h2
+        cases hg : MiserePlayerOutcome (g + x) .right
+        <;> cases hh : MiserePlayerOutcome (h + x) .right
+        <;> simp [hg, hh] at h_right
+        refine ⟨x, hx, ?_, ?_⟩
+        · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hg
+        · intro h_win
+          have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
+          rw [hh] at h_out
+          cases h_out
+
 /--
-If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be at least one of
-`LeftSeparating` and `RightSeparating`. When $\mathcal{A}$ is a universe,
-`leftSeparating_rightSeparating_of_not_misereGE` proves that in fact $G$ and
-$H$ must always be both.
+Negation of `misereGE_iff_not_separating`
 -/
-lemma leftSeparating_or_rightSeparating_of_not_misereGE {A : G → Prop}
-    {g h : G} (h_not_ge : ¬(g ≥m A h)) :
-    LeftSeparating A g h ∨ RightSeparating A g h := by
-      /-
-        At a lower level, the proof could be understood as follows. We know
-        that ¬(g ≥ h), and so there exists some x with ¬(o(g+x) ≥ o(h+x)).
-        Given our four outcomes classes, the only possibilites for
-        (o(g+x),o(h+x)) are:
-
-        - (N,L)
-        - (P,L)
-        - (R,L)
-        - (P,N)
-        - (R,N)
-        - (N,P)
-        - (R,P)
-
-        In each of these cases, it is trivial to check the required condition.
-      -/
-  rw [MisereGE] at h_not_ge
-  simp only [not_forall] at h_not_ge
-  obtain ⟨x, hx, h_not_outcome_ge⟩ := h_not_ge
-  have h_not_player_ge :
-      ¬∀ p, MiserePlayerOutcome (g + x) p ≥ MiserePlayerOutcome (h + x) p := by
-    intro h_player_ge
-    exact h_not_outcome_ge (misereOutcome_ge_iff_miserePlayerOutcome_ge.mpr h_player_ge)
-  simp only [Player.forall, not_and_or] at h_not_player_ge
-  cases h_not_player_ge with
-  | inl h_left =>
-      left
-      cases hg : MiserePlayerOutcome (g + x) .left
-      <;> cases hh : MiserePlayerOutcome (h + x) .left
-      <;> simp [hg, hh] at h_left
-      refine ⟨x, hx, ?_, ?_⟩
-      · intro h_win
-        have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
-        rw [hg] at h_out
-        cases h_out
-      · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hh
-  | inr h_right =>
-      right
-      cases hg : MiserePlayerOutcome (g + x) .right
-      <;> cases hh : MiserePlayerOutcome (h + x) .right
-      <;> simp [hg, hh] at h_right
-      refine ⟨x, hx, ?_, ?_⟩
-      · exact miserePlayerOutcome_eq_iff_winsGoingFirst.mp hg
-      · intro h_win
-        have h_out := miserePlayerOutcome_eq_iff_winsGoingFirst.mpr h_win
-        rw [hh] at h_out
-        cases h_out
+theorem not_misereGE_iff_separating {A : G → Prop} {g h : G} :
+    ¬(g ≥m A h) ↔ LeftSeparating A g h ∨ RightSeparating A g h := by
+  constructor
+  · intro h1
+    have := misereGE_iff_not_separating.not.mp h1
+    exact or_iff_not_and_not.mpr this
+  · rintro (h1 | h2)
+    · exact misereGE_iff_not_separating.not.mpr (or_iff_not_and_not.mp (Or.inl h1))
+    · exact misereGE_iff_not_separating.not.mpr (or_iff_not_and_not.mp (Or.inr h2))
 
 namespace Separation
 
