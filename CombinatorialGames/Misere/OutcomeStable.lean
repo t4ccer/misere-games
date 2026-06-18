@@ -594,11 +594,11 @@ theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
       (∃ gl, ∃ (hgl : gl ∈ moves .left g), MisereOutcome gl = .L ∧
         NTippingPoint (Short.of_mem_moves hsg hgl) = RTippingPoint hsg) := by
   by_cases h : IsEndLike .left ( g + ( RTippingPoint hsg - 1 : ℕ ) )
-  · simp only [IsEndLike.add_iff, isEndLike_iff_isEnd, natCast_isEndLike_iff, IsEnd_left_nat_zero] at h
+  · simp only [IsEndLike.add_iff, isEndLike_iff_isEnd, natCast_isEndLike_iff, isEnd_left_natCast_iff] at h
     obtain ⟨h1, h2⟩ := h
     apply Or.inl
     exact ⟨h1, RTippingPoint_eq_one_of_isEnd_left_N hsg (PFree.pfree hAg) h1 hN⟩
-  · simp only [IsEndLike.add_iff, isEndLike_iff_isEnd, IsEnd_left_nat_zero,
+  · simp only [IsEndLike.add_iff, isEndLike_iff_isEnd, isEnd_left_natCast_iff,
                natCast_isEndLike_iff, not_and, exists_and_left] at h ⊢
     obtain ⟨g', hg', hwin⟩ :
         ∃ g', g' ∈ moves .left (g + (RTippingPoint hsg - 1 : ℕ)) ∧ ¬WinsGoingFirst .right g' := by

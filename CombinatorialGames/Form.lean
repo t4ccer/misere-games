@@ -589,7 +589,7 @@ theorem natCast_ext {k m : ℕ}
       simpa [natCast_add_one_ofSets]
 
 @[simp]
-theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : G) ↔ n = 0) := by
+theorem isEnd_left_natCast_iff {n : ℕ} : IsEnd .left (n : G) ↔ n = 0 := by
   apply Iff.intro <;> intro h1
   · rw [<-Form.natCast_eq_zero_iff (G := G), <-Nat.cast_zero]
     apply natCast_ext
@@ -600,6 +600,26 @@ theorem IsEnd_left_nat_zero {n : ℕ} : (IsEnd .left (n : G) ↔ n = 0) := by
       · simp at h2
     · simp at h2
   · simp [h1, isEnd_def]
+
+@[simp]
+theorem isEnd_left_intCast_iff {n : ℤ} : IsEnd Player.left (n : G) ↔ n ≤ 0 := by
+  constructor <;> intro h1
+  · match n with
+    | .ofNat n => simpa using h1
+    | .negSucc n => exact Int.negSucc_le_zero n
+  · match n with
+    | .ofNat n => simpa using h1
+    | .negSucc n => simp [Form.intCast_negSucc, one_def, isEnd_def]
+
+@[simp]
+theorem isEnd_right_intCast_iff {n : ℤ} : IsEnd Player.right (n : G) ↔ 0 ≤ n := by
+  rw [<-Player.neg_left, <-IsEnd.neg_iff_neg, <-Form.intCast_neg, isEnd_left_intCast_iff]
+  exact Int.neg_le_zero_iff
+
+@[simp]
+theorem isEnd_right_natCast {n : ℕ} : IsEnd Player.right (n : G) := by
+  rw [<-Form.intCast_nat, isEnd_right_intCast_iff]
+  exact Int.natCast_nonneg n
 
 theorem isEnd_of_not_mem {p : Player} {g : G} (h1 : ∀ (gr : G), gr ∉ moves p g) : IsEnd p g := by
   rw [isEnd_def]
