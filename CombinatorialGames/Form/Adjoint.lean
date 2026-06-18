@@ -201,6 +201,25 @@ protected theorem moves (p : Player) (g : G) :
       Player.neg_left, Player.neg_right, leftMoves_ofSets, rightMoves_ofSets,
       Set.image_eq_range]
 
+/-- The adjoint of the conjugate is the conjugate of the adjoint. -/
+theorem adjoint_neg (g : G) : (-g)° = -(g°) := by
+  have key : ∀ p : Player,
+      Set.range (fun x : moves p (-g) => ((x : G)°))
+        = -Set.range (fun x : moves (-p) g => ((x : G)°)) := by
+    intro p
+    ext y
+    simp only [Set.mem_range, Subtype.exists, exists_prop, Set.mem_neg]
+    rw [exists_moves_neg]
+    refine exists_congr fun x => and_congr_right fun hx => ?_
+    rw [adjoint_neg x]
+    exact neg_eq_iff_eq_neg
+  unfold adjoint
+  by_cases hl : IsEnd .left g <;> by_cases hr : IsEnd .right g <;>
+    simp only [IsEnd.neg_iff_neg, Player.neg_left, Player.neg_right, hl, hr, and_self,
+      and_true, and_false, ↓reduceIte, neg_ofSets, Set.neg_singleton, neg_zero, key]
+termination_by g
+decreasing_by all_goals form_wf
+
 end Adjoint
 
 end Form
