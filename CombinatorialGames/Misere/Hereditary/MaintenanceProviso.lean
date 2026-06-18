@@ -51,6 +51,49 @@ protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p :
     have := strong_neg_imp h_strong
     rwa [neg_neg p] at this
 
+/--
+This is test from [Davies, Milley (Theorem 3.1 on p. 7)][davies:OrderInversesMonoid:2026]
+-/
+def IsStrongTest (p : Player) (g : GameForm) : Prop :=
+  IsEnd p g ∨ ∃ gl, ∃ (_ : gl ∈ moves p g), MisereOutcome gl = Outcome.ofPlayer p ∧
+    IsStrongTest p gl ∧ ∀ glr ∈ moves (-p) gl, IsStrongTest p glr
+termination_by g
+decreasing_by form_wf
+
+theorem isStrongTest_def (p : Player) (g : GameForm) :
+    IsStrongTest p g ↔
+      IsEnd p g ∨ ∃ gl, ∃ (_ : gl ∈ moves p g), MisereOutcome gl = Outcome.ofPlayer p ∧
+        IsStrongTest p gl ∧ ∀ glr ∈ moves (-p) gl, IsStrongTest p glr := by
+  nth_rw 1 [IsStrongTest]
+
+private theorem isStrongTest_neg_imp {p : Player} {g : GameForm} (h : IsStrongTest p (-g)) :
+    IsStrongTest (-p) g := by
+  rw [isStrongTest_def] at h
+  rw [isStrongTest_def]
+  rcases h with hend | ⟨gl', hgl', houtcome, htestgl, hglr⟩
+  · exact Or.inl (IsEnd.neg_iff_neg.mp hend)
+  · have hmem : -gl' ∈ moves (-p) g := by
+      have t := hgl'; rw [moves_neg] at t; exact Set.mem_neg.mp t
+    refine Or.inr ⟨-gl', hmem, ?_, ?_, ?_⟩
+    · rw [← misereOutcome_conjugate_neg, houtcome]; cases p <;> rfl
+    · exact isStrongTest_neg_imp (by rw [neg_neg]; exact htestgl)
+    · intro glr hglr2
+      rw [neg_neg] at hglr2
+      have hmem2 : -glr ∈ moves (-p) gl' := by
+        have t := hglr2; rw [moves_neg] at t; exact Set.mem_neg.mp t
+      exact isStrongTest_neg_imp (hglr (-glr) hmem2)
+termination_by g
+decreasing_by form_wf
+
+protected theorem IsStrongTest.neg_iff {p : Player} {g : GameForm} :
+    IsStrongTest p (-g) ↔ IsStrongTest (-p) g := by
+  constructor
+  · exact isStrongTest_neg_imp
+  · intro h1
+    have h2 : IsStrongTest (-p) (-(-g)) := by rwa [neg_neg]
+    have h3 := isStrongTest_neg_imp (p := -p) h2
+    rwa [neg_neg] at h3
+
 @[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
 
