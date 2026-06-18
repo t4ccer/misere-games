@@ -80,6 +80,9 @@ theorem isPFree_natCast (n : ℕ) : IsPFree (n : G) := by
     have h2 : MisereOutcome ((k.succ : ℤ) : G) ≠ Outcome.P := by simp
     exact And.intro h2 (nat_forall_moves (isPFree_natCast k))
 
+instance : HasNat (IsPFree (G := G)) where
+  has_nat := isPFree_natCast
+
 @[simp]
 theorem isPFree_intCast (k : ℤ) : IsPFree (k : G) := by
   match k with
@@ -87,6 +90,9 @@ theorem isPFree_intCast (k : ℤ) : IsPFree (k : G) := by
   | .negSucc n =>
     rw [Int.negSucc_eq, Form.intCast_neg, ClosedUnderNeg.neg_iff (A := IsPFree)]
     exact isPFree_natCast (n + 1)
+
+instance : HasInt (IsPFree (G := G)) where
+  has_int := isPFree_intCast
 
 @[simp]
 theorem isPFree_one : IsPFree (1 : GameForm) := by
