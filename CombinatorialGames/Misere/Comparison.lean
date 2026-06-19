@@ -14,6 +14,7 @@ variable {G : Type (u + 1)} [Form G]
 
 open Form
 open Form.Misere.Outcome
+open Form.Misere.Adjoint
 open Separation
 
 public section
@@ -55,55 +56,59 @@ These auxiliary forms are all dicotic, so they live in every `A` that contains
 
 section
 
-variable [Ambient IsAmbient] [ClosedUnderDicotic IsAmbient A]
+variable [Ambient IsAmbient] [ClosedUnderDicotic IsAmbient A] {r : G}
 
-/-- The adjoint of an ambient form lies in any dicotically closed `A`
-  containing `0`. -/
-theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
-    A (g°) := by
-  have hzero : ∀ a ∈ ({0} : Set G), A a := by
+/--
+The rooted adjoint of an ambient form lies in any dicotically closed `A`
+containing the root `r`.
+-/
+theorem rootedAdjoint_mem_of_isAmbient (h_root : A r) (h_sub : A ≤ IsAmbient)
+    {g : G} (hg : IsAmbient g) :
+    A (rootedAdjoint r g) := by
+  have h_root_mem : ∀ a ∈ ({r} : Set G), A a := by
     intro a ha
     rw [Set.mem_singleton_iff.mp ha]
-    exact h_zero
-  have hzero_nonempty : ({0} : Set G).Nonempty := Set.singleton_nonempty 0
-  have hAdjAmbient := Ambient.isAmbient_adjoint hg
-  have hAdjRange : ∀ p, ∀ a ∈ Set.range (fun gp : moves p g => (gp : G)°), A a := by
+    exact h_root
+  have h_root_nonempty : ({r} : Set G).Nonempty := Set.singleton_nonempty r
+  have hAdjAmbient := Ambient.isAmbient_rootedAdjoint (h_sub r h_root) hg
+  have hAdjRange : ∀ p, ∀ a ∈ Set.range (fun gp : moves p g => rootedAdjoint r (gp : G)), A a := by
     intro p a ha
     simp only [Set.mem_range, Subtype.exists, exists_prop] at ha
     obtain ⟨gp, hgp, rfl⟩ := ha
-    exact adjoint_mem_of_isAmbient h_zero (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
+    exact rootedAdjoint_mem_of_isAmbient h_root h_sub
+      (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
   have hAdjRange_nonempty :
-      ∀ {p}, ¬IsEnd p g → (Set.range fun gp : moves p g => (gp : G)°).Nonempty := by
+      ∀ {p}, ¬IsEnd p g → (Set.range fun gp : moves p g => rootedAdjoint r (gp : G)).Nonempty := by
     intro p hp
     obtain ⟨gp, hgp⟩ := not_isEnd_exists_move hp
-    exact ⟨gp°, ⟨⟨gp, hgp⟩, rfl⟩⟩
-  rw [adjoint_def]
+    exact ⟨rootedAdjoint r gp, ⟨⟨gp, hgp⟩, rfl⟩⟩
+  unfold rootedAdjoint
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
-      · exact hzero
-      · exact hzero
-      · exact hzero_nonempty
-      · exact hzero_nonempty
-      · rw [adjoint_def] at hAdjAmbient
+      · exact h_root_mem
+      · exact h_root_mem
+      · exact h_root_nonempty
+      · exact h_root_nonempty
+      · unfold rootedAdjoint at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
       · exact hAdjRange .right
-      · exact hzero
+      · exact h_root_mem
       · exact hAdjRange_nonempty hright
-      · exact hzero_nonempty
-      · rw [adjoint_def] at hAdjAmbient
+      · exact h_root_nonempty
+      · unfold rootedAdjoint at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
-      · exact hzero
+      · exact h_root_mem
       · exact hAdjRange .left
-      · exact hzero_nonempty
+      · exact h_root_nonempty
       · exact hAdjRange_nonempty hleft
-      · rw [adjoint_def] at hAdjAmbient
+      · unfold rootedAdjoint at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
@@ -111,88 +116,95 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
       · exact hAdjRange .left
       · exact hAdjRange_nonempty hright
       · exact hAdjRange_nonempty hleft
-      · rw [adjoint_def] at hAdjAmbient
+      · unfold rootedAdjoint at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
 termination_by g
 decreasing_by all_goals form_wf
 
-private theorem rightSeparatorLeftSet_mem (h_zero : A 0)
+private theorem rightSeparatorLeftSet_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
     {h : G} (hh : IsAmbient h) :
-    ∀ b ∈ rightSeparatorLeftSet h, A b := by
+    ∀ b ∈ rightSeparatorLeftSet r h, A b := by
   intro b hb
   simp only [rightSeparatorLeftSet, Set.mem_union, Set.mem_singleton_iff, Set.mem_range] at hb
   rcases hb with rfl | ⟨hr, rfl⟩
-  · exact h_zero
-  · exact adjoint_mem_of_isAmbient h_zero (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop))
+  · exact h_root
+  · exact rootedAdjoint_mem_of_isAmbient h_root h_sub
+      (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop))
 
-private theorem rightSeparatorCandidate_mem (h_zero : A 0) (h_sub : A ≤ IsAmbient)
+private theorem rightSeparatorCandidate_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
     {h x : G} (hh : IsAmbient h) (hx : A x) :
-    A (rightSeparatorCandidate h x) := by
+    A (rightSeparatorCandidate r h x) := by
   unfold rightSeparatorCandidate
   apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
-  · exact rightSeparatorLeftSet_mem h_zero hh
+  · exact rightSeparatorLeftSet_mem h_root h_sub hh
   · intro c hc
     rwa [Set.mem_singleton_iff.mp hc]
-  · exact ⟨0, Or.inl rfl⟩
+  · exact ⟨r, Or.inl rfl⟩
   · exact Set.singleton_nonempty x
-  · exact Ambient.isAmbient_rightSeparatorCandidate hh (h_sub x hx)
+  · exact Ambient.isAmbient_rightSeparatorCandidate (h_sub r h_root) hh (h_sub x hx)
 
-private theorem leftSeparatorRightSet_mem (h_zero : A 0)
+private theorem leftSeparatorRightSet_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
     {g : G} (hg : IsAmbient g) :
-    ∀ b ∈ leftSeparatorRightSet g, A b := by
+    ∀ b ∈ leftSeparatorRightSet r g, A b := by
   intro b hb
   simp only [leftSeparatorRightSet, Set.mem_union, Set.mem_singleton_iff, Set.mem_range] at hb
   rcases hb with rfl | ⟨gl, rfl⟩
-  · exact h_zero
-  · exact adjoint_mem_of_isAmbient h_zero (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop))
+  · exact h_root
+  · exact rootedAdjoint_mem_of_isAmbient h_root h_sub
+      (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop))
 
-private theorem leftSeparatorCandidate_mem (h_zero : A 0) (h_sub : A ≤ IsAmbient)
+private theorem leftSeparatorCandidate_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
     {g x : G} (hg : IsAmbient g) (hx : A x) :
-    A (leftSeparatorCandidate g x) := by
+    A (leftSeparatorCandidate r g x) := by
   unfold leftSeparatorCandidate
   apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
   · intro c hc
     rwa [Set.mem_singleton_iff.mp hc]
-  · exact leftSeparatorRightSet_mem h_zero hg
+  · exact leftSeparatorRightSet_mem h_root h_sub hg
   · exact Set.singleton_nonempty x
-  · exact ⟨0, Or.inl rfl⟩
-  · exact Ambient.isAmbient_leftSeparatorCandidate hg (h_sub x hx)
+  · exact ⟨r, Or.inl rfl⟩
+  · exact Ambient.isAmbient_leftSeparatorCandidate (h_sub r h_root) hg (h_sub x hx)
 
-private theorem downlinkOptions_mem (h_zero : A 0) {p : Player} {g h : G} {z : moves (-p) h → G}
+private theorem downlinkOptions_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
+    {p : Player} {g h : G} {z : moves (-p) h → G}
     (hg : IsAmbient g) (hzA : ∀ hp, A (z hp)) :
-    ∀ a ∈ downlinkOptions p g h z, A a := by
+    ∀ a ∈ downlinkOptions r p g h z, A a := by
   intro a ha
   simp [downlinkOptions, downlinkZero] at ha
   rcases ha with (⟨hp, hhp, rfl⟩ | ⟨gp, hgp, rfl⟩) | ha0
   · exact hzA ⟨hp, hhp⟩
-  · exact adjoint_mem_of_isAmbient h_zero (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
+  · exact rootedAdjoint_mem_of_isAmbient h_root h_sub
+      (Hereditary.has_option hg (IsOption.of_mem_moves hgp))
   · by_cases hz : IsEnd (-p) g ∧ IsEnd (-p) h
-    · simpa [hz, ha0] using h_zero
+    · simpa [hz, ha0] using h_root
     · simp [hz] at ha0
 
-private theorem downlinkWitness_mem (h_zero : A 0) (h_sub : A ≤ IsAmbient)
+private theorem downlinkWitness_mem (h_root : A r) (h_sub : A ≤ IsAmbient)
     {g h : G} {x : moves .left g → G} {y : moves .right h → G}
-    [Small (downlinkLeftSet g h y)] [Small (downlinkRightSet g h x)]
+    [Small (downlinkLeftSet r g h y)] [Small (downlinkRightSet r g h x)]
     (hg : IsAmbient g)
     (hh : IsAmbient h)
     (hxA : ∀ gl, A (x gl)) (hyA : ∀ hr, A (y hr)) :
-    A (downlinkWitness g h x y) := by
-  let L : Set G := downlinkLeftSet g h y
-  let R : Set G := downlinkRightSet g h x
+    A (downlinkWitness r g h x y) := by
+  let L : Set G := downlinkLeftSet r g h y
+  let R : Set G := downlinkRightSet r g h x
   change A !{L | R}
   apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
-  · exact downlinkOptions_mem h_zero (p := .left) hg hyA
-  · exact downlinkOptions_mem h_zero (p := .right) hh hxA
-  · exact downlinkOptions_nonempty .left g h y
-  · exact downlinkOptions_nonempty .right h g x
-  · exact Ambient.isAmbient_downlinkWitness
+  · exact downlinkOptions_mem h_root h_sub (p := .left) hg hyA
+  · exact downlinkOptions_mem h_root h_sub (p := .right) hh hxA
+  · exact downlinkOptions_nonempty r .left g h y
+  · exact downlinkOptions_nonempty r .right h g x
+  · exact Ambient.isAmbient_downlinkWitness (h_sub r h_root)
       hg hh
       (fun gl => h_sub _ (hxA gl))
       (fun hr => h_sub _ (hyA hr))
 
-/-- If every Left option of `g` is separated from `h`, and every Right option
-  of `h` from `g`, then `g` is downlinked to `h`. -/
-theorem Downlinked.of_separating (h_zero : A 0) (h_sub : A ≤ IsAmbient)
+/--
+If every Left option of `g` is separated from `h`, and every Right option of
+`h` from `g`, then `g` is downlinked to `h`.
+-/
+theorem Downlinked.of_separating (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
+    (h_sub : A ≤ IsAmbient)
     {g h : G} (hg : IsAmbient g) (hh : IsAmbient h)
     (h_left_sep : ∀ gl : moves .left g, LeftSeparating A (gl : G) h)
     (h_right_sep : ∀ hr : moves .right h, RightSeparating A g (hr : G)) :
@@ -200,45 +212,50 @@ theorem Downlinked.of_separating (h_zero : A 0) (h_sub : A ≤ IsAmbient)
   classical
   choose x hxA hxLose hxWin using h_left_sep
   choose y hyA hyWin hyLose using h_right_sep
-  haveI : Small.{u} (downlinkZero .left g h) := by
+  haveI : Small.{u} (downlinkZero r .left g h) := by
     by_cases hz : IsEnd .right g ∧ IsEnd .right h
-    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({0} : Set G))
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({r} : Set G))
     · simpa [downlinkZero, hz] using (inferInstance : Small.{u} (∅ : Set G))
-  haveI : Small.{u} (downlinkZero .right h g) := by
+  haveI : Small.{u} (downlinkZero r .right h g) := by
     by_cases hz : IsEnd .left h ∧ IsEnd .left g
-    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({0} : Set G))
+    · simpa [downlinkZero, hz] using (inferInstance : Small.{u} ({r} : Set G))
     · simpa [downlinkZero, hz] using (inferInstance : Small.{u} (∅ : Set G))
-  haveI : Small.{u} (downlinkLeftSet g h y) := inferInstance
-  haveI : Small.{u} (downlinkRightSet g h x) := inferInstance
-  exact downlinked_of_downlinkWitness_mem
-    (downlinkWitness_mem h_zero h_sub hg hh hxA hyA) hxLose hxWin hyWin hyLose
+  haveI : Small.{u} (downlinkLeftSet r g h y) := inferInstance
+  haveI : Small.{u} (downlinkRightSet r g h x) := inferInstance
+  exact downlinked_of_downlinkWitness_mem h_isRoot hg hh
+    (downlinkWitness_mem h_root h_sub hg hh hxA hyA) hxLose hxWin hyWin hyLose
 
-/-- If `g ≱ h` modulo `A`, then `g` and `h` are both Left- and
-  Right-separating. -/
+/--
+If `g ≱ h` modulo `A`, then `g` and `h` are both Left- and Right-separating.
+-/
 theorem Separating.pair_of_not_misereGE
-    (h_zero : A 0) (h_sub : A ≤ IsAmbient)
+    (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient)
     {g h : G} (hg : IsAmbient g) (hh : IsAmbient h) (h_not_ge : ¬(g ≥m A h)) :
     LeftSeparating A g h ∧ RightSeparating A g h := by
   cases not_misereGE_iff_separating.mp h_not_ge with
   | inl h_left =>
       refine ⟨h_left, ?_⟩
-      refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem ?_ h_left
+      refine rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem h_isRoot hh ?_ h_left
       intro x hx
-      exact rightSeparatorCandidate_mem h_zero h_sub hh hx
+      exact rightSeparatorCandidate_mem h_root h_sub hh hx
   | inr h_right =>
       refine ⟨?_, h_right⟩
-      refine leftSeparating_of_rightSeparating_of_leftSeparatorCandidate_mem ?_ h_right
+      refine leftSeparating_of_rightSeparating_of_leftSeparatorCandidate_mem h_isRoot hg ?_ h_right
       intro x hx
-      exact leftSeparatorCandidate_mem h_zero h_sub hg hx
+      exact leftSeparatorCandidate_mem h_root h_sub hg hx
 
-/-- A dicotically closed `A` containing `0` and lying in the ambient space is a
-`ComparisonSet` (no further closure properties required!). -/
-def ComparisonSet.of_dicotic (h_zero : A 0) (h_sub : A ≤ IsAmbient) :
+/--
+A dicotically closed `A` lying in the ambient space and containing a *root* `r`
+(see `IsRoot`) is a `ComparisonSet` (no further closure properties required!).
+Taking `r = 0` recovers the usual case where `A` contains `0`.
+-/
+def ComparisonSet.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
+    (h_sub : A ≤ IsAmbient) :
     ComparisonSet IsAmbient A where
   separating_pair_of_not_misereGE hg hh h_not_ge :=
-    Separating.pair_of_not_misereGE h_zero h_sub hg hh h_not_ge
+    Separating.pair_of_not_misereGE h_root h_isRoot h_sub hg hh h_not_ge
   downlinked_of_separating hg hh h_left_sep h_right_sep :=
-    Downlinked.of_separating h_zero h_sub hg hh h_left_sep h_right_sep
+    Downlinked.of_separating h_root h_isRoot h_sub hg hh h_left_sep h_right_sep
 
 end
 
@@ -249,7 +266,8 @@ section
 variable [Ambient IsAmbient] [Universe IsAmbient A]
 
 instance instComparisonSetUniverse : ComparisonSet IsAmbient A :=
-  .of_dicotic (Universe.zero_mem IsAmbient) (fun _ ha => Universe.isAmbient_of_mem ha)
+  .of_dicotic (r := 0) (Universe.zero_mem IsAmbient) (isRoot_zero IsAmbient)
+    (fun _ ha => Universe.isAmbient_of_mem ha)
 
 end
 
