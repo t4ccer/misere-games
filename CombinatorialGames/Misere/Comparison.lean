@@ -77,7 +77,7 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
     intro p hp
     obtain ⟨gp, hgp⟩ := not_isEnd_exists_move hp
     exact ⟨gp°, ⟨⟨gp, hgp⟩, rfl⟩⟩
-  unfold adjoint
+  rw [adjoint_def]
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
@@ -86,7 +86,7 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
       · exact hzero
       · exact hzero_nonempty
       · exact hzero_nonempty
-      · unfold adjoint at hAdjAmbient
+      · rw [adjoint_def] at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
@@ -94,7 +94,7 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
       · exact hzero
       · exact hAdjRange_nonempty hright
       · exact hzero_nonempty
-      · unfold adjoint at hAdjAmbient
+      · rw [adjoint_def] at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
   · by_cases hright : IsEnd .right g
     · simp [hleft, hright]
@@ -103,7 +103,7 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
       · exact hAdjRange .left
       · exact hzero_nonempty
       · exact hAdjRange_nonempty hleft
-      · unfold adjoint at hAdjAmbient
+      · rw [adjoint_def] at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
     · simp [hleft, hright]
       apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsAmbient)
@@ -111,7 +111,7 @@ theorem adjoint_mem_of_isAmbient (h_zero : A 0) {g : G} (hg : IsAmbient g) :
       · exact hAdjRange .left
       · exact hAdjRange_nonempty hright
       · exact hAdjRange_nonempty hleft
-      · unfold adjoint at hAdjAmbient
+      · rw [adjoint_def] at hAdjAmbient
         simpa [hleft, hright] using hAdjAmbient
 termination_by g
 decreasing_by all_goals form_wf
