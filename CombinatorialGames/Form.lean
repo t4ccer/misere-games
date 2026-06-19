@@ -184,6 +184,15 @@ theorem moves_zero (p : Player) : moves p (0 : G) = ∅ := by
 @[simp]
 theorem isEnd_zero {p : Player} : IsEnd p (0 : G) := moves_zero p
 
+/--
+A form is *zero-like* if it is both a Left and a Right end, just like `0`.
+-/
+@[expose]
+def IsZeroLike (g : G) : Prop := ∀ p, IsEnd p g
+
+@[simp]
+theorem isZeroLike_zero : IsZeroLike (0 : G) := fun _ => isEnd_zero
+
 @[simp]
 theorem neg_ofSets (s t : Set G) [Small s] [Small t] : -!{s | t} = !{-t | -s} := neg_ofSets'' s t
 

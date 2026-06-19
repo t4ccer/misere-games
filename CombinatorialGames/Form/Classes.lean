@@ -47,6 +47,24 @@ theorem Hereditary.of_mem_moves {A : G → Prop} [Hereditary A]
 instance : Hereditary (fun _ => True) (G := G) where
   has_option _ _ := trivial
 
+private theorem exists_isZeroLike_of_mem [Hereditary A] {g : G} (hg : A g) :
+    ∃ z, A z ∧ IsZeroLike z := by
+  by_cases hz : IsZeroLike g
+  · exact ⟨g, hg, hz⟩
+  · simp only [IsZeroLike, not_forall] at hz
+    obtain ⟨p, hp⟩ := hz
+    obtain ⟨gp, hgp⟩ := not_isEnd_exists_move hp
+    exact exists_isZeroLike_of_mem (Hereditary.of_mem_moves hg hgp)
+termination_by g
+decreasing_by form_wf
+
+/--
+A nonempty hereditary set of forms contains a zero-like form.
+-/
+theorem exists_isZeroLike [Hereditary A] (h : ∃ g, A g) : ∃ z, A z ∧ IsZeroLike z :=
+  let ⟨_, hg⟩ := h
+  exists_isZeroLike_of_mem hg
+
 class ClosedUnderNeg (A : G → Prop) where
   neg_of {g : G} (h1 : A g) : A (-g)
 

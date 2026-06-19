@@ -30,10 +30,16 @@ abbrev IsRoot (A : G → Prop) (r : G) : Prop :=
   ∀ ⦃p : Player⦄ ⦃d : G⦄, A d → IsEnd p d → WinsGoingFirst p (d + r)
 
 /--
+Every zero-like form is a root for every set of forms.
+-/
+theorem isRoot_of_isZeroLike (A : G → Prop) {r : G} (hr : IsZeroLike r) : IsRoot A r :=
+  fun _ _ _ hd => winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hd, hr _⟩)
+
+/--
 `0` is a root for every set of forms: adding `0` to an end yields an end.
 -/
 theorem isRoot_zero (A : G → Prop) : IsRoot A (0 : G) :=
-  fun _ _ _ hd => winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hd, isEnd_zero⟩)
+  isRoot_of_isZeroLike A isZeroLike_zero
 
 /--
 For every form `g` in `A`, the sum `g + rootedAdjoint r g` is a

@@ -257,6 +257,17 @@ def ComparisonSet.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
   downlinked_of_separating hg hh h_left_sep h_right_sep :=
     Downlinked.of_separating h_root h_isRoot h_sub hg hh h_left_sep h_right_sep
 
+/--
+A nonempty, hereditary, dicotically closed `A` lying in the ambient space is a
+`ComparisonSet`. The zero-like form it must contain (`exists_isZeroLike`)
+serves as the required root.
+-/
+def ComparisonSet.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
+    (h_sub : A ≤ IsAmbient) :
+    ComparisonSet IsAmbient A :=
+  let ⟨_, hr, hr_zero⟩ := exists_isZeroLike h_ne
+  .of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
+
 end
 
 namespace ComparisonSet
@@ -266,7 +277,7 @@ section
 variable [Ambient IsAmbient] [Universe IsAmbient A]
 
 instance instComparisonSetUniverse : ComparisonSet IsAmbient A :=
-  .of_dicotic (r := 0) (Universe.zero_mem IsAmbient) (isRoot_zero IsAmbient)
+  .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
     (fun _ ha => Universe.isAmbient_of_mem ha)
 
 end
