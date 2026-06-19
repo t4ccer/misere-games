@@ -10,7 +10,7 @@ public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Quotients
-public import CombinatorialGames.AdditiveClosure
+public import CombinatorialGames.Misere.Closures
 public import CombinatorialGames.Ruleset
 
 universe u
@@ -808,64 +808,54 @@ class Strided (A : GameForm → Prop) where
   mk_with_strides (l r : ℕ) : ∃ g, A g ∧ HasStride .left g l ∧ HasStride .right g r
   has_stride (p : Player) {g : GameForm} (h_g : A g) : ∃ n, GameForm.HasStride p g n
 
-theorem AdditiveClosure.has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g : GameForm}
+private instance hasStride_closedUnderAdd :
+    ClosedUnderAdd (fun g : GameForm => ∀ p, ∃ n, GameForm.HasStride p g n) where
+  has_add x y hx hy p := by
+    obtain ⟨a, ha⟩ := hx p
+    obtain ⟨a', ha'⟩ := hx (-p)
+    obtain ⟨b, hb⟩ := hy p
+    obtain ⟨b', hb'⟩ := hy (-p)
+    exact ⟨a + b, GameForm.hasStride_add ha hb ha' hb'⟩
+
+theorem ClosedUnderAdd.closure_has_stride_aux {R : Type u} [Ruleset R] (p : Player) {g : GameForm}
     (stride : R → Player → ℕ)
     (hasStride : (r : R) → (p : Player) → GameForm.HasStride p (Ruleset.toGameForm r) (stride r p))
-    (h_g : AdditiveClosure (Ruleset.Forms R) g)
+    (h_g : ClosedUnderAdd.closure (Ruleset.Forms R) g)
     : ∃ n, GameForm.HasStride p g n := by
-  rw [additiveClosure_iff] at h_g
-  obtain h_g | ⟨x, y, hx, hy, hxy, hax, hay⟩ := h_g
-  · obtain ⟨r, h_r⟩ := Ruleset.Forms.exists h_g
-    have := hasStride r p
-    use stride r p
-    rwa [h_r]
-  · have ⟨a, ha⟩ := has_stride_aux p stride hasStride hax
-    have ⟨a', ha'⟩ := has_stride_aux (-p) stride hasStride hax
-    have ⟨b, hb⟩ := has_stride_aux p stride hasStride hay
-    have ⟨b', hb'⟩ := has_stride_aux (-p) stride hasStride hay
-    use a + b
-    rw [hxy]
-    exact GameForm.hasStride_add ha hb ha' hb'
-termination_by Form.birthday g
-decreasing_by additiveClosure_birthday
+  refine ClosedUnderAdd.closure_min (A := Ruleset.Forms R)
+      (B := fun g => ∀ p, ∃ n, GameForm.HasStride p g n) ?_ g h_g p
+  intro x hx q
+  obtain ⟨r, h_r⟩ := Ruleset.Forms.exists hx
+  refine ⟨stride r q, ?_⟩
+  rw [h_r]
+  exact hasStride r q
 
-theorem AdditiveClosure.mk_with_strides_aux {A : GameForm → Prop}
+theorem ClosedUnderAdd.closure_mk_with_strides_aux {A : GameForm → Prop}
     (mk_stride_other_zero : (p : Player) → (n : ℕ) → ∃ g, A g ∧ HasStride p g n ∧ HasStride (-p) g 0)
     (l r : ℕ) :
-    ∃ t, AdditiveClosure A t ∧ HasStride .left t l ∧ HasStride .right t r := by
+    ∃ t, ClosedUnderAdd.closure A t ∧ HasStride .left t l ∧ HasStride .right t r := by
   obtain ⟨t₁, ht₁_A, ht₁_l, ht₁_r⟩ := mk_stride_other_zero .left l
-  have ht₁_A' := additiveClosure_iff.mpr (Or.inl ht₁_A)
   obtain ⟨t₂, ht₂_A, ht₂_r, ht₂_l⟩ := mk_stride_other_zero .right r
-  have ht₂_A' := additiveClosure_iff.mpr (Or.inl ht₂_A)
-  use t₁ + t₂
-  refine ⟨ClosedUnderAdd.has_add _ _ ht₁_A' ht₂_A', ?_, ?_⟩
+  refine ⟨t₁ + t₂, ClosedUnderAdd.add_mem_closure
+      (ClosedUnderAdd.mem_closure_of_mem ht₁_A) (ClosedUnderAdd.mem_closure_of_mem ht₂_A),
+      ?_, ?_⟩
   · have := hasStride_add ht₁_l ht₂_l ht₁_r ht₂_r
     simpa only [add_zero] using this
   · have := hasStride_add ht₁_r ht₂_r ht₁_l ht₂_l
     simpa only [zero_add] using this
 
-private theorem AdditiveClosure.has_stride.aux {A : GameForm → Prop} [Strided A]
-    (p : Player) (g : GameForm) (h_g : AdditiveClosure A g) : ∃ n, HasStride p g n := by
-  rw [additiveClosure_iff] at h_g
-  obtain h_g | ⟨x, y, h_x, h_y, h_xy, h_Ax, h_Ay⟩ := h_g
-  · exact Strided.has_stride p h_g
-  · have ⟨a, ha⟩ := has_stride.aux p x h_Ax
-    have ⟨a', ha'⟩ := has_stride.aux (-p) x h_Ax
-    have ⟨b, hb⟩ := has_stride.aux p y h_Ay
-    have ⟨b', hb'⟩ := has_stride.aux (-p) y h_Ay
-    use a + b
-    rw [h_xy]
-    exact hasStride_add ha hb ha' hb'
-termination_by birthday g
-decreasing_by additiveClosure_birthday
+private theorem ClosedUnderAdd.closure_has_stride {A : GameForm → Prop} [Strided A]
+    (p : Player) {g : GameForm} (h_g : ClosedUnderAdd.closure A g) : ∃ n, HasStride p g n := by
+  refine ClosedUnderAdd.closure_min (A := A)
+      (B := fun g => ∀ p, ∃ n, GameForm.HasStride p g n) ?_ g h_g p
+  intro x hx q
+  exact Strided.has_stride q hx
 
-instance {A : GameForm → Prop} [Strided A] : Strided (AdditiveClosure A) where
+instance {A : GameForm → Prop} [Strided A] : Strided (ClosedUnderAdd.closure A) where
   mk_with_strides l r := by
-    have ⟨g, h1, h2, h3⟩ := Strided.mk_with_strides (A := A) l r
-    use g
-    rw [additiveClosure_iff]
-    exact ⟨Or.inl h1, h2, h3⟩
-  has_stride := AdditiveClosure.has_stride.aux
+    obtain ⟨g, h1, h2, h3⟩ := Strided.mk_with_strides (A := A) l r
+    exact ⟨g, ClosedUnderAdd.mem_closure_of_mem h1, h2, h3⟩
+  has_stride := ClosedUnderAdd.closure_has_stride
 
 section Quotients
 

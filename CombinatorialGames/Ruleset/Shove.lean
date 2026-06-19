@@ -8,6 +8,7 @@ module
 public import CombinatorialGames.Ruleset.Strip
 
 open GameForm
+open Form
 
 public section
 
@@ -58,13 +59,13 @@ protected noncomputable def toGameForm : Shove → GameForm := Strip.toGameForm
 
 /-- The misère quotient of `Shove` is isomorphic to `ℤ`. -/
 protected noncomputable def equivInt :
-    MisereQuotient (AdditiveClosure (Ruleset.Forms Shove)) ≃ ℤ :=
+    MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms Shove)) ≃ ℤ :=
   Strip.equivInt Shove
 
 protected theorem le_iff_equiv_ge
-    (a b : MisereQuotient (AdditiveClosure (Ruleset.Forms Shove))) :
+    (a b : MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms Shove))) :
     a ≤ b ↔
-    GameForm.MisereQuotient.stridedEquivInt a ≥ GameForm.MisereQuotient.stridedEquivInt b :=
+    MisereQuotient.stridedEquivInt a ≥ MisereQuotient.stridedEquivInt b :=
   Strip.le_iff_equiv_ge Shove a b
 
 end Shove

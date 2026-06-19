@@ -749,12 +749,12 @@ protected theorem le_iff_equiv_ge (a b : MisereQuotient (Ruleset.Forms (Hackenbu
     MisereQuotient.stridedEquivInt a ≥ MisereQuotient.stridedEquivInt b :=
     MisereQuotient.le_iff_equiv_ge a b
 
-protected noncomputable def AdditiveClosure.equivInt :
-    MisereQuotient (AdditiveClosure (Ruleset.Forms (Hackenbush ℕ))) ≃ ℤ :=
+protected noncomputable def closure.equivInt :
+    MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms (Hackenbush ℕ))) ≃ ℤ :=
   MisereQuotient.stridedEquivInt
 
-protected theorem AdditiveClosure.le_iff_equiv_ge
-    (a b : MisereQuotient (AdditiveClosure (Ruleset.Forms (Hackenbush ℕ)))) :
+protected theorem closure.le_iff_equiv_ge
+    (a b : MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms (Hackenbush ℕ)))) :
     a ≤ b ↔
     MisereQuotient.stridedEquivInt a ≥ MisereQuotient.stridedEquivInt b :=
     MisereQuotient.le_iff_equiv_ge a b

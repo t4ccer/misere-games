@@ -1,6 +1,5 @@
 module
 
-public import CombinatorialGames.AdditiveClosure
 public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.AugmentedForm.Lift
 public import CombinatorialGames.AugmentedForm.Short

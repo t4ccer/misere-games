@@ -846,22 +846,23 @@ noncomputable instance ruleset (R : Type u) [Strip R] : Ruleset R where
 
 /-- The `Strided` structure on the additive closure of any `Strip` ruleset. -/
 noncomputable instance strided (R : Type u) [Strip R] :
-    GameForm.Strided (AdditiveClosure (Ruleset.Forms R)) where
+    Strided (Form.ClosedUnderAdd.closure (Ruleset.Forms R)) where
   mk_with_strides :=
-    AdditiveClosure.mk_with_strides_aux (fun p n => by
+    ClosedUnderAdd.closure_mk_with_strides_aux (fun p n => by
       obtain ⟨r, h1, h2⟩ := mk_with_stride (R := R) p n
       exact ⟨Strip.toGameForm r, Ruleset.Forms.position_mem r, h1, h2⟩)
-  has_stride p := AdditiveClosure.has_stride_aux p Strip.stride Strip.toGameForm_hasStride
+  has_stride p :=
+    ClosedUnderAdd.closure_has_stride_aux p Strip.stride Strip.toGameForm_hasStride
 
 /--
 The misère quotient of any `Strip` ruleset is isomorphic to `ℤ`.
 -/
 protected noncomputable def equivInt (R : Type u) [Strip R] :
-    MisereQuotient (AdditiveClosure (Ruleset.Forms R)) ≃ ℤ :=
+    MisereQuotient (Form.ClosedUnderAdd.closure (Ruleset.Forms R)) ≃ ℤ :=
   GameForm.MisereQuotient.stridedEquivInt
 
 protected theorem le_iff_equiv_ge (R : Type u) [Strip R]
-    (a b : MisereQuotient (AdditiveClosure (Ruleset.Forms R))) :
+    (a b : MisereQuotient (Form.ClosedUnderAdd.closure (Ruleset.Forms R))) :
     a ≤ b ↔
     GameForm.MisereQuotient.stridedEquivInt a ≥ GameForm.MisereQuotient.stridedEquivInt b :=
   GameForm.MisereQuotient.le_iff_equiv_ge a b

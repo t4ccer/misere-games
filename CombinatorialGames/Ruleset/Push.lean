@@ -8,6 +8,7 @@ module
 public import CombinatorialGames.Ruleset.Strip
 
 open GameForm
+open Form
 
 public section
 
@@ -86,13 +87,12 @@ protected noncomputable def toGameForm : Push → GameForm := Strip.toGameForm
 
 /-- The misère quotient of `Push` is isomorphic to `ℤ`. -/
 protected noncomputable def equivInt :
-    MisereQuotient (AdditiveClosure (Ruleset.Forms Push)) ≃ ℤ :=
+    MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms Push)) ≃ ℤ :=
   Strip.equivInt Push
 
 protected theorem le_iff_equiv_ge
-    (a b : MisereQuotient (AdditiveClosure (Ruleset.Forms Push))) :
-    a ≤ b ↔
-    GameForm.MisereQuotient.stridedEquivInt a ≥ GameForm.MisereQuotient.stridedEquivInt b :=
+    (a b : MisereQuotient (ClosedUnderAdd.closure (Ruleset.Forms Push))) :
+    a ≤ b ↔ MisereQuotient.stridedEquivInt a ≥ MisereQuotient.stridedEquivInt b :=
   Strip.le_iff_equiv_ge Push a b
 
 end Push
