@@ -89,6 +89,11 @@ theorem ClosedUnderNeg.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g : G}
     rwa [neg_neg (G := G)] at h2
   · exact ClosedUnderNeg.neg_of
 
+theorem HasInt.of_hasNat {A : G → Prop} [HasNat A] [ClosedUnderNeg A] : HasInt A where
+  has_int n := by
+    obtain ⟨k, rfl | rfl⟩ := n.eq_nat_or_neg <;>
+      simpa using HasNat.has_nat (A := A) k
+
 theorem ClosedUnderAddNat.has_add_neg {A : G → Prop} [ClosedUnderAddNat A] [ClosedUnderNeg A]
     {g : G} (hAg : A g) (n : ℕ) :
     A (g + (-n)) := by
