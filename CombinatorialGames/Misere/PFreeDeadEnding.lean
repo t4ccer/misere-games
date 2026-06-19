@@ -512,3 +512,78 @@ theorem isEnd_exists_intCast_misereEQ {p : Player} {g : GameForm} (h_g : PFreeDe
     exact ⟨-(a : ℤ), ha⟩
   · obtain ⟨a, ha⟩ := isEnd_right_exists_intCast_misereEQ h_g h_isEnd
     exact ⟨(a : ℤ), ha⟩
+
+structure Promain (g h : GameForm) : Prop where
+  h_m_r : Maintenance PFreeDeadEnding g h .right
+  h_m_l : Maintenance PFreeDeadEnding g h .left
+  h_p_r : IsEnd .right g → MisereOutcome h ≠ .L
+  h_p_l : IsEnd .left h → MisereOutcome g ≠ .R
+
+private theorem a_one_misereEQ_add_one {n : ℤ} (h_n : 0 ≤ n) :
+    (!{{((n : ℤ) : GameForm)} | {(1 : GameForm)}}) =m PFreeDeadEnding (((n : ℤ) : GameForm) + 1) := by
+  convert reduction_a_one_int h_n using 1;
+  cases n <;> aesop
+
+private theorem add_one_pfreeDeadEnding {n : ℤ} :
+    PFreeDeadEnding (((n : ℤ) : GameForm) + 1) := by
+  have h1 : PFreeDeadEnding ((1 : ℤ) : GameForm) := HasInt.has_int 1
+  rw [Form.intCast_one] at h1
+  exact ClosedUnderAdd.has_add _ _ (HasInt.has_int n) h1
+
+private theorem conjecture_sufficient {g : GameForm} {n : ℤ} (h_g : PFreeDeadEnding g)
+    (h_n : 0 ≤ n)
+    (h : Promain g (((n : ℤ) : GameForm) + 1) ∨
+        Promain g (!{ { (((n) : ℤ) : GameForm) } | {(1 : GameForm)} })) :
+    g ≥m PFreeDeadEnding (((n : ℤ) : GameForm) + 1) := by
+  obtain h | h := h
+  · exact PFreeDeadEnding.misereGE_of_maintenance_proviso h_g.isPFree
+      (add_one_pfreeDeadEnding (n := n)).isPFree h.h_m_r h.h_m_l h.h_p_r h.h_p_l
+  · have h_misereGE : g ≥m PFreeDeadEnding (!{{(n : GameForm)} | {(1 : GameForm)}}) :=
+      PFreeDeadEnding.misereGE_of_maintenance_proviso h_g.isPFree
+        (a_one_pfreeDeadEnding h_n).isPFree h.h_m_r h.h_m_l h.h_p_r h.h_p_l
+    exact misereGE_rw_right (MisereEQ.symm (a_one_misereEQ_add_one h_n)) h_misereGE
+
+private theorem conjecture_maintenance_left {g : GameForm} {n : ℤ} (h_g : PFreeDeadEnding g)
+    (g_ne_int : ∀ p, ¬IsEnd p g) (h_n : 0 ≤ n)
+    (h : g ≥m PFreeDeadEnding (((n : ℤ) : GameForm) + 1)) :
+    ∃ gl ∈ moves .left g, gl ≥m PFreeDeadEnding ((n : ℤ) : GameForm) := by
+  sorry
+
+private theorem conjecture_maintenance_right {g : GameForm} {n : ℤ} (h_g : PFreeDeadEnding g)
+    (g_ne_int : ∀ p, ¬IsEnd p g) (h_n : 0 ≤ n)
+    (h : g ≥m PFreeDeadEnding (((n : ℤ) : GameForm) + 1)) :
+    ∀ gr ∈ moves .right g,
+      gr ≥m PFreeDeadEnding (1 : GameForm) ∨
+        ∃ grl ∈ moves .left gr,
+          grl ≥m PFreeDeadEnding (!{ { (((n) : ℤ) : GameForm) } | {(1 : GameForm)} }) := by
+  sorry
+
+private theorem conjecture_necessary {g : GameForm} {n : ℤ} (h_g : PFreeDeadEnding g)
+    (g_ne_int : ∀ p, ¬IsEnd p g) (h_n : 0 ≤ n)
+    (h : g ≥m PFreeDeadEnding (((n : ℤ) : GameForm) + 1)) :
+    Promain g (((n : ℤ) : GameForm) + 1) ∨
+      Promain g (!{ { (((n) : ℤ) : GameForm) } | {(1 : GameForm)} }) := by
+  refine Or.inr ⟨?_, ?_, ?_, ?_⟩
+  · -- Maintenance .right for the switch form
+    intro gr hgr
+    rcases conjecture_maintenance_right h_g g_ne_int h_n h gr hgr with hr | ⟨grl, hgrl, hgrl_ge⟩
+    · exact Or.inl ⟨1, by simp, hr⟩
+    · exact Or.inr ⟨grl, hgrl, hgrl_ge⟩
+  · -- Maintenance .left for the switch form
+    intro hl hhl
+    rw [leftMoves_ofSets, Set.mem_singleton_iff] at hhl
+    subst hhl
+    obtain ⟨gl, hgl, hgl_ge⟩ := conjecture_maintenance_left h_g g_ne_int h_n h
+    exact Or.inl ⟨gl, hgl, hgl_ge⟩
+  · -- Proviso (right): `g` is not a right end
+    intro h_end
+    exact absurd h_end (g_ne_int .right)
+  · -- Proviso (left): the switch form is not a left end
+    intro h_end
+    rw [isEnd_def, leftMoves_ofSets] at h_end
+    exact absurd h_end (by simp)
+
+theorem conjecture {g : GameForm} {n : ℤ} (h_g : PFreeDeadEnding g) (g_ne_int : ∀ p, ¬IsEnd p g)
+    (h_n : 0 ≤ n) :
+    (g ≥m PFreeDeadEnding (n + 1)) ↔ (Promain g (n + 1) ∨ Promain g (!{ { (((n) : ℤ) : GameForm) } | {(1 : GameForm)} }) ) :=
+  ⟨conjecture_necessary h_g g_ne_int h_n, conjecture_sufficient h_g h_n⟩
