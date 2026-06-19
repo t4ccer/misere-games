@@ -191,7 +191,7 @@ theorem g_mem_longUniverse (U : AugmentedForm.{u} → Prop) [LongUniverse U] :
   have h_ambient : Ambient (fun _ : AugmentedForm.{u} => True) := Form.instAmbientTrue
   have h_mem : ∀ b ∈ adjointsOfShort.{u}, U b := by
     rintro b ⟨⟨J, h_j⟩, rfl⟩
-    exact Form.ComparisonSet.mem_universe_of_mem_isAmbient trivial
+    exact Form.adjoint_mem_of_isAmbient (Universe.zero_mem (fun _ => True)) trivial
   have h_notempty : (adjointsOfShort.{u}).Nonempty := ⟨_,  adjoint_mem_adjointsOfShort Short.zero⟩
   exact ClosedUnderDicotic.closed_dicotic (IsAmbient := fun _ => True)
     adjointsOfShort adjointsOfShort h_mem h_mem h_notempty h_notempty trivial

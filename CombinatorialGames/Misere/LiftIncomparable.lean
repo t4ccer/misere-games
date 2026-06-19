@@ -204,8 +204,8 @@ theorem g_mem_longUniverse (U : AugmentedForm.{u + 1} → Prop) [LongUniverse U]
   have h_mem : ∀ b ∈ adjointsOfSmall.{u}, U b := by
     rintro b ⟨J, rfl⟩
     simp only [liftSucc_adjoint]
-    exact Form.ComparisonSet.mem_universe_of_mem_isAmbient
-      (IsAmbient := fun _ => True) (A := U) trivial
+    exact Form.adjoint_mem_of_isAmbient
+      (IsAmbient := fun _ => True) (A := U) (Universe.zero_mem (fun _ => True)) trivial
   have h_notempty : (adjointsOfSmall.{u}).Nonempty := ⟨_, liftAdjoint_mem_adjointsOfSmall 0⟩
   show U !{adjointsOfSmall | adjointsOfSmall}
   exact ClosedUnderDicotic.closed_dicotic (IsAmbient := fun _ => True)

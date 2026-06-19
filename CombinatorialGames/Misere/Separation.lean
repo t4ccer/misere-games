@@ -81,6 +81,8 @@ $\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
 abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .right g h
 
+/-- We have `g ≥ h` modulo `A` exactly when `g` and `h` are neither Left- nor
+Right-separating. -/
 theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
     g ≥m A h ↔ ¬ LeftSeparating A g h ∧ ¬ RightSeparating A g h := by
   constructor
@@ -137,9 +139,7 @@ theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
           rw [hh] at h_out
           cases h_out
 
-/--
-Negation of `misereGE_iff_not_separating`
--/
+/-- Negation of `misereGE_iff_not_separating`. -/
 theorem not_misereGE_iff_separating {A : G → Prop} {g h : G} :
     ¬(g ≥m A h) ↔ LeftSeparating A g h ∨ RightSeparating A g h := by
   constructor
@@ -153,7 +153,6 @@ theorem not_misereGE_iff_separating {A : G → Prop} {g h : G} :
 namespace Separation
 
 /--
-$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
 Given $H$, this constructs the set of games $\{0,(H^\mathcal{R})^\circ\}$,
 which will act as Left's set of options in the construction of
 `rightSeparatorCandidate`.
@@ -170,6 +169,38 @@ be both `LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
 -/
 noncomputable abbrev rightSeparatorCandidate (h x : G) : G :=
   !{rightSeparatorLeftSet h | {x}}
+
+/--
+Given $G$, this constructs the set of games $\{0,(G^\mathcal{L})^\circ\}$, the
+Left/Right mirror of `rightSeparatorLeftSet`, which will act as Right's set of
+options in the construction of `leftSeparatorCandidate`.
+-/
+abbrev leftSeparatorRightSet (g : G) : Set G :=
+  {0} ∪ Set.range (fun gl : moves .left g => (gl : G)°)
+
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+Given forms $G$ and $X$, this constructs the form
+$\form<X>[0,(G^\mathcal{L})^\circ]$, the Left/Right mirror of
+`rightSeparatorCandidate`.
+-/
+noncomputable abbrev leftSeparatorCandidate (g x : G) : G :=
+  !{{x} | leftSeparatorRightSet g}
+
+/-- The left separator is the conjugate of a right separator. -/
+theorem leftSeparatorCandidate_eq_neg (g x : G) :
+    leftSeparatorCandidate g x = -rightSeparatorCandidate (-g) (-x) := by
+  have hset : leftSeparatorRightSet g = -rightSeparatorLeftSet (-g) := by
+    ext y
+    simp only [leftSeparatorRightSet, rightSeparatorLeftSet, Set.mem_union,
+      Set.mem_singleton_iff, Set.mem_range, Set.mem_neg, Subtype.exists, exists_prop, neg_eq_zero]
+    rw [exists_moves_neg]
+    refine or_congr_right (exists_congr fun a => and_congr_right fun _ => ?_)
+    rw [Adjoint.adjoint_neg]
+    exact neg_inj.symm
+  have hx : ({x} : Set G) = -{-x} := by rw [Set.neg_singleton, neg_neg]
+  unfold leftSeparatorCandidate rightSeparatorCandidate
+  simp only [neg_ofSets, hx, hset]
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
@@ -223,6 +254,59 @@ lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
           simp only [Set.mem_singleton_iff] at hyr
           rw [hyr]
           exact hhx
+
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$ If $G$ and $H$ are
+`RightSeparating`, and $\form<X>[0,(G^\mathcal{L})^\circ]\in\mathcal{A}$ for
+every $X\in\mathcal{A}$, then $G$ and $H$ are `LeftSeparating`. The Left/Right
+mirror of `rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem`.
+-/
+lemma leftSeparating_of_rightSeparating_of_leftSeparatorCandidate_mem
+    {A : G → Prop} {g h : G}
+    (h_candidate : ∀ {x : G}, A x → A (leftSeparatorCandidate g x))
+    (h_right_sep : RightSeparating A g h) :
+    LeftSeparating A g h := by
+  obtain ⟨x, hx, hgx, hhx⟩ := h_right_sep
+  let y := leftSeparatorCandidate g x
+  have hy : A y := h_candidate hx
+  refine ⟨y, hy, ?_, ?_⟩
+  · rw [not_winsGoingFirst_iff]
+    constructor
+    · intro h_end
+      have hy_end : IsEndLike .left y := (IsEndLike.add_iff.mp h_end).right
+      rw [ofSets_isEndLike_iff, isEnd_def, leftMoves_ofSets] at hy_end
+      exact Set.singleton_ne_empty x hy_end
+    · intro k hk
+      rw [moves_add] at hk
+      cases hk with
+      | inl h_g_move =>
+          obtain ⟨gl, hgl, rfl⟩ := h_g_move
+          apply winsGoingFirst_of_moves
+          refine ⟨gl + gl°, ?_, ?_⟩
+          · apply add_left_mem_moves_add
+            change gl° ∈ moves .right (leftSeparatorCandidate g x)
+            unfold leftSeparatorCandidate
+            rw [rightMoves_ofSets (s := {x}) (t := leftSeparatorRightSet g)]
+            simp only [Set.mem_union, Set.mem_singleton_iff, Set.mem_range]
+            right
+            exact ⟨⟨gl, hgl⟩, rfl⟩
+          · exact not_winsGoingFirst_of_misereOutcome_P (misereOutcome_add_adjoint_eq_P gl)
+      | inr h_y_move =>
+          obtain ⟨yl, hyl, rfl⟩ := h_y_move
+          change yl ∈ moves .left (leftSeparatorCandidate g x) at hyl
+          unfold leftSeparatorCandidate at hyl
+          rw [leftMoves_ofSets (s := {x}) (t := leftSeparatorRightSet g)] at hyl
+          simp only [Set.mem_singleton_iff] at hyl
+          rw [hyl]
+          exact hgx
+  · apply winsGoingFirst_of_moves
+    refine ⟨h + x, ?_, ?_⟩
+    · apply add_left_mem_moves_add
+      change x ∈ moves .left (leftSeparatorCandidate g x)
+      unfold leftSeparatorCandidate
+      rw [leftMoves_ofSets (s := {x}) (t := leftSeparatorRightSet g)]
+      simp only [Set.mem_singleton_iff]
+    · exact hhx
 
 open Classical
 
@@ -344,6 +428,8 @@ lemma downlinked_of_downlinkWitness_mem
           (winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hz.left, isEnd_zero⟩) :
             WinsGoingFirst .left (h + 0))
 
+-- TODO: the next two lemmas are now unused (the comparison proof no longer
+-- negates to build separators); keep, move, or remove them later.
 /--
 If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
 must be `LeftSeparating`.

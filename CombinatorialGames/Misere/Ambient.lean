@@ -30,6 +30,14 @@ class Ambient (IsAmbient : outParam (G → Prop)) extends Hereditary IsAmbient, 
     IsAmbient g → IsAmbient h → (∀ gl, IsAmbient (x gl)) → (∀ hr, IsAmbient (y hr)) →
       IsAmbient (downlinkWitness g h x y)
 
+/-- The Left separator stays ambient: it is the conjugate of a right one. -/
+theorem Ambient.isAmbient_leftSeparatorCandidate {IsAmbient : G → Prop} [Ambient IsAmbient]
+    {g x : G} (hg : IsAmbient g) (hx : IsAmbient x) :
+    IsAmbient (leftSeparatorCandidate g x) := by
+  rw [leftSeparatorCandidate_eq_neg]
+  exact ClosedUnderNeg.neg_of (Ambient.isAmbient_rightSeparatorCandidate
+    (ClosedUnderNeg.neg_of hg) (ClosedUnderNeg.neg_of hx))
+
 instance : Ambient (fun _ => True) (G := G) where
   isAmbient_adjoint _ := by
     trivial
