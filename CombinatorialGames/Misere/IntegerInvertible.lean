@@ -32,23 +32,18 @@ class IntegerInvertible (A : GameForm → Prop) : Prop extends HasInt A where
 If $\mathcal{A}$ is integer-invertible then so is $\operatorname{pf}(\mathcal{A})$.
 -/
 instance [IntegerInvertible A] : IntegerInvertible (PFreeSubset A) where
-  has_nat n := .mk (HasNat.has_nat n) (isPFree_natCast n)
   has_int n := .mk (HasInt.has_int n) (isPFree_intCast n)
   int_add_neg_misereEQ n := fun x hx =>
     IntegerInvertible.int_add_neg_misereEQ (A := A) n x hx.mem
 
 namespace IntegerInvertible
 
--- TODO: Generalize to HasZero as it can be inferred from Hereditary on GameForm or from HasNat
 /--
 If $0 \in \mathcal{A}$ and $G =_{\mathcal{A}} H$ then $\operatorname{o}(G) = \operatorname{o}(H)$.
 -/
-theorem misereOutcome_eq_of_misereEQ [HasNat A] {g h : GameForm}
+theorem misereOutcome_eq_of_misereEQ [HasZero A] {g h : GameForm}
     (h1 : g =m A h) : MisereOutcome g = MisereOutcome h := by
-  have h0 : A 0 := by
-    have := HasNat.has_nat (A := A) 0
-    rwa [Nat.cast_zero] at this
-  have := h1 0 h0
+  have := h1 0 HasZero.has_zero
   rwa [add_zero, add_zero] at this
 
 /--

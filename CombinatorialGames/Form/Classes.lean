@@ -15,11 +15,20 @@ namespace Form
 
 variable {G : Type (u + 1)} [Form G]
 
+class HasZero (A : G → Prop) where
+  has_zero : A (0 : G)
+
 class HasNat (A : G → Prop) where
   has_nat (n : ℕ) : A (n : G)
 
-class HasInt (A : G → Prop) extends HasNat A where
+class HasInt (A : G → Prop) where
   has_int (n : ℤ) : A (n : G)
+
+instance {A : G → Prop} [HasNat A] : HasZero A where
+  has_zero := by exact_mod_cast HasNat.has_nat (A := A) 0
+
+instance {A : G → Prop} [HasInt A] : HasNat A where
+  has_nat n := HasInt.has_int n
 
 theorem HasInt.has_neg_int {A : G → Prop} [HasInt A] (n : ℕ) : A (-(n : G)) := by
   have hi := HasInt.has_int (A := A) (-(n : ℤ))
