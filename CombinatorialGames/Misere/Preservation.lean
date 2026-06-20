@@ -340,16 +340,16 @@ theorem closureChain_eq_universeClosure {IsAmbient A : G → Prop} [Universe IsA
   universe. -/
 theorem closureChain_longUniverse
     {A : G → Prop} (h0 : A 0) :
-    LongUniverse (closureChain (fun _ : G => True) A) where
+    LongUniverse (closureChain IsLong A) where
   toUniverse :=
-    closureChain_universe (IsAmbient := fun _ : G => True)
+    closureChain_universe (IsAmbient := IsLong)
       (fun _ _ => trivial) h0
 
 /-- The long closure chain agrees with the long universal closure operator. -/
 theorem closureChain_eq_longUniverseClosure
     {A : G → Prop} (h0 : A 0) :
-    closureChain (fun _ : G => True) A = LongUniverse.closure A :=
-  closureChain_eq_universeClosure (IsAmbient := fun _ : G => True)
+    closureChain IsLong A = LongUniverse.closure A :=
+  closureChain_eq_universeClosure (IsAmbient := IsLong)
     (fun _ _ => trivial) h0
 
 /-- The conjugate–hereditary–additive–dicotic closure chain yields a short
@@ -647,25 +647,25 @@ theorem endLikeSeedToUniverse_bijective {IsAmbient : G → Prop}
   seed. -/
 theorem endLikePart_longUniverseClosure_eq_of_seed {p : Player} {A : G → Prop}
     [EndLikeSeed p A] : endLikePart p (LongUniverse.closure A) = A :=
-  endLikePart_universeClosure_eq_of_seed (IsAmbient := fun _ : G => True)
+  endLikePart_universeClosure_eq_of_seed (IsAmbient := IsLong)
     (fun _ _ => trivial)
 
 /-- The `p` end-like part of a long universe is a `p` seed. -/
 theorem endLikePart_seed_of_longUniverse {p : Player} {A : G → Prop} [LongUniverse A] :
     EndLikeSeed p (endLikePart p A) :=
-  endLikePart_seed_of_universe (IsAmbient := fun _ : G => True) (A := A)
+  endLikePart_seed_of_universe (IsAmbient := IsLong) (A := A)
 
 /-- A long universe is the long universal closure of its `p` end-like part. -/
 theorem longUniverseClosure_endLikePart_eq_of_longUniverse {p : Player} {A : G → Prop}
     [LongUniverse A] : LongUniverse.closure (endLikePart p A) = A :=
   universeClosure_endLikePart_eq_of_universe
-    (IsAmbient := fun _ : G => True) (A := A)
+    (IsAmbient := IsLong) (A := A)
 
 /-- Long universal closure gives a bijection from `p` seeds to long universes.
   -/
 theorem endLikeSeedToLongUniverse_bijective (p : Player) :
-    Function.Bijective (endLikeSeedToUniverse G (fun _ : G => True) p) :=
-  endLikeSeedToUniverse_bijective (IsAmbient := fun _ : G => True) p
+    Function.Bijective (endLikeSeedToUniverse G IsLong p) :=
+  endLikeSeedToUniverse_bijective (IsAmbient := IsLong) p
 
 /-- The `p` end-like part of the short universal closure of a short `p` seed is
   the seed. -/

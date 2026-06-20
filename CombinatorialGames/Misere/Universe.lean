@@ -24,11 +24,11 @@ class Universe (IsAmbient : G → Prop) (A : G → Prop) extends
   zero_mem : A 0
   isAmbient_of_mem {g : G} : A g → IsAmbient g
 
-class LongUniverse (A : G → Prop) extends Universe (fun _ => True) A
+class LongUniverse (A : G → Prop) extends Universe IsLong A
 
 class ShortUniverse (A : G → Prop) extends Universe IsShort A
 
-instance : LongUniverse (fun _ : G => True) where
+instance : LongUniverse (IsLong : G → Prop) where
   has_add _ _ _ _ := trivial
   has_option _ _ := trivial
   neg_of _ := trivial
@@ -265,14 +265,14 @@ namespace LongUniverse
 
 /-- The smallest long universe containing `A`. -/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
-  Universe.closure (fun _ : G => True) A (fun _ _ => trivial)
+  Universe.closure IsLong A (fun _ _ => trivial)
 
 instance closure_universe (A : G → Prop) : LongUniverse (closure A) where
   toUniverse :=
-    Universe.closure_universe (fun _ : G => True) (A := A) (fun _ _ => trivial)
+    Universe.closure_universe IsLong (A := A) (fun _ _ => trivial)
 
 theorem closure_le {A B : G → Prop} [LongUniverse B] : closure A ≤ B ↔ A ≤ B :=
-  Universe.closure_le (fun _ : G => True) (fun _ _ => trivial)
+  Universe.closure_le IsLong (fun _ _ => trivial)
 
 end LongUniverse
 

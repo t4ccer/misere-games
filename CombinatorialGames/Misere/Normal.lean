@@ -127,10 +127,10 @@ termination_by (g, h)
 decreasing_by all_goals form_wf
 
 theorem misereGE_iff_maintenance {g h : AugmentedForm.{u}} (hg : Normal g) (hh : Normal h) :
-    g ≥m (fun _ => True) h ↔
-      Maintenance (fun _ => True) g h .right ∧ Maintenance (fun _ => True) g h .left :=
+    g ≥m IsLong h ↔
+      Maintenance IsLong g h .right ∧ Maintenance IsLong g h .left :=
   misereGE_iff_maintenance_of_isEndLike
-    (Form.Promain.of_isDownlinking_of_hereditary (IsAmbient := fun _ => True) (A := fun _ => True))
+    (Form.Promain.of_isDownlinking_of_hereditary (IsAmbient := IsLong) (A := IsLong))
     hg.isEndLike hh.isEndLike trivial trivial
 
 theorem misereGE_iff_maintenance_isShort {g h : AugmentedForm.{u}}
@@ -141,7 +141,7 @@ theorem misereGE_iff_maintenance_isShort {g h : AugmentedForm.{u}}
     hg.isEndLike hh.isEndLike hgs hhs
 
 private theorem add_neg_misereGE_zero {g : AugmentedForm} (hg : Normal g) :
-    MisereGE (fun _ : AugmentedForm => True) (g + -g) 0 := by
+    MisereGE IsLong (g + -g) 0 := by
   refine misereGE_of_maintenance_of_isEndLike (hg.add_neg_isEndLike .left)
     (isEndLike_of_isEnd isEnd_zero) ?_ ?_
   · intro gr hgr
@@ -163,7 +163,7 @@ termination_by g
 decreasing_by all_goals exact Moves.Subposition.of_mem_moves (by assumption)
 
 private theorem zero_misereGE_add_neg {g : AugmentedForm} (hg : Normal g) :
-    MisereGE (fun _ : AugmentedForm => True) 0 (g + -g) := by
+    MisereGE IsLong 0 (g + -g) := by
   refine misereGE_of_maintenance_of_isEndLike (isEndLike_of_isEnd isEnd_zero)
     (hg.add_neg_isEndLike .right) ?_ ?_
   · intro gr hgr
@@ -185,11 +185,11 @@ termination_by g
 decreasing_by all_goals exact Moves.Subposition.of_mem_moves (by assumption)
 
 theorem add_neg_misereEQ_zero {g : AugmentedForm} (hg : Normal g) :
-    MisereEQ (fun _ : AugmentedForm => True) (g + -g) 0 :=
+    MisereEQ IsLong (g + -g) 0 :=
   MisereEq.of_antisymm (add_neg_misereGE_zero hg) (zero_misereGE_add_neg hg)
 
 theorem neg_add_misereEQ_zero {g : AugmentedForm} (hg : Normal g) :
-    MisereEQ (fun _ : AugmentedForm => True) (-g + g) 0 := by
+    MisereEQ IsLong (-g + g) 0 := by
   simpa [add_comm] using add_neg_misereEQ_zero hg
 
 end Normal
@@ -206,31 +206,22 @@ namespace MisereQuotient
 
 namespace Augmented
 
--- TODO: I wanted to write something like `fun _ => True` here to define `All`,
--- but it caused a calamity. The universe wasn't pinned, and it couldn't
--- determine it later on, so I fixed it with this. Is this the right solution?
-
-abbrev All : AugmentedForm.{u} → Prop := fun g => g = g
-
-instance : ClosedUnderAdd (All : AugmentedForm.{u} → Prop) where
-  has_add _ _ _ _ := rfl
-
-instance : Fact (All (0 : AugmentedForm.{u})) :=
-  ⟨rfl⟩
+instance : Fact (IsLong (0 : AugmentedForm.{u})) :=
+  ⟨trivial⟩
 
 /-- The long augmented misère monoid: augmented forms modulo misère equality.
   -/
 abbrev LongQuotient : Type (u + 1) :=
-  MisereQuotient (G := AugmentedForm.{u}) All
+  MisereQuotient (G := AugmentedForm.{u}) IsLong
 
 /-- The class of an augmented form in the long quotient. -/
 noncomputable def mkLong (g : AugmentedForm.{u}) : LongQuotient.{u} :=
-  mk (A := All) ⟨g, rfl⟩
+  mk (A := IsLong) ⟨g, trivial⟩
 
 @[simp]
 theorem mkLong_add (g h : AugmentedForm.{u}) :
     mkLong (g + h) = mkLong g + mkLong h :=
-  (mk_add_mk (A := All) ⟨g, rfl⟩ ⟨h, rfl⟩).symm
+  (mk_add_mk (A := IsLong) ⟨g, trivial⟩ ⟨h, trivial⟩).symm
 
 @[simp]
 theorem mkLong_zero : mkLong (0 : AugmentedForm.{u}) = 0 :=

@@ -22,7 +22,7 @@ class ClosedUnderDicotic (IsAmbient : G → Prop) (A : G → Prop) where
     B.Nonempty → C.Nonempty → IsAmbient (!{B | C} : G) → A (!{B | C} : G)
 
 abbrev ClosedUnderLongDicotic (A : G → Prop) :=
-  ClosedUnderDicotic (fun _ => True) A
+  ClosedUnderDicotic IsLong A
 
 abbrev ClosedUnderShortDicotic (A : G → Prop) :=
   ClosedUnderDicotic IsShort A

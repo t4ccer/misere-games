@@ -38,7 +38,7 @@ theorem Ambient.isAmbient_leftSeparatorCandidate {IsAmbient : G → Prop} [Ambie
   exact ClosedUnderNeg.neg_of (Ambient.isAmbient_rightSeparatorCandidate
     (ClosedUnderNeg.neg_of h_root) (ClosedUnderNeg.neg_of hg) (ClosedUnderNeg.neg_of hx))
 
-instance : Ambient (fun _ => True) (G := G) where
+instance : Ambient (IsLong : G → Prop) where
   isAmbient_rootedAdjoint _ _ := by
     trivial
   isAmbient_rightSeparatorCandidate _ _ _ := by

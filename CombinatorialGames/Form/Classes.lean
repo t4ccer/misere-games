@@ -15,6 +15,15 @@ namespace Form
 
 variable {G : Type (u + 1)} [Form G]
 
+/--
+The ambient space of all games, imposing no restriction. This is the
+counterpart of `IsShort`.
+-/
+@[expose] def IsLong (_ : G) : Prop := True
+
+omit [Form G] in
+@[simp] theorem isLong (g : G) : IsLong g := trivial
+
 class HasZero (A : G → Prop) where
   has_zero : A (0 : G)
 
@@ -30,6 +39,9 @@ instance {A : G → Prop} [HasNat A] : HasZero A where
 instance {A : G → Prop} [HasInt A] : HasNat A where
   has_nat n := HasInt.has_int n
 
+instance : HasInt (IsLong : G → Prop) where
+  has_int _ := trivial
+
 theorem HasInt.has_neg_int {A : G → Prop} [HasInt A] (n : ℕ) : A (-(n : G)) := by
   have hi := HasInt.has_int (A := A) (-(n : ℤ))
   rwa [Form.intCast_neg, Form.intCast_nat] at hi
@@ -41,8 +53,14 @@ theorem has_one {A : G → Prop} [HasNat A] : A 1 := by
 class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
 
+instance : ClosedUnderAddNat (IsLong : G → Prop) where
+  has_add _ _ := trivial
+
 class ClosedUnderAdd (A : G → Prop) where
   has_add (g h : G) (h_g : A g) (h_h : A h) : A (g + h)
+
+instance : ClosedUnderAdd (IsLong : G → Prop) where
+  has_add _ _ _ _ := trivial
 
 variable {A : G → Prop}
 
@@ -53,7 +71,7 @@ theorem Hereditary.of_mem_moves {A : G → Prop} [Hereditary A]
   {p : Player} {g g' : G} (hA : A g) (h_mem : g' ∈ moves p g) : A g' :=
   Hereditary.has_option hA (IsOption.of_mem_moves h_mem)
 
-instance : Hereditary (fun _ => True) (G := G) where
+instance : Hereditary (IsLong : G → Prop) where
   has_option _ _ := trivial
 
 private theorem exists_isZeroLike_of_mem [Hereditary A] {g : G} (hg : A g) :
@@ -77,7 +95,7 @@ theorem exists_isZeroLike [Hereditary A] (h : ∃ g, A g) : ∃ z, A z ∧ IsZer
 class ClosedUnderNeg (A : G → Prop) where
   neg_of {g : G} (h1 : A g) : A (-g)
 
-instance : ClosedUnderNeg (fun _ => True) (G := G) where
+instance : ClosedUnderNeg (IsLong : G → Prop) where
   neg_of _ := trivial
 
 @[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
