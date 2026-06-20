@@ -165,8 +165,8 @@ abbrev rightSeparatorLeftSet (r h : G) : Set G :=
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
 Given forms $H$ and $X$ and a root $r$, this constructs the form
 $\form<r,\operatorname{adj}_r(H^\mathcal{R})>[X]$, which is used by
-`leftSeparating_rightSeparating_of_not_misereGE` to show that $G$ and $H$ must
-be both `LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
+`Separating.pair_of_not_misereGE` to show that $G$ and $H$ must be both
+`LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
 -/
 noncomputable abbrev rightSeparatorCandidate (r h x : G) : G :=
   !{rightSeparatorLeftSet r h | {x}}

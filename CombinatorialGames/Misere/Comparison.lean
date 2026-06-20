@@ -8,6 +8,35 @@ module
 public import CombinatorialGames.Misere.Ambient
 public import CombinatorialGames.Misere.Universe
 
+/-!
+# Comparison modulo a set
+
+We study when comparison of ambient forms modulo `A` is decided by the
+*maintenance–proviso test* (`Promain.Test`). A set is `Promain` when the test
+entirely characterises comparison. We split this into the two respective
+directions, since each can be meaningful on its own:
+
+* `Promain.Necessary`, when comparison implies the test; and
+* `Promain.Sufficient`, when the test implies comparison.
+
+Strikingly, sufficiency needs only that `A` is `Form.Hereditary`. Necessity,
+however, is the more complicated of the two: it holds when `A` is
+`IsDownlinking`, a property guaranteed for dicotically closed sets containing a
+root, and in particular for every `Universe`.
+
+Note that we are providing sufficient conditions for `Promain.Necessary` and
+`Promain.Sufficient`; it remains unclear what structure can be inferred about a
+set `A` that has either of these two properties.
+
+The main result of this section is `Promain.of_dicotic_of_nonempty`, which
+states that every nonempty, hereditary, dicotically closed set is promain.
+
+## References
+
+* [A. N. Siegel, *On the general dead-ending universe of partizan games*
+(Section 5 on pp. 207–222)][siegel:GeneralDeadendingUniverse:2025]
+-/
+
 universe u
 
 variable {G : Type (u + 1)} [Form G]
@@ -21,38 +50,94 @@ public section
 
 namespace Form
 
-/-- A set `A` is *promain* (within the ambient `IsAmbient`) when comparison of
-ambient forms modulo `A` is decided entirely by the maintenance and proviso
-conditions. -/
-@[expose] def Promain (IsAmbient A : G → Prop) : Prop :=
-  ∀ ⦃g h : G⦄, IsAmbient g → IsAmbient h →
-    (g ≥m A h ↔ Maintenance A g h .right ∧ Maintenance A g h .left ∧
-               Proviso A g h .right ∧ Proviso A h g .left)
+/-!
+### The maintenance–proviso test
+-/
 
 /--
-This is an interface used to show that $G\ge_\mathcal{U}H$ implies
-`Form.Maintenance` and `Form.Proviso` (see `maintenance_proviso_of_misereGE`).
-
-The `IsAmbient` predicate dictates what game forms exist in the ambient space
-for comparison. For example, in a `ShortUniverse`, `IsAmbient` is
-`Form.IsShort`. We require the set of ambient forms to be `Form.Hereditary`.
+The *maintenance–proviso test* for `g` and `h` modulo `A`, simply requiring
+both the maintenance and the proviso to be satisfied.
 -/
-class ComparisonSet (IsAmbient : G → Prop) (A : G → Prop) extends Hereditary IsAmbient where
-  separating_pair_of_not_misereGE {g h : G} :
-    IsAmbient g → IsAmbient h → ¬(g ≥m A h) →
-      LeftSeparating A g h ∧ RightSeparating A g h
-  downlinked_of_separating {g h : G} :
-    IsAmbient g → IsAmbient h →
-    (∀ gl : moves .left g, LeftSeparating A (gl : G) h) →
-    (∀ hr : moves .right h, RightSeparating A g (hr : G)) →
-      Downlinked A g h
+@[expose] def Promain.Test (A : G → Prop) (g h : G) : Prop :=
+  Maintenance A g h .right ∧ Maintenance A g h .left ∧
+  Proviso A g h .right ∧ Proviso A h g .left
+
+/--
+A set `A` is *promain* (within the ambient `IsAmbient`) when comparison of
+ambient forms modulo `A` is decided entirely by the maintenance–proviso test
+(i.e. by `Test`).
+-/
+@[expose] def Promain (IsAmbient A : G → Prop) : Prop :=
+  ∀ ⦃g h : G⦄, IsAmbient g → IsAmbient h → (g ≥m A h ↔ Promain.Test A g h)
+
+/--
+The necessary/'forward' direction of `Promain`, for when comparison forces the
+test.
+-/
+@[expose] def Promain.Necessary (IsAmbient A : G → Prop) : Prop :=
+  ∀ ⦃g h : G⦄, IsAmbient g → IsAmbient h → g ≥m A h → Promain.Test A g h
+
+/--
+The sufficient/'backward' direction of `Promain`, for when the test forces
+comparison.
+-/
+@[expose] def Promain.Sufficient (IsAmbient A : G → Prop) : Prop :=
+  ∀ ⦃g h : G⦄, IsAmbient g → IsAmbient h → Promain.Test A g h → g ≥m A h
 
 variable {IsAmbient A : G → Prop}
 
-/-! ### Membership of the separating and downlinked constructions
+theorem Promain.necessary (hp : Promain IsAmbient A) : Promain.Necessary IsAmbient A := by
+  intro g h hg hh; exact (hp hg hh).mp
 
-These auxiliary forms are all dicotic, so they live in every `A` that contains
-`0` and is dicotically closed. -/
+theorem Promain.sufficient (hp : Promain IsAmbient A) : Promain.Sufficient IsAmbient A := by
+  intro g h hg hh; exact (hp hg hh).mpr
+
+theorem Promain.mk (hn : Promain.Necessary IsAmbient A) (hs : Promain.Sufficient IsAmbient A) :
+    Promain IsAmbient A := by
+  intro g h hg hh; exact ⟨hn hg hh, hs hg hh⟩
+
+theorem Promain.iff_necessary_and_sufficient :
+    Promain IsAmbient A ↔ Promain.Necessary IsAmbient A ∧ Promain.Sufficient IsAmbient A :=
+  ⟨fun hp => ⟨hp.necessary, hp.sufficient⟩, fun ⟨hn, hs⟩ => Promain.mk hn hs⟩
+
+/-!
+### Separating and downlinking sets
+-/
+
+/--
+A set `A` is *separating* (within the ambient `IsAmbient`) when incomparable
+ambient forms are separated from both sides. This is essentially [Siegel, Lemma
+5.8][siegel:GeneralDeadendingUniverse:2025] extracted into a property.
+-/
+class IsSeparating (IsAmbient : G → Prop) (A : G → Prop) where
+  /-- If `g ≱ h` modulo `A`, then `g` and `h` are both Left- and
+  Right-separating. -/
+  separating_pair_of_not_misereGE {g h : G} :
+    IsAmbient g → IsAmbient h → ¬(g ≥m A h) →
+      LeftSeparating A g h ∧ RightSeparating A g h
+
+/--
+A set `A` is *downlinking* (within the ambient `IsAmbient`) when we can
+conclude two ambient forms are downlinked in the following way: if no Left
+option of `g` is better than `h`, and `g` is better than no Right option of
+`h`, then `g` is downlinked to `h`. This is essentially an extraction of
+[Siegel, Lemma 5.10][siegel:GeneralDeadendingUniverse:2025]
+
+This is currently the crux of proving a set is `Promain.Necessary` (see
+`Promain.Necessary.of_isDownlinking`).
+-/
+class IsDownlinking (IsAmbient : G → Prop) (A : G → Prop) extends Hereditary IsAmbient where
+  downlinked_of_not_exists_moves_misereGE {g h : G} :
+    IsAmbient g → IsAmbient h →
+    (¬∃ gl ∈ moves .left g, gl ≥m A h) →
+    (¬∃ hr ∈ moves .right h, g ≥m A hr) →
+      Downlinked A g h
+
+/-!
+Currently, the auxiliary separating and downlinking forms used in our proofs
+are all grown dicotically from rooted adjoints with a fixed root, so they live
+in any dicotically closed `A` containing a root.
+-/
 
 section
 
@@ -246,81 +331,84 @@ theorem Separating.pair_of_not_misereGE
 
 /--
 A dicotically closed `A` lying in the ambient space and containing a *root* `r`
-(see `IsRoot`) is a `ComparisonSet` (no further closure properties required!).
-Taking `r = 0` recovers the usual case where `A` contains `0`.
+(see `Form.Misere.Adjoint.IsRoot`) is `IsSeparating` (no further closure
+properties required!).
 -/
-def ComparisonSet.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
+def IsSeparating.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
     (h_sub : A ≤ IsAmbient) :
-    ComparisonSet IsAmbient A where
+    IsSeparating IsAmbient A where
   separating_pair_of_not_misereGE hg hh h_not_ge :=
     Separating.pair_of_not_misereGE h_root h_isRoot h_sub hg hh h_not_ge
-  downlinked_of_separating hg hh h_left_sep h_right_sep :=
-    Downlinked.of_separating h_root h_isRoot h_sub hg hh h_left_sep h_right_sep
 
 /--
-A nonempty, hereditary, dicotically closed `A` lying in the ambient space is a
-`ComparisonSet`. The zero-like form it must contain (`exists_isZeroLike`)
-serves as the required root.
+A nonempty, hereditary, dicotically closed `A` lying in the ambient space is
+`IsSeparating`. Note that this is strictly weaker than `of_dicotic`; it is
+mainly included for convenience.
 -/
-def ComparisonSet.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
+def IsSeparating.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
     (h_sub : A ≤ IsAmbient) :
-    ComparisonSet IsAmbient A :=
+    IsSeparating IsAmbient A :=
   let ⟨_, hr, hr_zero⟩ := exists_isZeroLike h_ne
   .of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
 
-end
-
-namespace ComparisonSet
-
-section
-
-variable [Ambient IsAmbient] [Universe IsAmbient A]
-
-instance instComparisonSetUniverse : ComparisonSet IsAmbient A :=
-  .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
-    (fun _ ha => Universe.isAmbient_of_mem ha)
-
-end
-
-variable [ComparisonSet IsAmbient A]
-
--- TODO: Remove and use class member?
-/--
-If $G\ngeq_\mathcal{A}H$, then $G$ and $H$ must be both `LeftSeparating` and
-`RightSeparating`. This generalises a result of [Siegel (Lemma 5.8 on p.
-214)][siegel:GeneralDeadendingUniverse:2025], which proved it only for short
-augmented forms and short universes.
--/
-lemma leftSeparating_rightSeparating_of_not_misereGE
-    {g h : G}
-    (hg : IsAmbient g) (hh : IsAmbient h) (h_not_ge : ¬(g ≥m A h)) :
-    LeftSeparating A g h ∧ RightSeparating A g h := by
-  exact separating_pair_of_not_misereGE hg hh h_not_ge
-
-/--
-If $\nexists G^L$ such that $G^L\ge_\mathcal{A}H$, and $\nexists H^R$ such that
-$G\ge_\mathcal{A}H^R$, then $G$ must be downlinked to $H$.
-
-This is a transfinite generalisation of one half of a result of [Siegel (Lemma
-5.10 on p. 214)][siegel:GeneralDeadendingUniverse:2025].
--/
-lemma downlinked_of_not_exists_moves_misereGE
-    {g h : G}
-    (hg : IsAmbient g) (hh : IsAmbient h)
+private theorem downlinked_of_not_exists_moves_of_isSeparating [IsSeparating IsAmbient A]
+    (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient)
+    {g h : G} (hg : IsAmbient g) (hh : IsAmbient h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m A h)
     (h_right : ¬∃ hr ∈ moves .right h, g ≥m A hr) :
     Downlinked A g h := by
   have h_left_sep : ∀ gl : moves .left g, LeftSeparating A (gl : G) h := by
     intro gl
     have h_not_ge : ¬((gl : G) ≥m A h) := fun hge => h_left ⟨gl, gl.prop, hge⟩
-    exact (leftSeparating_rightSeparating_of_not_misereGE
+    exact (IsSeparating.separating_pair_of_not_misereGE
       (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop)) hh h_not_ge).left
   have h_right_sep : ∀ hr : moves .right h, RightSeparating A g (hr : G) := by
     intro hr
     have h_not_ge : ¬(g ≥m A (hr : G)) := fun hge => h_right ⟨hr, hr.prop, hge⟩
-    exact (leftSeparating_rightSeparating_of_not_misereGE
+    exact (IsSeparating.separating_pair_of_not_misereGE
       hg (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop)) h_not_ge).right
-  exact downlinked_of_separating hg hh h_left_sep h_right_sep
+  exact Downlinked.of_separating h_root h_isRoot h_sub hg hh h_left_sep h_right_sep
+
+/--
+A separating, dicotically closed `A` in the ambient space with a root is
+downlinking (`IsSeparating` supplies what the downlink construction needs).
+-/
+def IsDownlinking.of_isSeparating [IsSeparating IsAmbient A]
+    (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient) :
+    IsDownlinking IsAmbient A where
+  downlinked_of_not_exists_moves_misereGE hg hh h_left h_right :=
+    downlinked_of_not_exists_moves_of_isSeparating h_root h_isRoot h_sub hg hh h_left h_right
+
+/--
+A dicotically closed `A` lying in the ambient space and containing a *root* `r`
+(see `Form.Misere.Adjoint.IsRoot`) is `IsDownlinking` (no further closure
+properties required!). Taking `r = 0` recovers the usual case where `A`
+contains `0`.
+-/
+def IsDownlinking.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
+    (h_sub : A ≤ IsAmbient) :
+    IsDownlinking IsAmbient A :=
+  letI := IsSeparating.of_dicotic h_root h_isRoot h_sub
+  IsDownlinking.of_isSeparating h_root h_isRoot h_sub
+
+/--
+A nonempty, hereditary, dicotically closed `A` lying in the ambient space is
+`IsDownlinking`. The zero-like form it must contain (`Form.exists_isZeroLike`)
+serves as the required root.
+-/
+def IsDownlinking.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
+    (h_sub : A ≤ IsAmbient) :
+    IsDownlinking IsAmbient A :=
+  let ⟨_, hr, hr_zero⟩ := exists_isZeroLike h_ne
+  .of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
+
+end
+
+/-! ### Necessity -/
+
+section
+
+variable [IsDownlinking IsAmbient A]
 
 private lemma not_misereGE_of_right_left_outcomes
     {g h t : G} (hge : g ≥m A h) (ht : A t) (p : Player)
@@ -330,7 +418,11 @@ private lemma not_misereGE_of_right_left_outcomes
   rw [hgt, hht] at h_cmp
   exact Player.left_le_right h_cmp
 
-private lemma not_downlinked_left_option_of_misereGE
+/--
+Comparison forbids downlinking to options: if `g ≥m A h`, then `g` is not
+downlinked to any Left option of `h`.
+-/
+theorem not_downlinked_left_option_of_misereGE
     {g h hl : G} (hge : g ≥m A h) (hhl : hl ∈ moves .left h) :
     ¬Downlinked A g hl := by
   rintro ⟨t, ht, hgt, hhlt⟩
@@ -344,7 +436,11 @@ private lemma not_downlinked_left_option_of_misereGE
     miserePlayerOutcome_of_leftMoves (add_right_mem_moves_add hhl t) hhlt_out
   exact not_misereGE_of_right_left_outcomes hge ht .left hgt_out hht
 
-private lemma not_downlinked_right_option_of_misereGE
+/--
+Comparison forbids downlinking to options: if `g ≥m A h`, then no Right option
+of `g` is downlinked to `h`.
+-/
+theorem not_downlinked_right_option_of_misereGE
     {g h gr : G} (hge : g ≥m A h) (hgr : gr ∈ moves .right g) :
     ¬Downlinked A gr h := by
   rintro ⟨t, ht, hgrt, hht⟩
@@ -366,7 +462,7 @@ private lemma maintenance_of_misereGE
   · intro hl hhl
     by_contra h_not
     have h_downlinked : Downlinked A g hl := by
-      apply downlinked_of_not_exists_moves_misereGE hg
+      apply IsDownlinking.downlinked_of_not_exists_moves_misereGE hg
         (Hereditary.has_option hh (IsOption.of_mem_moves hhl))
       · intro h_exists
         exact h_not (Or.inl h_exists)
@@ -376,7 +472,7 @@ private lemma maintenance_of_misereGE
   · intro gr hgr
     by_contra h_not
     have h_downlinked : Downlinked A gr h := by
-      apply downlinked_of_not_exists_moves_misereGE
+      apply IsDownlinking.downlinked_of_not_exists_moves_misereGE
         (Hereditary.has_option hg (IsOption.of_mem_moves hgr)) hh
       · intro h_exists
         exact h_not (Or.inr h_exists)
@@ -385,38 +481,111 @@ private lemma maintenance_of_misereGE
     exact not_downlinked_right_option_of_misereGE hge hgr h_downlinked
 
 /--
-If $G\ge_\mathcal{A}H$, then $G$ and $H$ must satisfy both the
-`Form.Maintenance` and the `Form.Proviso`.
+If `A` is downlinking, then comparison forces the maintenance–proviso test;
+i.e. `Test` is *necessary* for comparison.
 -/
-theorem maintenance_proviso_of_misereGE
-    {g h : G}
-    (hg : IsAmbient g) (hh : IsAmbient h) :
-    g ≥m A h →
-      Maintenance A g h .right ∧ Maintenance A g h .left ∧
-      Proviso A g h .right ∧ Proviso A h g .left := by
-  intro hge
+theorem Promain.Necessary.of_isDownlinking : Promain.Necessary IsAmbient A := by
+  intro g h hg hh hge
   exact ⟨maintenance_of_misereGE .right hg hh hge,
     maintenance_of_misereGE .left hg hh hge,
     proviso_right_of_misereGE hge,
     proviso_left_of_misereGE hge⟩
 
-/--
-If $\mathcal{A}$ is hereditary, contains `0`, and is dicotically closed, then
-$G\ge_\mathcal{A}H$ if and only if $G$ and $H$ satisfy both the
-`Form.Maintenance` and the `Form.Proviso`.
--/
-theorem misereGE_iff_maintenance_proviso [Hereditary A] : Promain IsAmbient A := by
-  intro g h h_g h_h
-  constructor
-  · intro h_ge
-    exact maintenance_proviso_of_misereGE (IsAmbient := IsAmbient) h_g h_h h_ge
-  · intro ⟨h_mghr, h_mghl, h_pghr, h_pghl⟩
-    exact Hereditary.misereGE_of_maintenance_proviso A h_mghr h_mghl h_pghr h_pghl
+end
 
-end ComparisonSet
+section
+
+variable [Ambient IsAmbient] [ClosedUnderDicotic IsAmbient A]
+
+/--
+A concrete sufficient condition for necessity: a dicotically closed set in the
+ambient space containing a root.
+-/
+theorem Promain.Necessary.of_dicotic {r : G}
+    (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient) :
+    Promain.Necessary IsAmbient A :=
+  letI := IsDownlinking.of_dicotic h_root h_isRoot h_sub
+  Promain.Necessary.of_isDownlinking
+
+/--
+A nonempty, hereditary, dicotically closed set in the ambient space has the
+necessity direction.
+-/
+theorem Promain.Necessary.of_dicotic_of_nonempty [Hereditary A]
+    (h_ne : ∃ g, A g) (h_sub : A ≤ IsAmbient) :
+    Promain.Necessary IsAmbient A :=
+  letI := IsDownlinking.of_dicotic_of_nonempty h_ne h_sub
+  Promain.Necessary.of_isDownlinking
+
+end
+
+/-!
+### Sufficiency
+-/
+
+/--
+If `A` is hereditary, then the maintenance–proviso test (`Test`) is sufficient
+for comparison.
+-/
+theorem Promain.Sufficient.of_hereditary [Hereditary A] : Promain.Sufficient IsAmbient A := by
+  intro g h _ _ ⟨h2, h3, h4, h5⟩
+  exact Hereditary.misereGE_of_maintenance_proviso A h2 h3 h4 h5
+
+/-!
+### Comparison
+-/
+
+/--
+If `A` is downlinking and hereditary, comparison modulo `A` is characterised by
+the maintenance–proviso test.
+-/
+theorem Promain.of_isDownlinking_of_hereditary [IsDownlinking IsAmbient A] [Hereditary A] :
+    Promain IsAmbient A :=
+  Promain.mk Promain.Necessary.of_isDownlinking Promain.Sufficient.of_hereditary
+
+/--
+A nonempty, hereditary, dicotically closed set in the ambient space is promain.
+-/
+theorem Promain.of_dicotic_of_nonempty [Ambient IsAmbient] [ClosedUnderDicotic IsAmbient A]
+    [Hereditary A] (h_ne : ∃ g, A g) (h_sub : A ≤ IsAmbient) :
+    Promain IsAmbient A :=
+  letI := IsDownlinking.of_dicotic_of_nonempty h_ne h_sub
+  Promain.of_isDownlinking_of_hereditary
+
+/--
+Every universe is separating.
+-/
+instance instIsSeparatingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
+    IsSeparating IsAmbient A :=
+  .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
+    (fun _ ha => Universe.isAmbient_of_mem ha)
+
+/--
+Every universe is downlinking.
+-/
+instance instIsDownlinkingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
+    IsDownlinking IsAmbient A :=
+  .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
+    (fun _ ha => Universe.isAmbient_of_mem ha)
+
+/--
+Comparison modulo a universe is characterised by the maintenance–proviso test
+(`Test`).
+-/
+theorem Promain.of_universe [Ambient IsAmbient] [Universe IsAmbient A] :
+    Promain IsAmbient A :=
+  Promain.of_isDownlinking_of_hereditary
+
+/-!
+### Maintenance under refinement
+-/
 
 namespace Maintenance
 
+/--
+If `B` is a subset of `A`, then any pair of games passing the `A`-maintenance
+necessarily also passes the `B`-maintenance.
+-/
 theorem of_subset {A B : G → Prop} (h_subset : ∀ g, B g → A g) {g h : G} {p : Player}
     (h_maintenance : Maintenance A g h p) : Maintenance B g h p := by
   have h_ge {x y : G} (hxy : x ≥m A y) : x ≥m B y := misereGE_of_subset A h_subset x y hxy
