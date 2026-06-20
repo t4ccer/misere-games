@@ -17,7 +17,8 @@ open GameForm
 /-!
 # On Sums of P-Free Forms Under Misère Play
 
-This is formalization of [Alfie Davies, Sarah Miller, Rebecca Milley. On Sums of P-Free Forms Under Misère Play][davies:SumsPFreeForms:2025].
+This module records the formalisation of [Alfie Davies, Sarah Miller, Rebecca
+Milley. On Sums of P-Free Forms Under Misère Play][davies:SumsPFreeForms:2025].
 -/
 
 public section

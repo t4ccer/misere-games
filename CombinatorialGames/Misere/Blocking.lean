@@ -19,9 +19,10 @@ open Form
 open Form.Misere.Outcome
 
 /--
-A *blocked end* for player `p`: `g` is a `p`-end, and for every opponent move `gr`,
-either `gr` is again a blocked end, or `p` has a move from `gr` to a blocked end.
-This is weaker than `IsDeadEnd`.
+A *blocked end* for player `p`: `g` is a `p`-end, and for every opponent move
+`gr`, either `gr` is again a `p` blocked end, or else `p` has a move from `gr`
+to a `p` blocked end. This is weaker than `IsDeadEnd`: every `p` dead end is a
+`p` blocked end (`isBlockedEnd_of_isDeadEnd`), but not the other way around.
 -/
 def IsBlockedEnd (p : Player) (g : G) : Prop :=
   IsEnd p g ∧ (∀ gr ∈ moves (-p) g,

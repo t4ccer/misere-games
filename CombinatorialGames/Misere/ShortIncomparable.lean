@@ -15,8 +15,9 @@ public import CombinatorialGames.Misere.Comparison
 
 # Short Sets and Comparison
 
-This is a mirror of `CombinatorialGames.Misere.LiftIncomparable` module with the difference that
-if we are in a short universe then we do not need to increase the universe level.
+This is a mirror of `CombinatorialGames.Misere.LiftIncomparable` module with
+the difference that if we are in a short universe then we do not need to
+increase the universe level.
 
 The main results are
 - `g_misereEQ_h_short`
@@ -36,7 +37,8 @@ namespace AugmentedForm.Short
 public section
 
 /--
-The set of all adjoints $J^\circ$ (lifted to $u + 1$) for all short $J$ in universe $u$.
+The set of all adjoints $J^\circ$ (lifted to $u + 1$) for all short $J$ in
+universe $u$.
 -/
 noncomputable def adjointsOfShort : Set AugmentedForm.{u} :=
   Set.range (fun J : {x : AugmentedForm.{u} | IsShort x} => (J : AugmentedForm.{u})°)

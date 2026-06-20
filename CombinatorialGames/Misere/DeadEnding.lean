@@ -294,7 +294,7 @@ open Form.Misere.Outcome
 open Form.DeadEnding
 
 /--
-This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013].
 -/
 private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDeadEnd p g) :
     MisereOutcome g = Outcome.ofPlayer p := by
@@ -306,13 +306,13 @@ private theorem lemma3.aux {g : GameForm} {p : Player} (h1 : g ≠ 0) (h2 : IsDe
   exact winsGoingFirst_of_isEnd (isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves h2 h4))
 
 /--
-This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013].
 -/
 theorem isDeadEnd_left_misereOutcome_L (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .left g) :
     MisereOutcome g = .L := lemma3.aux h1 h2
 
 /--
-This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013]
+This is [Milley, Renault (Lemma 3 on p. 5)][milley:DeadEndsMisere:2013].
 -/
 theorem isDeadEnd_right_misereOutcome_R (g : GameForm) (h1 : g ≠ 0) (h2 : IsDeadEnd .right g) :
     MisereOutcome g = .R := lemma3.aux h1 h2
@@ -464,8 +464,10 @@ variable {G : Type (u + 1)} [Form G]
 
 open Form.Misere.Outcome
 
-/-- For Left dead ends `g` and `h` (with `A` promain), comparison `g ≥m A h`
-reduces to the Right proviso plus maintenance of Right's moves. -/
+/--
+For Left dead ends `g` and `h` (with `A` promain), comparison `g ≥m A h`
+reduces to the Right proviso plus maintenance of Right's moves.
+-/
 theorem misereGE_iff_strong_of_isDeadEnd_left
     {A IsAmbient : G → Prop} (h_promain : Promain IsAmbient A)
     {g h : G} (h_g_dead : IsDeadEnd .left g) (h_h_dead : IsDeadEnd .left h)
@@ -489,9 +491,10 @@ theorem misereGE_iff_strong_of_isDeadEnd_left
         (IsEndLike.add_iff.mpr
           ⟨isEndLike_of_isEnd (isEnd_of_isDeadEnd h_g_dead), h_x_left_end⟩)
 
-/-- For Left dead ends, if `A` has a form that is an end for both players (such
-as `0`), the Right proviso simplifies to Right end-like positions being
-preserved. -/
+/--
+For Left dead ends, if `A` has a form that is an end for both players (such as
+`0`), the Right proviso simplifies to Right end-like positions being preserved.
+-/
 theorem misereGE_iff_isEndLike_of_isDeadEnd_left
     {A IsAmbient : G → Prop} (h_promain : Promain IsAmbient A)
     (hA_end : ∃ x, A x ∧ IsEnd .left x ∧ IsEnd .right x)

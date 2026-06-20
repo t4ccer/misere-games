@@ -24,7 +24,8 @@ open Form.Misere.Outcome
 open Ruleset
 
 /--
-Intuitively a position is solved for a given player if they win no matter what they do
+Intuitively, a position is *solved* for a given player if they win regardless
+of the moves they make.
 -/
 def IsSolved (p : Player) (g : GameForm) : Prop :=
   (0 ∉ moves p g)
@@ -79,6 +80,7 @@ theorem isSolved_of_mem_moves {p : Player} {g g' : GameForm} {q : Player}
     (h : IsSolved p g) (hm : g' ∈ moves q g) : IsSolved p g' :=
   isSolved_of_isOption h (IsOption.of_mem_moves hm)
 
+-- TODO: heading?
 ----------------------------------------------------------------------------------------------------
 
 private theorem isSolved_neg {p : Player} {g : GameForm} (h_isSolved : IsSolved p g) :
@@ -126,8 +128,8 @@ theorem isSolved_winsGoingFirst {p : Player} {g : GameForm} (h_isSolved : IsSolv
     apply winsGoingFirst_of_moves
     use gp, h_gp_mem
     rw [not_winsGoingFirst_iff]
-    -- Now since G^P ≠ 0 it cannot be a -p end since G is solved for P and every subposition of
-    -- G^P is winning if p goes first by induction.
+    -- Now since G^P ≠ 0 it cannot be a -p end since G is solved for P and
+    -- every subposition of G^P is winning if p goes first by induction.
     apply And.intro (isEndLike_iff_isEnd.not.mpr (isSolved_not_isEnd h_gp_isSolved h_gp_ne_zero))
     intro gpp h_gpp_mem
     rw [neg_neg]
@@ -147,7 +149,7 @@ theorem isSolved_ne_zero_misereOutcome {p : Player} {g : GameForm}
   exact isSolved_winsGoingFirst (isSolved_of_mem_moves h_isSolved h_gp_mem)
 
 /--
-Sum of two solved games is solved
+The sum of two solved games is solved.
 -/
 theorem isSolved_add {p : Player} {g h : GameForm}
     (h_isSolved_g : IsSolved p g) (h_isSolved_h : IsSolved p h) : IsSolved p (g + h) := by
@@ -230,9 +232,11 @@ theorem isSolved_iff_zero {g : GameForm} : (IsSolved .left g ∧ IsSolved .right
   · intro ⟨h_isSolved_left, h_isSolved_right⟩
     -- Suppose for the sake of contradiction that G ≠ 0
     by_contra h_ne_zero
-    -- Then since G is solved for Left, G is not a Right end so there exists some G^R
+    -- Then since G is solved for Left, G is not a Right end so there exists
+    -- some G^R
     have ⟨gr, h_gr_mem_r⟩ := not_isEnd_exists_move (isSolved_not_isEnd h_isSolved_left h_ne_zero)
-    -- Since G is solved for both players, G^R is also solved by both players so by induction G^R = 0
+    -- Since G is solved for both players, G^R is also solved by both players
+    -- so by induction G^R = 0
     have h_gr := isSolved_iff_zero.mp
                  ⟨ isSolved_of_isOption h_isSolved_left (IsOption.of_mem_moves h_gr_mem_r)
                  , isSolved_of_isOption h_isSolved_right (IsOption.of_mem_moves h_gr_mem_r)⟩
@@ -279,9 +283,10 @@ termination_by g
 decreasing_by form_wf
 
 /--
-Stride measures exactly how many moves away each player is from a solved position
+Stride measures exactly how many moves away each player is from a solved
+position.
 
-Stride is not well defined for all game forms
+Stride is not well-defined for all game forms.
 -/
 def HasStride (p : Player) (g : GameForm) (n : ℕ) : Prop :=
   match n with
@@ -289,8 +294,9 @@ def HasStride (p : Player) (g : GameForm) (n : ℕ) : Prop :=
   | n + 1 =>
     ¬IsSolved p g
     ∧ (∀ g' ∈ moves p g, ∃ k, n ≤ k ∧ HasStride p g' k)
-    -- NOTE: We say that the opponent's stride in our "best" move has a maximum stride rather than
-    -- saying that stride did not change to prevent a loopy definition, these are equivalent
+    -- NOTE: We say that the opponent's stride in our "best" move has a maximum
+    -- stride rather than saying that stride did not change to prevent a loopy
+    -- definition, these are equivalent
     ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n
         ∧ ∀ g'' ∈ moves p g, ∀ m, HasStride (-p) g'' m → ∃ k, m ≤ k ∧ HasStride (-p) g' k)
     ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k)
@@ -299,7 +305,7 @@ termination_by g
 decreasing_by form_wf
 
 /--
-Stride equals zero if game is solved
+The stride equals zero if the game is solved.
 -/
 @[simp]
 theorem hasStride_zero_iff {p : Player} {g : GameForm} :
@@ -309,7 +315,7 @@ theorem hasStride_zero_iff {p : Player} {g : GameForm} :
   · intro h; unfold HasStride; exact h
 
 /--
-Game is solved if its stride equals zero
+A game is solved if its stride equals zero.
 -/
 theorem hasStride_isSolved_iff_zero {p : Player} {g : GameForm} {n : ℕ}
     (h_hasStride : HasStride p g n) : IsSolved p g ↔ n = 0 := by
@@ -339,7 +345,8 @@ theorem hasStride_succ_iff {p : Player} {g : GameForm} {n : ℕ} :
   · intro h; unfold HasStride; exact h
 
 /--
-If the stride of $G$ is not zero then every response lowers the stride by at most one
+If the stride of $G$ is not zero, then every response lowers the stride by at
+most one.
 -/
 theorem hasStride_succ_support {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) (g' : GameForm) (hg' : g' ∈ moves p g) :
@@ -347,7 +354,8 @@ theorem hasStride_succ_support {p : Player} {g : GameForm} {n : ℕ}
   (hasStride_succ_iff.mp h).2.1 g' hg'
 
 /--
-If the stride of $G$ is not zero then there exist some response to stride lower by one
+If the stride of $G$ is not zero, then there exist some response to stride
+lower by one.
 -/
 theorem hasStride_succ_exists_best {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) :
@@ -356,7 +364,8 @@ theorem hasStride_succ_exists_best {p : Player} {g : GameForm} {n : ℕ}
   (hasStride_succ_iff.mp h).2.2.1
 
 /--
-If the stride of $G$ is not zero then every opponent move preserves the stride
+If the stride of $G$ is not zero, then every opponent move preserves the
+stride.
 -/
 theorem hasStride_succ_support_neg {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) (g' : GameForm) (hg' : g' ∈ moves (-p) g) :
@@ -364,7 +373,7 @@ theorem hasStride_succ_support_neg {p : Player} {g : GameForm} {n : ℕ}
   (hasStride_succ_iff.mp h).2.2.2.1 g' hg'
 
 /--
-Some opponent move preserves stride
+Some opponent move preserves stride.
 -/
 theorem hasStride_succ_exists_preserve_neg {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) (h_ne : moves (-p) g ≠ ∅) :
@@ -377,9 +386,9 @@ theorem hasStride_succ_not_isEnd {p : Player} {g : GameForm} {n : ℕ}
   exact not_isEnd_of_mem_moves h_mem
 
 /--
-If a game has stride then the value is unique
+If a game has stride, then the value is unique.
 
-This is a workaround for not defining stride as a function to `option ℕ`
+This is a workaround for not defining stride as a function to `option ℕ`.
 -/
 theorem hasStride_unique {p : Player} {g : GameForm} {n k : ℕ}
     (h_n : HasStride p g n) (h_k : HasStride p g k) : n = k := by
@@ -402,8 +411,8 @@ termination_by g
 decreasing_by form_wf
 
 /--
-The good move preserves (-p)-stride: if HasStride p g (n+1) and HasStride (-p) g r,
-then the good p-move has (-p)-stride exactly r.
+The good move preserves (-p)-stride: if HasStride p g (n+1) and HasStride (-p)
+g r, then the good p-move has (-p)-stride exactly r.
 -/
 theorem hasStride_good_move_neg_stride {p : Player} {g : GameForm} {n r : ℕ}
     (h : HasStride p g (n + 1))
@@ -429,7 +438,7 @@ theorem hasStride_good_move_neg_stride {p : Player} {g : GameForm} {n r : ℕ}
     exact hk2_stride
 
 /--
-Opponent moves have stride ≤ n
+Opponent moves have stride ≤ n.
 -/
 theorem hasStride_of_mem_moves_neg {p : Player} {g g' : GameForm} {n : ℕ}
     (hg : HasStride p g n) (hm : g' ∈ moves (-p) g) : ∃ k, k ≤ n ∧ HasStride p g' k := by
@@ -438,9 +447,10 @@ theorem hasStride_of_mem_moves_neg {p : Player} {g g' : GameForm} {n : ℕ}
   | .succ n' => exact hasStride_succ_support_neg hg g' hm
 
 /--
-A variant of `hasStride_succ_iff` that simplifies condition B' when we know the (-p)-stride.
-Instead of requiring the good move to have the max (-p)-stride among all p-moves,
-we simply require the good move to preserve the (-p)-stride exactly.
+A variant of `hasStride_succ_iff` that simplifies condition B' when we know the
+(-p)-stride. Instead of requiring the good move to have the max (-p)-stride
+among all p-moves, we simply require the good move to preserve the (-p)-stride
+exactly.
 -/
 theorem hasStride_succ_iff' {p : Player} {g : GameForm} {n m : ℕ}
     (h_hasStride_m : HasStride (-p) g m) :
@@ -478,7 +488,7 @@ theorem hasStride_of_mem_moves {p : Player} {g g' : GameForm} {n : ℕ}
     exact ⟨j, by simpa only [Nat.succ_eq_add_one, add_tsub_cancel_right] using hj, hjs⟩
 
 /--
-Stride of sum is the sum of strides.
+The stride of a sum is the sum of the strides.
 -/
 theorem hasStride_add {p : Player} {g h : GameForm} {sL_g sL_h sR_g sR_h : ℕ}
     (h_sL_g : HasStride p g sL_g) (h_sL_h : HasStride p h sL_h)
@@ -720,7 +730,7 @@ private theorem hasStride_not_winsGoingFirst {p : Player} {g : GameForm} {l r : 
     exact hasStride_winsGoingFirst h_gL_strideR (by rwa [neg_neg]) h_le
 
 /--
-If game has both strides then they determine who wins going first
+If a game has both strides, then they determine who wins going first.
 -/
 theorem hasStride_winsGoingFirst_iff {p : Player} {g : GameForm} {l r : ℕ}
     (h_l : HasStride p g l) (h_r : HasStride (-p) g r) :
@@ -733,7 +743,7 @@ theorem hasStride_winsGoingFirst_iff {p : Player} {g : GameForm} {l r : ℕ}
   · exact hasStride_winsGoingFirst h_l h_r
 
 /--
-If game has both strides then they determine the winner
+If a game has both strides, then they determine the outcome.
 -/
 theorem hasStride_misereOutcome_iff_lt {p : Player} {g : GameForm} {l r : ℕ}
     (h_l : HasStride p g l) (h_r : HasStride (-p) g r) :
@@ -758,7 +768,7 @@ theorem hasStride_misereOutcome_iff_ge {p : Player} {g : GameForm} {l r : ℕ}
   rwa [neg_neg]
 
 /--
-If game has both strides then they determine the winner
+If a game has both strides, then they determine the outcome.
 -/
 theorem hasStride_misereOutcome_iff_eq {p : Player} {g : GameForm} {l r : ℕ}
     (h_l : HasStride p g l) (h_r : HasStride (-p) g r) :
@@ -775,7 +785,7 @@ theorem hasStride_misereOutcome_iff_eq {p : Player} {g : GameForm} {l r : ℕ}
     exact Iff.symm ge_antisymm_iff
 
 /--
-If game has both strides then it is P-free
+If a game has both strides, then it is $\mathscr{P}$-free.
 -/
 theorem hasStride_isPFree {p : Player} {g : GameForm} {l r : ℕ}
     (h_l : HasStride p g l) (h_r : HasStride (-p) g r) : IsPFree g := by
@@ -869,7 +879,8 @@ theorem stride_diff_eq_of_misereEQ
     (h_nh : HasStride .left h sL_h) (h_rh : HasStride .right h sR_h) :
     (sL_g : ℤ) - (sR_g : ℤ) = (sL_h : ℤ) - (sR_h : ℤ) := by
   -- Construct a test game t with left stride rg and right stride ng.
-  -- Then g + t has equal left and right strides (both ng + rg), giving outcome N.
+  -- Then g + t has equal left and right strides (both ng + rg), giving outcome
+  -- N.
   -- Since g =m A h, h + t also has outcome N, forcing nh + rg = rh + ng.
   obtain ⟨t, ht_A, ht_l, ht_r⟩ := Strided.mk_with_strides (A := A) sR_g sL_g
   have h_outcome_g : MisereOutcome (g + t) = .N := by
@@ -913,7 +924,7 @@ theorem misereEQ_of_stride_diff_eq
   grind only
 
 /--
-The stride difference characterizes misère equivalence for strided games.
+The stride difference characterises misère equivalence for strided games.
 -/
 theorem misereEQ_iff_stride_diff_eq
     {g h : GameForm}
@@ -936,7 +947,8 @@ theorem misereGE_of_stride_diff_le
     (h_le : (sL_g : ℤ) - (sR_g : ℤ) ≤ (sL_h : ℤ) - (sR_h : ℤ)) :
     g ≥m A h := by
   intro x hx
-  -- By hasStride_add: g+x has strides (ng+lx, rg+rx), h+x has strides (nh+lx, rh+rx).
+  -- By hasStride_add: g+x has strides (ng+lx, rg+rx), h+x has strides (nh+lx,
+  -- rh+rx).
   obtain ⟨sL_x, h_sL_x⟩ : ∃ lx, HasStride Player.left x lx := Strided.has_stride .left hx
   obtain ⟨sR_x, h_sR_x⟩ : ∃ rx, HasStride Player.right x rx := Strided.has_stride .right hx
   have h_gx : HasStride Player.left (g + x) (sL_g + sL_x) := hasStride_add h_sL_g h_sL_x h_sR_g h_sR_x
@@ -969,8 +981,8 @@ theorem misereGE_of_stride_diff_le
   · omega
 
 /--
-The misère quotient of a strided class is totally ordered.
-This follows from the fact that the ordering is determined by stride differences.
+The misère quotient of a strided class is totally ordered. This follows from
+the fact that the ordering is determined by stride differences.
 -/
 theorem misereQuotient_linearOrder (a b : MisereQuotient A) : a ≤ b ∨ b ≤ a := by
   have ha : A ↑(Form.MisereQuotient.out a) := (Form.MisereQuotient.out a).prop
@@ -984,8 +996,8 @@ theorem misereQuotient_linearOrder (a b : MisereQuotient A) : a ≤ b ∨ b ≤ 
   · exact Or.inr (Form.MisereQuotient.out_le_out.mpr (misereGE_of_stride_diff_le hla hra hlb hrb h))
 
 /--
-The stride difference of a game in a strided class `A`.
-This is the left stride minus the right stride, as an integer.
+The stride difference of a game in a strided class `A`. This is the left stride
+minus the right stride, as an integer.
 -/
 noncomputable def Strided.strideDiff
     (g : GameForm) (hg : A g) : ℤ :=
@@ -993,7 +1005,8 @@ noncomputable def Strided.strideDiff
   ((Strided.has_stride (A := A) .right hg).choose : ℤ)
 
 /--
-The stride difference is well-defined regardless of which stride witnesses are used.
+The stride difference is well-defined regardless of which stride witnesses are
+used.
 -/
 theorem strideDiff_eq
     {g : GameForm} {hg : A g}
@@ -1018,8 +1031,9 @@ theorem Strided.strideDiff_eq_of_misereEQ
   exact stride_diff_eq_of_misereEQ heq hlg hrg hlh hrh
 
 /--
-The stride difference function on the misère quotient, defined via representative.
-This is well-defined because misère equivalent games have the same stride difference.
+The stride difference function on the misère quotient, defined via
+representative. This is well-defined because misère equivalent games have the
+same stride difference.
 -/
 noncomputable def MisereQuotient.strideDiff : MisereQuotient A → ℤ := by
   apply Quotient.lift (fun (g : {g : GameForm // A g}) => Strided.strideDiff g g.prop)
@@ -1051,8 +1065,8 @@ theorem MisereQuotient.strideDiff_injective : Function.Injective (strideDiff (A 
     exact misereEQ_of_stride_diff_eq hla hra hlb hrb hab
 
 /--
-The stride difference function on the quotient is surjective:
-for any integer `d`, there is a game in `A` with stride difference `d`.
+The stride difference function on the quotient is surjective: for any integer
+`d`, there is a game in `A` with stride difference `d`.
 -/
 theorem MisereQuotient.strideDiff_surjective : Function.Surjective (strideDiff (A := A)) := by
   intro d
@@ -1071,16 +1085,16 @@ theorem MisereQuotient.strideDiff_surjective : Function.Surjective (strideDiff (
   exact strideDiff_eq ht_l ht_r
 
 /--
-The misère quotient of a strided class is equivalent to the integers.
-The equivalence sends each equivalence class to its stride difference.
+The misère quotient of a strided class is equivalent to the integers. The
+equivalence sends each equivalence class to its stride difference.
 -/
 noncomputable def MisereQuotient.stridedEquivInt : MisereQuotient A ≃ ℤ :=
   Equiv.ofBijective MisereQuotient.strideDiff
     ⟨MisereQuotient.strideDiff_injective, MisereQuotient.strideDiff_surjective⟩
 
 /--
-If `g ≥m A h` then the stride difference of `g` is `≤` that of `h`.
-The converse of `misereGE_of_stride_diff_le`.
+If `g ≥m A h` then the stride difference of `g` is `≤` that of `h`. The
+converse of `misereGE_of_stride_diff_le`.
 -/
 theorem stride_diff_le_of_misereGE
     {g h : GameForm}
@@ -1136,9 +1150,9 @@ theorem MisereQuotient.le_iff_strideDiff_ge (a b : MisereQuotient A) :
     exact mk_le_iff_strideDiff a b a.prop b.prop
 
 /--
-The misère quotient ordering via the integer equivalence: `a ≤ b` iff
-the image of `a` under the equivalence is ≥ the image of `b`.
-Equivalently, the equivalence is an order-reversing bijection.
+The misère quotient ordering via the integer equivalence: `a ≤ b` iff the image
+of `a` under the equivalence is ≥ the image of `b`. Equivalently, the
+equivalence is an order-reversing bijection.
 -/
 theorem MisereQuotient.le_iff_equiv_ge (a b : MisereQuotient A) :
     a ≤ b ↔ MisereQuotient.stridedEquivInt a ≥ MisereQuotient.stridedEquivInt b := by

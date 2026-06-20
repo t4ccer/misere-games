@@ -16,16 +16,20 @@ universe u
 /-!
 # Augmented Form
 
-This module defines `AugmentedForm`, which apart from ordinary moves may also
-have tombstones as defined in [Siegel, "On the general dead-ending universe of
-partizan games" (Definition 5.1 on p.
-212)][siegel:GeneralDeadendingUniverse:2025].
+This module defines `AugmentedForm`: these are Siegel's *augmented forms*,
+which apart from ordinary options may also have tombstones, as defined in
+[Siegel, Definition 5.1 on p. 212][siegel:GeneralDeadendingUniverse:2025].
 
-The main result is `AugmentedForm.instForm`
+The main result is `AugmentedForm.instForm`.
+
+## References
+
+* [A. N. Siegel, *On the general dead-ending universe of partizan
+games*][siegel:GeneralDeadendingUniverse:2025]
 -/
 
 /--
-Like `GameFunctor` but each position may contain Left and Right tombstones
+Like `GameFunctor`, but each position may contain Left and/or Right tombstones.
 -/
 private def AugmentedFunctor (α : Type (u + 1)) : Type (u + 1) :=
   {s : Player → Set α // ∀ p, Small.{u} (s p)} × (Player → Prop)
@@ -66,7 +70,7 @@ private instance : QPF AugmentedFunctor where
 end AugmentedFunctor
 
 /--
-Like `GameForm` but each position may contain Left and Right tombstones
+Like `GameForm`, but each position may contain Left and/or Right tombstones.
 -/
 def AugmentedForm : Type (u + 1) :=
   QPF.Fix AugmentedFunctor
@@ -92,13 +96,13 @@ private def moves' (p : Player) (x : AugmentedForm.{u}) : Set AugmentedForm.{u} 
     exact h
 
 /--
-Check if given `Player` has a tombstone option
+Check if a given `Player` has a tombstone.
 -/
 def hasTombstone (p : Player) (x : AugmentedForm) : Prop :=
   x.dest.2 p
 
 /--
-Construct an `AugmentedForm` from available moves and tombstones
+Construct an `AugmentedForm` from available options and tombstones.
 -/
 def ofSetsWithTombs (st : Player → Set AugmentedForm) (tomb : Player → Prop)
     [Small.{u} (st .left)] [Small.{u} (st .right)] : AugmentedForm :=
@@ -149,7 +153,7 @@ theorem ofSets_moves_tombs (x : AugmentedForm) :
   simp only [Subtype.coe_eta, Prod.mk.eta, QPF.Fix.mk_dest]
 
 /--
-Two `AugmentedForm`s are equal if they have the same moves and tombstones
+Two `AugmentedForm`s are equal if they have the same options and tombstones.
 -/
 @[ext]
 theorem ext {x y : AugmentedForm.{u}}
@@ -160,7 +164,7 @@ theorem ext {x y : AugmentedForm.{u}}
   simp_rw [funext h_moves, h_tomb]
 
 /--
-Conway recursion
+This is Conway induction.
 -/
 @[elab_as_elim]
 def moveRecOn {motive : AugmentedForm → Sort*} (x)
@@ -189,7 +193,7 @@ private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   add := add'
 
 /--
-Convert `GameForm` to `AugmentedForm` with no tombstones
+Convert a `GameForm` to an `AugmentedForm` with no tombstones.
 -/
 def ofGameForm (g : GameForm) : AugmentedForm :=
   ofSetsWithTombs
@@ -202,7 +206,8 @@ instance : Coe GameForm AugmentedForm where
   coe := ofGameForm
 
 /--
-A position is `TombstoneFree` if no player has a tombstone and all subpositions are `TombstoneFree`
+An `AugmentedForm` is `TombstoneFree` if no player has a tombstone and all
+options are `TombstoneFree`.
 -/
 def TombstoneFree (g : AugmentedForm) : Prop :=
   (∀ p, ¬g.hasTombstone p) ∧ ∀ p, ∀ h ∈ moves p g, TombstoneFree h
@@ -231,7 +236,8 @@ theorem ofSetsWithTombs_ff_TombstoneFree
     exact h2
 
 /--
-If an `AugmentedForm` is `TombstoneFree` then it is equivalent to `GameForm`
+Convert a `TombstoneFree` `AugmentedForm` to a `GameForm` by 'forgetting' about
+the missing tombstones.
 -/
 def toGameForm (g : AugmentedForm) (h : TombstoneFree g) : GameForm :=
   !{Set.range (fun gl : moves .left g => toGameForm gl (h.moves .left gl gl.property)) |
@@ -663,7 +669,8 @@ noncomputable instance : Form AugmentedForm where
 lemma IsEndLike_iff {g : AugmentedForm} {p : Player} :
     IsEndLike p g ↔ (g.hasTombstone p ∨ (Form.IsEnd p g)) := by rfl
 
--- We make no use of `AugmentedForm`'s definition from a `QPF` after this point.
+-- We make no use of `AugmentedForm`'s definition from a `QPF` after this
+-- point.
 
 attribute [irreducible] AugmentedForm
 
@@ -672,7 +679,8 @@ theorem ofGameForm_zero : ofGameForm (0 : GameForm) = (0 : AugmentedForm) := by
   ext p x <;> simp
 
 /--
-The coercion from `GameForm` to `AugmentedForm` is an additive monoid homomorphism
+The coercion from `GameForm` to `AugmentedForm` is an additive monoid
+homomorphism.
 -/
 def ofGameFormHom : GameForm →+ AugmentedForm where
   toFun := ofGameForm

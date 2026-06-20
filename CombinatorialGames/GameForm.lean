@@ -27,7 +27,8 @@ def GameFunctor (α : Type (u + 1)) : Type (u + 1) :=
 
 namespace GameFunctor
 
-@[ext] theorem ext {α : Type (u + 1)} {x y : GameFunctor α} : x.1 = y.1 → x = y := Subtype.ext
+@[ext]
+theorem ext {α : Type (u + 1)} {x y : GameFunctor α} : x.1 = y.1 → x = y := Subtype.ext
 
 instance {α : Type (u + 1)} (x : GameFunctor α) (p : Player) : Small.{u} (x.1 p) := x.2 p
 
@@ -59,16 +60,21 @@ def GameForm : Type (u + 1) :=
 
 namespace GameForm
 
-/-- Construct an `GameForm` from its left and right sets. -/
+/--
+Construct a `GameForm` from its Left and Right options.
+-/
 instance : OfSets GameForm fun _ ↦ True where
   ofSets (st : Player → Set GameForm) _ := QPF.Fix.mk ⟨st, fun
     | .left => (inferInstance : Small.{u} (st .left))
     | .right => (inferInstance : Small.{u} (st .right))⟩
 
-/-- The set of moves of the game. -/
+/--
+The set of options of the game.
+-/
 private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.1 p
 
-@[no_expose] instance : Moves GameForm where
+@[no_expose]
+instance : Moves GameForm where
   moves := moves'
   isOption'_wf := by
     refine ⟨fun x ↦ ?_⟩
@@ -81,10 +87,14 @@ private def moves' (p : Player) (x : GameForm.{u}) : Set GameForm.{u} := x.dest.
     obtain ⟨_, ⟨_, h⟩, _, rfl⟩ := hy
     exact h
 
-/-- The set of left moves of the game. -/
+/--
+The set of Left options of the game.
+-/
 scoped notation:max x:max "ᴸ" => moves Player.left x
 
-/-- The set of right moves of the game. -/
+/--
+The set of Right options of the game.
+-/
 scoped notation:max x:max "ᴿ" => moves Player.right x
 
 instance instSmallElemMoves (p : Player) (x : GameForm.{u}) : Small.{u} (moves p x) := x.dest.2 p
@@ -107,7 +117,9 @@ theorem ofSets_leftMoves_rightMoves (x : GameForm) : !{xᴸ | xᴿ} = x := by
   convert x.ofSets_moves with p
   cases p <;> rfl
 
-/-- Two `GameForm`s are equal when their move sets are. -/
+/--
+Two `GameForm`s are equal when their option sets are.
+-/
 @[ext]
 theorem ext {x y : GameForm.{u}} (h : ∀ p, moves p x = moves p y) :
     x = y := by
@@ -132,11 +144,13 @@ instance (x : GameForm.{u}) : Small.{u} {y // Subposition y x} :=
 -- We make no use of `GameForm`'s definition from a `QPF` after this point.
 attribute [irreducible] GameForm
 
-/-- **Conway recursion**: build data for a game by recursively building it on its
-left and right sets. You rarely need to use this explicitly, as the termination checker will handle
-things for you.
+/--
+**Conway induction**: build data for a game by recursively building it on its
+Left and Right sets. This rarely needs to be used explicitly, as the
+termination checker will handle it.
 
-See `ofSetsRecOn` for an alternate form. -/
+See `ofSetsRecOn` for an alternate form.
+-/
 @[elab_as_elim]
 def moveRecOn {motive : GameForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) : motive x :=
@@ -149,11 +163,13 @@ theorem moveRecOn_eq {motive : GameForm → Sort*} (x)
     moveRecOn x mk = mk x (fun _ y _ ↦ moveRecOn y mk) := by
   rw [moveRecOn]
 
-/-- **Conway recursion**: build data for a game by recursively building it on its
-left and right sets. You rarely need to use this explicitly, as the termination checker will handle
-things for you.
+/--
+**Conway induction**: build data for a game by recursively building it on its
+Left and Right sets. This rarely needs to be used explicitly, as the
+termination checker will handle it.
 
-See `moveRecOn` for an alternate form. -/
+See `moveRecOn` for an alternate form.
+-/
 @[elab_as_elim]
 def ofSetsRecOn {motive : GameForm.{u} → Sort*} (x)
     (mk : Π (s t : Set GameForm) [Small s] [Small t],
@@ -184,8 +200,18 @@ private def neg' (x : GameForm) : GameForm :=
 termination_by x
 decreasing_by form_wf
 
-/-- The negative of a game is defined by `-!{s | t} = !{-t | -s}`. -/
-@[no_expose] instance : Neg GameForm where
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+The *conjugate* of a game is defined by `-!{s | t} = !{-t | -s}`. In the
+literature, one would see
+$$
+  \overline{G}=\form<\overline{G^\mathcal{R}}>[\overline{G^\mathcal{L}}].
+$$
+In this repository, the conjugate is often referred to as the 'negative', even
+though it is *not* necessarily an additive inverse.
+-/
+@[no_expose]
+instance : Neg GameForm where
   neg := neg'
 
 private theorem neg_ofSets'' (s t : Set GameForm) [Small s] [Small t] :
@@ -221,7 +247,9 @@ private theorem moves_neg' (p : Player) (x : GameForm) :
     moves p (-x) = -moves (-p) x := by
   rw [neg_eq', moves_ofSets]
 
-/-! ### Addition and subtraction -/
+/-!
+### Addition and subtraction
+-/
 
 set_option maxHeartbeats 400000 in
 private def add' (x y : GameForm) : GameForm :=
@@ -230,8 +258,16 @@ private def add' (x y : GameForm) : GameForm :=
 termination_by (x, y)
 decreasing_by form_wf
 
-/-- The sum of `x = !{s₁ | t₁}` and `y = !{s₂ | t₂}` is `!{s₁ + y, x + s₂ | t₁ + y, x + t₂}`. -/
-@[no_expose] instance : Add GameForm where
+/--
+$\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
+The sum of `x = !{s₁ | t₁}` and `y = !{s₂ | t₂}` is `!{s₁ + y, x + s₂ | t₁ + y,
+x + t₂}`. In the literature, one would see
+$$
+  G+H=\form<G^\mathcal{L}+H,G+H^\mathcal{L}>[G^\mathcal{R}+H,G+H^\mathcal{R}].
+$$
+  -/
+@[no_expose]
+instance : Add GameForm where
   add := add'
 
 theorem add_eq (x y : GameForm) : x + y =

@@ -26,8 +26,8 @@ end-like. Normal forms are invertible modulo any set of forms, so they form a
 subgroup of the invertible subgroup of both the long augmented misère monoid
 (all augmented forms) and the short one.
 
-Note that comparing two normal forms modulo a promain set relies only on
-the maintenance, since the proviso is always satisfied.
+Note that comparing two normal forms modulo a promain set relies only on the
+maintenance, since the proviso is always satisfied.
 -/
 
 /-! ### Comparison of end-like forms -/
@@ -36,22 +36,28 @@ namespace Form
 
 variable {G : Type (u + 1)} [Form G]
 
-/-- An end-like form wins going first against any end-like test form, so it is
-  strong. -/
+/--
+An end-like form wins going first against any end-like test form, so it is
+strong.
+-/
 theorem Strong.of_isEndLike {A : G → Prop} {h : G} {p : Player} (hh : IsEndLike p h) :
     Strong A h p :=
   fun _ _ hx => winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr ⟨hh, hx⟩)
 
-/-- When `g` and `h` are end-like for both players, the proviso is automatic,
-  so `g ≥m A h` follows from maintenance alone. -/
+/--
+When `g` and `h` are end-like for both players, the proviso is automatic, so `g
+≥m A h` follows from maintenance alone.
+-/
 theorem misereGE_of_maintenance_of_isEndLike {A : G → Prop} [Hereditary A] {g h : G}
     (hg : IsEndLike .left g) (hh : IsEndLike .right h)
     (hr : Maintenance A g h .right) (hl : Maintenance A g h .left) : g ≥m A h :=
   Hereditary.misereGE_of_maintenance_proviso A hr hl
     (fun _ => Strong.of_isEndLike hh) (fun _ => Strong.of_isEndLike hg)
 
-/-- For forms that are end-like for both players, comparison modulo a promain
-  set `A` drops the proviso: `g ≥m A h` is just maintenance. -/
+/--
+For forms that are end-like for both players, comparison modulo a promain set
+`A` drops the proviso: `g ≥m A h` is just maintenance.
+-/
 theorem misereGE_iff_maintenance_of_isEndLike {A IsAmbient : G → Prop}
     (h_promain : Promain IsAmbient A) {g h : G}
     (hg : ∀ p, IsEndLike p g) (hh : ∀ p, IsEndLike p h)
@@ -64,13 +70,15 @@ theorem misereGE_iff_maintenance_of_isEndLike {A IsAmbient : G → Prop}
 
 end Form
 
-/-! ### Normal forms -/
+/-!
+### Normal forms
+-/
 
 namespace AugmentedForm
 
-/-- An augmented form is normal if every subposition is end-like for both
-  players.
-  -/
+/--
+An augmented form is normal if every subposition is end-like for both players.
+-/
 @[expose] def Normal (g : AugmentedForm) : Prop :=
   IsEndLike .left g ∧ IsEndLike .right g ∧
     ∀ p, ∀ h ∈ Form.moves p g, Normal h
@@ -196,7 +204,9 @@ end Normal
 
 end AugmentedForm
 
-/-! ### The augmented misère monoids and the 'normal' subgroup -/
+/-!
+### The augmented misère monoids and the 'normal' subgroup
+-/
 
 open AugmentedForm (Normal)
 
@@ -209,12 +219,15 @@ namespace Augmented
 instance : Fact (IsLong (0 : AugmentedForm.{u})) :=
   ⟨trivial⟩
 
-/-- The long augmented misère monoid: augmented forms modulo misère equality.
-  -/
+/--
+The long augmented misère monoid: augmented forms modulo misère equality.
+-/
 abbrev LongQuotient : Type (u + 1) :=
   MisereQuotient (G := AugmentedForm.{u}) IsLong
 
-/-- The class of an augmented form in the long quotient. -/
+/--
+The class of an augmented form in the long quotient.
+-/
 noncomputable def mkLong (g : AugmentedForm.{u}) : LongQuotient.{u} :=
   mk (A := IsLong) ⟨g, trivial⟩
 
@@ -239,9 +252,10 @@ theorem isAddUnit_mkLong_of_normal {g : AugmentedForm.{u}}
     (hg : Normal g) : IsAddUnit (mkLong g) :=
   isAddUnit_iff_exists.mpr ⟨mkLong (-g), mkLong_add_neg hg, mkLong_neg_add hg⟩
 
-/-- The normal augmented forms form a subgroup of the invertible subgroup of
-  the long
-  quotient monoid. -/
+/--
+The normal augmented forms form a subgroup of the invertible subgroup of the
+long quotient monoid.
+-/
 noncomputable def normalLong : AddSubgroup (AddUnits LongQuotient.{u}) where
   carrier := {a | ∃ g : AugmentedForm.{u}, Normal g ∧ (↑a : LongQuotient.{u}) = mkLong g}
   zero_mem' := ⟨0, Normal.zero, by rw [AddUnits.val_zero, mkLong_zero]⟩
@@ -254,15 +268,19 @@ noncomputable def normalLong : AddSubgroup (AddUnits LongQuotient.{u}) where
     rw [← zero_add (mkLong (-g)), ← AddUnits.neg_add a, add_assoc, hga,
       mkLong_add_neg hg, add_zero]
 
-/-- The short augmented misère monoid: short augmented forms modulo misère
-  equality. -/
+/--
+The short augmented misère monoid: short augmented forms modulo misère
+equality.
+-/
 abbrev ShortQuotient : Type (u + 1) :=
   MisereQuotient (G := AugmentedForm.{u}) IsShort
 
 instance : Fact (IsShort (0 : AugmentedForm.{u})) :=
   ⟨Short.zero⟩
 
-/-- The class of a short augmented form in the short quotient. -/
+/--
+The class of a short augmented form in the short quotient.
+-/
 noncomputable def mkShort (g : AugmentedForm.{u}) (hg : IsShort g) : ShortQuotient.{u} :=
   mk ⟨g, hg⟩
 
@@ -288,9 +306,10 @@ theorem isAddUnit_mkShort_of_normal {g : AugmentedForm.{u}} (hgs : IsShort g)
   isAddUnit_iff_exists.mpr
     ⟨mkShort (-g) (Short.neg hgs), mkShort_add_neg hgs hg, mkShort_neg_add hgs hg⟩
 
-/-- The short normal augmented forms form a subgroup of the invertible subgroup
-  of the short
-  quotient monoid. -/
+/--
+The short normal augmented forms form a subgroup of the invertible subgroup of
+the short quotient monoid.
+-/
 noncomputable def normalShort : AddSubgroup (AddUnits ShortQuotient.{u}) where
   carrier := {a | ∃ (g : AugmentedForm.{u}) (hgs : IsShort g),
     Normal g ∧ (↑a : ShortQuotient.{u}) = mkShort g hgs}

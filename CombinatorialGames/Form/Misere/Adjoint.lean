@@ -21,10 +21,9 @@ namespace Form.Misere.Adjoint
 
 /--
 `r` is a *root* for `A` if adding it to any `p` end in `A` leaves `p` winning
-going first, just as `0` does (`isRoot_zero`).
-
-This is what lets the rooted adjoint with root `r` behave like the standard
-adjoint.
+going first, just as `0` does (`isRoot_zero`). This is what lets the `r`-rooted
+adjoint behave like the standard adjoint in
+`misereOutcome_add_rootedAdjoint_eq_P`.
 -/
 abbrev IsRoot (A : G → Prop) (r : G) : Prop :=
   ∀ ⦃p : Player⦄ ⦃d : G⦄, A d → IsEnd p d → WinsGoingFirst p (d + r)
@@ -47,7 +46,7 @@ $\mathscr{P}$-position, provided `r` is a root for the hereditary set `A`
 (`IsRoot`).
 
 This generalises `misereOutcome_add_adjoint_eq_P`, which is the case where `A`
-is all forms and `r = 0`.
+is arbitrary and `r = 0`.
 -/
 theorem misereOutcome_add_rootedAdjoint_eq_P {A : G → Prop} [Hereditary A] {r : G}
     (h_isRoot : IsRoot A r) {g : G} (hg : A g) :

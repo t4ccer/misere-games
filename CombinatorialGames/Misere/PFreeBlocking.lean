@@ -30,7 +30,8 @@ private theorem misereOutcome_L_of_not_winsGoingFirst_right {g : GameForm}
 /--
 If `G, H ∈ pf(B)` with `o(G) = L` and `H` a Left end, then `o(G + H) = L`.
 
-This is [Davies, Miller, Milley (Lemma 4.1 on p. 24)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 4.1 on p.
+24)][davies:SumsPFreeForms:2025]
 -/
 theorem misereOutcome_L_add_isEnd_left {g h : GameForm}
     (hg : PFreeBlocking g) (hh : PFreeBlocking h)
@@ -90,7 +91,8 @@ decreasing_by
           (lt_trans (birthday_lt_of_mem_moves (by assumption)) (birthday_lt_of_mem_moves (by assumption)))
 
 /--
-This is mirror of [Davies, Miller, Milley (Lemma 4.1 on p. 24)][davies:SumsPFreeForms:2025]
+This is the mirror of [Davies, Miller, Milley (Lemma 4.1 on p.
+24)][davies:SumsPFreeForms:2025].
 -/
 theorem misereOutcome_R_add_isEnd_right {g h : GameForm}
     (hg : PFreeBlocking g) (hh : PFreeBlocking h)
@@ -200,7 +202,8 @@ private theorem miserePlayerOutcome_of_add_RN_blocking {g h : GameForm}
             (misereOutcome_neg_N_iff_misereOutcome.mpr hhN))
 
 /--
-This is [Davies, Miller, Milley (Lemma 4.2 on p. 25)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 4.2 on p.
+25)][davies:SumsPFreeForms:2025].
 -/
 instance : OutcomeStable (ShortBlocking (G := GameForm)) where
   misereOutcome_of_add_LL := misereOutcome_of_add_LL_blocking
@@ -216,7 +219,8 @@ private theorem misereOutcome_R_of_not_winsGoingFirst_left {g : GameForm}
   exact misereOutcome_ne_P_of_pfree hpf (misereOutcome_P_iff_winsGoingFirst.mpr ⟨hc, h⟩)
 
 /--
-This is [Davies, Miller, Milley (Lemma 4.7 on p. 26)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 4.7 on p.
+26)][davies:SumsPFreeForms:2025].
 -/
 theorem miserePlayerOutcome_right_isEnd_left_NN {g h : GameForm}
     (hg : PFreeBlocking g) (hh : PFreeBlocking h)
@@ -287,7 +291,8 @@ decreasing_by
           (lt_trans (birthday_lt_of_mem_moves (by assumption)) (birthday_lt_of_mem_moves (by assumption)))
 
 /--
-This is mirror of [Davies, Miller, Milley (Lemma 4.7 on p. 26)][davies:SumsPFreeForms:2025]
+This is the mirror of [Davies, Miller, Milley (Lemma 4.7 on p.
+26)][davies:SumsPFreeForms:2025].
 -/
 theorem miserePlayerOutcome_left_isEnd_right_NN {g h : GameForm}
     (hg : PFreeBlocking g) (hh : PFreeBlocking h)
@@ -302,7 +307,8 @@ theorem miserePlayerOutcome_left_isEnd_right_NN {g h : GameForm}
         (misereOutcome_neg_N_iff_misereOutcome.mpr hhN))
 
 /--
-This is [Davies, Miller, Milley (Lemma 4.8 on p. 26)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 4.8 on p.
+26)][davies:SumsPFreeForms:2025].
 -/
 instance : IntegerInvertible.PropertyX ShortBlocking where
   prop_left := by
@@ -343,7 +349,8 @@ instance : IntegerInvertible.PropertyX ShortBlocking where
               (misereOutcome_R_add_isEnd_right hgr_pfb hAh hgrR hge)).right
 
 /--
-This is [Davies, Miller, Milley (Lemma 4.9 on p. 27)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 4.9 on p.
+27)][davies:SumsPFreeForms:2025].
 -/
 instance : ClosedUnderAdd PFreeBlocking where
   has_add g h h_g h_h := by

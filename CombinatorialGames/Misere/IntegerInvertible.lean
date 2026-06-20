@@ -19,17 +19,19 @@ public section
 variable {A : GameForm → Prop}
 
 /--
-A set of games $\mathcal{A}$ is *integer-invertible*  if it contains every integer $n$
-and $n + \overline{n} =_{\mathcal{A}} 0$.
+A set of games $\mathcal{A}$ is *integer-invertible*  if it contains every
+integer $n$ and $n + \overline{n} =_{\mathcal{A}} 0$.
 
-This is [Davies, Miller, Milley (Definition 3.12 on p. 15)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Definition 3.12 on p.
+15)][davies:SumsPFreeForms:2025].
 -/
 class IntegerInvertible (A : GameForm → Prop) : Prop extends HasInt A where
   int_add_neg_misereEQ (n : ℤ) :
     ((n : GameForm) + (-(n : GameForm))) =m A 0
 
 /--
-If $\mathcal{A}$ is integer-invertible then so is $\operatorname{pf}(\mathcal{A})$.
+If $\mathcal{A}$ is integer-invertible then so is
+$\operatorname{pf}(\mathcal{A})$.
 -/
 instance [IntegerInvertible A] : IntegerInvertible (PFreeSubset A) where
   has_int n := .mk (HasInt.has_int n) (isPFree_intCast n)
@@ -39,7 +41,8 @@ instance [IntegerInvertible A] : IntegerInvertible (PFreeSubset A) where
 namespace IntegerInvertible
 
 /--
-If $0 \in \mathcal{A}$ and $G =_{\mathcal{A}} H$ then $\operatorname{o}(G) = \operatorname{o}(H)$.
+If $0 \in \mathcal{A}$ and $G =_{\mathcal{A}} H$ then $\operatorname{o}(G) =
+\operatorname{o}(H)$.
 -/
 theorem misereOutcome_eq_of_misereEQ [HasZero A] {g h : GameForm}
     (h1 : g =m A h) : MisereOutcome g = MisereOutcome h := by
@@ -47,8 +50,11 @@ theorem misereOutcome_eq_of_misereEQ [HasZero A] {g h : GameForm}
   rwa [add_zero, add_zero] at this
 
 /--
-If $\mathcal{A}$ is integer-invertible, $G, H \in \mathcal{A}$, and $n \in \mathbb{Z}$ then
-$G + H =_{\mathcal{A}} (G + n) + (H - n)$.
+If $\mathcal{A}$ is integer-invertible, $G, H \in \mathcal{A}$, and $n \in
+\mathbb{Z}$ then
+$$
+G + H =_{\mathcal{A}} (G + n) + (H - n).
+$$
 -/
 theorem misereEQ_shift [ClosedUnderAdd A] [IntegerInvertible A] {g h : GameForm}
     (hg : A g) (hh : A h) (n : ℤ) :
@@ -66,7 +72,9 @@ theorem misereEQ_shift [ClosedUnderAdd A] [IntegerInvertible A] {g h : GameForm}
 
 /--
 If $\mathcal{A}$ is integer-invertible, $G, H \in \mathcal{A}$, and $n \in \mathbb{Z}$ then
-$\operatorname{o}(G + H) = \operatorname{o}((G + n) + (H - n))$.
+$$
+\operatorname{o}(G + H) = \operatorname{o}((G + n) + (H - n)).
+$$
 -/
 theorem misereOutcome_add_shift [ClosedUnderAdd A] [IntegerInvertible A] {g h : GameForm}
     (hg : A g) (hh : A h) (n : ℤ) :
@@ -136,11 +144,13 @@ variable [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
          [ClosedUnderAdd A] [IntegerInvertible A]
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
-then if $\operatorname{n}(G) > \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{L}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+then if $\operatorname{n}(G) > \operatorname{l}(H)$ then $\operatorname{o}(G +
+H) = \mathscr{L}$.
 
-This is (1) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+This is (1) in [Davies, Miller, Milley (Lemma 3.13 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -160,12 +170,13 @@ theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint {g h : GameForm
   exact OutcomeStable.misereOutcome_of_add_LL hAgl hAhl hGL hHL
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$ and
-$\operatorname{o}(H) = \mathscr{N}$, then if $\operatorname{r}(G) < \operatorname{l}(H)$ then
-$\operatorname{o}(G + H) = \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+and $\operatorname{o}(H) = \mathscr{N}$, then if $\operatorname{r}(G) <
+\operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
 
-This is (2) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+This is (2) in [Davies, Miller, Milley (Lemma 3.13 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -187,13 +198,14 @@ theorem pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint {g h : GameForm
     exact absurd h_lower (by decide)
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \operatorname{o}(H) = \mathscr{N}$ then if
-$\operatorname{r}(G) > \operatorname{l}(H)$ or $\operatorname{l}(G) < \operatorname{r}(H)$
-then $\operatorname{o}(G + H) \ge \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) =
+\operatorname{o}(H) = \mathscr{N}$ then if $\operatorname{r}(G) >
+\operatorname{l}(H)$ or $\operatorname{l}(G) < \operatorname{r}(H)$ then
+$\operatorname{o}(G + H) \ge \mathscr{N}$.
 
-This is [Davies, Miller, Milley (Lemma 3.14 on p. 16)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 3.14 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_ge_N_of_NN {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -222,12 +234,13 @@ theorem pf_misereOutcome_add_ge_N_of_NN {g h : GameForm}
     exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAgl hAhl hgL (Or.inl hhN)
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \mathscr{L}$ and $\operatorname{l}(H) < \operatorname{n}(G)$,
-then $\operatorname{o}(G + H) = \mathscr{L}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$
+and $\operatorname{l}(H) < \operatorname{n}(G)$, then $\operatorname{o}(G + H)
+= \mathscr{L}$.
 
-This is (1) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+This is (1) in [Davies, Miller, Milley (Lemma 3.15 on p.
+17)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint_LR {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -237,13 +250,14 @@ theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint_LR {g h : GameF
   pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint hAg hAh hsg hsh hLg hlt
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$
-and $\operatorname{n}(G) > \operatorname{n}(H)$ or $\operatorname{r}(G) > \operatorname{l}(H)$,
-then $\operatorname{o}(G + H) \ge \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$,
+$\operatorname{o}(H) = \mathscr{R}$ and $\operatorname{n}(G) >
+\operatorname{n}(H)$ or $\operatorname{r}(G) > \operatorname{l}(H)$, then
+$\operatorname{o}(G + H) \ge \mathscr{N}$.
 
-This is (2) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+This is (2) in [Davies, Miller, Milley (Lemma 3.15 on p.
+17)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_ge_N_of_LR {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -307,11 +321,13 @@ theorem pf_misereOutcome_add_le_N_of_LR {g h : GameForm}
   rwa [Outcome.conjugate_conjugate_eq_self, show (Outcome.N).Conjugate = Outcome.N from rfl] at h2
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$
-then if $\operatorname{r}(H) < \operatorname{n}(G)$ then $\operatorname{o}(G + H) = \mathscr{R}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$
+then if $\operatorname{r}(H) < \operatorname{n}(G)$ then $\operatorname{o}(G +
+H) = \mathscr{R}$.
 
-This is mirror of (1) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+This is mirror of (1) in [Davies, Miller, Milley (Lemma 3.13 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -327,12 +343,13 @@ theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint {g h : GameForm
   rw [← neg_neg (g + h), neg_add, ← misereOutcome_conjugate_neg, hL]; rfl
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$ and
-$\operatorname{o}(H) = \mathscr{N}$, then if $\operatorname{l}(G) < \operatorname{r}(H)$ then
-$\operatorname{o}(G + H) = \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$
+and $\operatorname{o}(H) = \mathscr{N}$, then if $\operatorname{l}(G) <
+\operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
 
-This is mirror of (2) in [Davies, Miller, Milley (Lemma 3.13 on p. 16)][davies:SumsPFreeForms:2025]
+This is mirror of (2) in [Davies, Miller, Milley (Lemma 3.13 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_N_of_LTippingPoint_lt_RTippingPoint {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -351,13 +368,14 @@ theorem pf_misereOutcome_add_N_of_LTippingPoint_lt_RTippingPoint {g h : GameForm
     ← misereOutcome_conjugate_neg, hN]; rfl
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \operatorname{o}(H) = \mathscr{N}$ then if
-$\operatorname{r}(G) < \operatorname{l}(H)$ or $\operatorname{l}(G) > \operatorname{r}(H)$
-then $\operatorname{o}(G + H) \le \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) =
+\operatorname{o}(H) = \mathscr{N}$ then if $\operatorname{r}(G) <
+\operatorname{l}(H)$ or $\operatorname{l}(G) > \operatorname{r}(H)$ then
+$\operatorname{o}(G + H) \le \mathscr{N}$.
 
-This is mirror of [Davies, Miller, Milley (Lemma 3.14 on p. 16)][davies:SumsPFreeForms:2025]
+This is mirror of [Davies, Miller, Milley (Lemma 3.14 on p.
+16)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_le_N_of_NN {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -381,12 +399,13 @@ theorem pf_misereOutcome_add_le_N_of_NN {g h : GameForm}
   rwa [show (Outcome.N).Conjugate = Outcome.N from rfl] at h
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \mathscr{R}$ and $\operatorname{r}(H) < \operatorname{n}(G)$,
-then $\operatorname{o}(G + H) = \mathscr{R}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$
+and $\operatorname{r}(H) < \operatorname{n}(G)$, then $\operatorname{o}(G + H)
+= \mathscr{R}$.
 
-This is mirror of (1) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+This is mirror of (1) in [Davies, Miller, Milley (Lemma 3.15 on p.
+17)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint_RL {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -396,13 +415,14 @@ theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint_RL {g h : GameF
   pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint hAg hAh hsg hsh hRg hlt
 
 /--
-If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid,
-and $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) = \mathscr{L}$
-and $\operatorname{n}(G) < \operatorname{n}(H)$ or $\operatorname{r}(H) < \operatorname{l}(G)$,
-then $\operatorname{o}(G + H) \le \mathscr{N}$.
+If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
+\in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{R}$,
+$\operatorname{o}(H) = \mathscr{L}$ and $\operatorname{n}(G) <
+\operatorname{n}(H)$ or $\operatorname{r}(H) < \operatorname{l}(G)$, then
+$\operatorname{o}(G + H) \le \mathscr{N}$.
 
-This is mirror of (2) in [Davies, Miller, Milley (Lemma 3.15 on p. 17)][davies:SumsPFreeForms:2025]
+This is mirror of (2) in [Davies, Miller, Milley (Lemma 3.15 on p.
+17)][davies:SumsPFreeForms:2025].
 -/
 theorem pf_misereOutcome_add_le_N_of_RL {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)

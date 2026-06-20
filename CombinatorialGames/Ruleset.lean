@@ -20,7 +20,7 @@ class Ruleset (R : Type u) where
       ∀ g' ∈ Form.moves p (toGameForm r), ∃ r', toGameForm r' = g'
 
 /--
-Set of `GameForm`s created by the positions in rulset `R`
+Set of `GameForm`s created by the positions in ruleset `R`.
 -/
 def Ruleset.Forms (R : Type u) [Ruleset R] (g : GameForm) : Prop
   := ∃ (r : R), g = Ruleset.toGameForm r

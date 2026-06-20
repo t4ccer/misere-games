@@ -19,16 +19,17 @@ universe u
 public section
 
 /--
-A set of games $\mathcal{A}$ has Property X if,
-for all $G, H \in \operatorname{pf}(\mathcal{A})$ with
-$\operatorname{o}(G) = \operatorname{o}(H) = \mathscr{N}$
+A set of games $\mathcal{A}$ has Property X if, for all $G, H \in
+\operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \operatorname{o}(H)
+= \mathscr{N}$
 
-1. if $\operatorname{r}(G) = \operatorname{l}(H) = 1$, where $G$ is a Left end but $H$ is not,
-   then $\operatorname{o}(G + H) = N$; and
-2. if $\operatorname{l}(G) = \operatorname{r}(H) = 1$, where $H$ is a Right end but $G$ is not,
-   then $\operatorname{o}(G + H) = N$.
+1. if $\operatorname{r}(G) = \operatorname{l}(H) = 1$, where $G$ is a Left end
+but $H$ is not, then $\operatorname{o}(G + H) = N$; and
+2. if $\operatorname{l}(G) = \operatorname{r}(H) = 1$, where $H$ is a Right end
+but $G$ is not, then $\operatorname{o}(G + H) = N$.
 
-This is [Davies, Miller, Milley (Definition 3.16 on p. 18)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Definition 3.16 on p.
+18)][davies:SumsPFreeForms:2025].
 -/
 class PropertyX (A : GameForm → Prop) : Prop where
   prop_left {g h : GameForm} (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -45,59 +46,67 @@ class PropertyX (A : GameForm → Prop) : Prop where
     MisereOutcome (g + h) = .N
 
 /--
-The conjunction of the eight implications of Lemma 3.17 for a fixed pair $(G, H)$.
-We package them in a structure so that the (mutual) induction can return all of them at once.
+The conjunction of the eight implications of Lemma 3.17 for a fixed pair $(G,
+H)$. We package them in a structure so that the (mutual) induction can return
+all of them at once.
 -/
 structure Lemma317Claim (g h : GameForm) (hsg : IsShort g) (hsh : IsShort h) : Prop where
   /--
-  1(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{N}$,
-        $\operatorname{n}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{L}$.
+  1(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) =
+  \mathscr{N}$, $\operatorname{n}(G) = \operatorname{l}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{L}$.
   -/
   p1a : MisereOutcome g = .L → MisereOutcome h = .N →
     NTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .L
   /--
-  1(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{N}$,
-        $\operatorname{r}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
+  1(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) =
+  \mathscr{N}$, $\operatorname{r}(G) = \operatorname{l}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{N}$.
   -/
   p1b : MisereOutcome g = .L → MisereOutcome h = .N →
     RTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .N
   /--
-  2(a): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) = \mathscr{N}$,
-        $\operatorname{n}(G) = \operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{R}$.
+  2(a): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) =
+  \mathscr{N}$, $\operatorname{n}(G) = \operatorname{r}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{R}$.
   -/
   p2a : MisereOutcome g = .R → MisereOutcome h = .N →
     NTippingPoint hsg = RTippingPoint hsh → MisereOutcome (g + h) = .R
   /--
-  2(b): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) = \mathscr{N}$,
-        $\operatorname{l}(G) = \operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
+  2(b): if $\operatorname{o}(G) = \mathscr{R}$, $\operatorname{o}(H) =
+  \mathscr{N}$, $\operatorname{l}(G) = \operatorname{r}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{N}$.
   -/
   p2b : MisereOutcome g = .R → MisereOutcome h = .N →
     LTippingPoint hsg = RTippingPoint hsh → MisereOutcome (g + h) = .N
   /--
   3: if $\operatorname{o}(G), \operatorname{o}(H) = \mathscr{N}$,
-     $\operatorname{r}(G) = \operatorname{l}(H)$ or $\operatorname{l}(G) = \operatorname{r}(H)$
-     then $\operatorname{o}(G + H) = \mathscr{N}$.
+  $\operatorname{r}(G) = \operatorname{l}(H)$ or $\operatorname{l}(G) =
+  \operatorname{r}(H)$ then $\operatorname{o}(G + H) = \mathscr{N}$.
   -/
   p3 : MisereOutcome g = .N → MisereOutcome h = .N →
     (RTippingPoint hsg = LTippingPoint hsh ∨ LTippingPoint hsg = RTippingPoint hsh) →
     MisereOutcome (g + h) = .N
   /--
-  4(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
-        $\operatorname{n}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) = \mathscr{L}$.
+  4(a): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) =
+  \mathscr{R}$, $\operatorname{n}(G) = \operatorname{l}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{L}$.
   -/
   p4a : MisereOutcome g = .L → MisereOutcome h = .R →
     NTippingPoint hsg = LTippingPoint hsh → MisereOutcome (g + h) = .L
   /--
-  4(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
-        $\operatorname{n}(G) = \operatorname{n}(H)$ or $\operatorname{r}(G) = \operatorname{l}(H)$
-        then $\operatorname{o}(G + H) = \mathscr{N}$.
+  4(b): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) =
+  \mathscr{R}$, $\operatorname{n}(G) = \operatorname{n}(H)$ or
+  $\operatorname{r}(G) = \operatorname{l}(H)$ then $\operatorname{o}(G + H) =
+  \mathscr{N}$.
   -/
   p4b : MisereOutcome g = .L → MisereOutcome h = .R →
     (NTippingPoint hsg = NTippingPoint hsh ∨ RTippingPoint hsg = LTippingPoint hsh) →
     MisereOutcome (g + h) = .N
   /--
-  4(c): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) = \mathscr{R}$,
-        $\operatorname{r}(G) = \operatorname{n}(H)$ then $\operatorname{o}(G + H) = \mathscr{R}$.
+  4(c): if $\operatorname{o}(G) = \mathscr{L}$, $\operatorname{o}(H) =
+  \mathscr{R}$, $\operatorname{r}(G) = \operatorname{n}(H)$ then
+  $\operatorname{o}(G + H) = \mathscr{R}$.
   -/
   p4c : MisereOutcome g = .L → MisereOutcome h = .R →
     RTippingPoint hsg = NTippingPoint hsh → MisereOutcome (g + h) = .R
@@ -105,8 +114,9 @@ structure Lemma317Claim (g h : GameForm) (hsg : IsShort g) (hsh : IsShort h) : P
 variable {A : GameForm → Prop}
 
 /--
-The induction hypothesis available when proving `Lemma317Claim` for `(g, h)`: the full
-claim holds for every P-free pair `(g', h')` in $\mathcal{A}$ of strictly smaller total birthday.
+The induction hypothesis available when proving `Lemma317Claim` for `(g, h)`:
+the full claim holds for every P-free pair `(g', h')` in $\mathcal{A}$ of
+strictly smaller total birthday.
 -/
 private def Lemma317IH (g h : GameForm) : Prop :=
   ∀ g' h' (hsg' : IsShort g') (hsh' : IsShort h'),
@@ -494,10 +504,12 @@ private theorem lemma317_p4c {g h : GameForm}
   exact key
 
 /--
-If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid that has Property X,
-and $G, H \in \operatorname{pf}(\mathcal{A})$, then `Lemma317Claim` holds.
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible
+monoid that has Property X, and $G, H \in \operatorname{pf}(\mathcal{A})$, then
+`Lemma317Claim` holds.
 
-This is [Davies, Miller, Milley (Lemma 3.17 on p. 18)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 3.17 on p.
+18)][davies:SumsPFreeForms:2025].
 -/
 theorem lemma_3_17 {g h : GameForm} (hsg : IsShort g) (hsh : IsShort h)
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h) :
@@ -517,10 +529,12 @@ termination_by birthday g + birthday h
 decreasing_by exact hlt
 
 /--
-If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid with Property X,
-and $G, H \in \operatorname{pf}(\mathcal{A})$, then $\operatorname{o}(G + H) \ne \mathscr{P}$.
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible
+monoid with Property X, and $G, H \in \operatorname{pf}(\mathcal{A})$, then
+$\operatorname{o}(G + H) \ne \mathscr{P}$.
 
-This is [Davies, Miller, Milley (Lemma 3.18 on p. 22)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 3.18 on p.
+22)][davies:SumsPFreeForms:2025].
 -/
 theorem misereOutcome_ne_P_of_propertyX {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -568,10 +582,11 @@ theorem misereOutcome_ne_P_of_propertyX {g h : GameForm}
   rcases hmain with h | h <;> rw [hP] at h <;> exact absurd h (by decide)
 
 /--
-If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible monoid with Property X,
-then $\operatorname{pf}(\mathcal{A})$ is a monoid.
+If $\mathcal{A}$ is an outcome-stable, hereditary, and integer-invertible
+monoid with Property X, then $\operatorname{pf}(\mathcal{A})$ is a monoid.
 
-This is [Davies, Miller, Milley (Lemma 3.19 on p. 23)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Lemma 3.19 on p.
+23)][davies:SumsPFreeForms:2025].
 -/
 theorem isPFree_of_propertyX {g h : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
@@ -594,11 +609,13 @@ decreasing_by
 end Helpers
 
 /--
-If $\mathcal{A}$ is a subsemigroup of an outcome-stable, hereditary, and integer-invertible monoid
-that has Property X, then either $\operatorname{pf}(\mathcal{A})$ is a semigroup
-or else $\operatorname{pf}(\mathcal{A}) = \emptyset$.
+If $\mathcal{A}$ is a subsemigroup of an outcome-stable, hereditary, and
+integer-invertible monoid that has Property X, then either
+$\operatorname{pf}(\mathcal{A})$ is a semigroup or else
+$\operatorname{pf}(\mathcal{A}) = \emptyset$.
 
-This is [Davies, Miller, Milley (Corollary 3.21 on p. 23)][davies:SumsPFreeForms:2025]
+This is [Davies, Miller, Milley (Corollary 3.21 on p.
+23)][davies:SumsPFreeForms:2025].
 -/
 theorem isPFree_of_subset_propertyX {S A : GameForm → Prop}
     [OutcomeStable S] [Form.Hereditary S] [ClosedUnderAddNat S] [HasInt S]

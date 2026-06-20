@@ -18,7 +18,8 @@ open Form.Misere.Outcome
 
 variable {G : Type (u + 1)} [Form G]
 
-@[expose] def Maintenance (A : G → Prop) (g h : G) (p : Player) : Prop :=
+@[expose]
+def Maintenance (A : G → Prop) (g h : G) (p : Player) : Prop :=
   match p with
   | .right => ∀ gr ∈ moves .right g,
       (∃ hr ∈ moves .right h, gr ≥m A hr) ∨
@@ -27,7 +28,8 @@ variable {G : Type (u + 1)} [Form G]
       (∃ gl ∈ moves .left g, gl ≥m A hl) ∨
       (∃ hlr ∈ moves .right hl, g ≥m A hlr)
 
-@[expose] def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
+@[expose]
+def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
   ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
 
 theorem strong_of_isEnd {A : GameForm → Prop} {p : Player} {g : GameForm}
@@ -52,7 +54,8 @@ protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p :
     rwa [neg_neg p] at this
 
 /--
-This is test from [Davies, Milley (Theorem 3.1 on p. 7)][davies:OrderInversesMonoid:2026]
+This is the test given by [Davies, Milley (Theorem 3.1 on p.
+7)][davies:OrderInversesMonoid:2026].
 -/
 def IsStrongTest (p : Player) (g : GameForm) : Prop :=
   IsEnd p g ∨ ∃ gl, ∃ (_ : gl ∈ moves p g), MisereOutcome gl = Outcome.ofPlayer p ∧
@@ -94,7 +97,8 @@ protected theorem IsStrongTest.neg_iff {p : Player} {g : GameForm} :
     have h3 := isStrongTest_neg_imp (p := -p) h2
     rwa [neg_neg] at h3
 
-@[expose] def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
+@[expose]
+def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
 
 private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)

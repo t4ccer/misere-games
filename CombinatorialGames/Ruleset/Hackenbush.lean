@@ -16,9 +16,9 @@ import Mathlib.Order.RelClasses
 # Hackenbush
 
 Hackenbush is played on a connected graph with a designated "ground" vertex.
-All edges are colored either Left (blue) or Right (red).
-On their turn, a player removes one of their colored edges.
-The resulting position is the connected component containing the ground vertex.
+All edges are coloured either Left (bLue) or Right (Red). On their turn, a
+player removes one of their coloured edges. The resulting position is the
+connected component containing the ground vertex.
 -/
 
 attribute [local instance] Classical.propDecidable
@@ -35,7 +35,10 @@ structure Hackenbush (V : Type) where
   graph : SimpleGraph V
   /-- The ground vertex. -/
   ground : V
-  /-- Edge coloring: assigns a color/player (Left or Right) to each pair of vertices. -/
+  /--
+  Edge colouring: assigns a colour/player (Left or Right) to each pair of
+  vertices.
+  -/
   coloring : Sym2 V → Player
   /-- Every vertex incident to an edge is reachable from the ground vertex. -/
   connected : ∀ v ∈ graph.support, graph.Reachable v ground
@@ -68,12 +71,15 @@ The number of edges in a Hackenbush position.
 -/
 def edgeCard (hack : Hackenbush V) : ℕ := hack.edgeFinset.card
 
-/-! ### Ground component -/
+/-!
+### Ground component
+-/
 
 /--
-The ground component after removing an edge: the subgraph of `G.deleteEdges {e}` restricted
-to vertices reachable from the ground vertex. An edge `{u, v}` is kept iff it was in `G`,
-it is not the removed edge, and both `u` and `v` are still reachable from `ground`.
+The ground component after removing an edge: the subgraph of `G.deleteEdges
+{e}` restricted to vertices reachable from the ground vertex. An edge `{u, v}`
+is kept iff it was in `G`, it is not the removed edge, and both `u` and `v` are
+still reachable from `ground`.
 -/
 def groundComp (graph : SimpleGraph V) (ground : V) (e : Sym2 V) : SimpleGraph V where
   Adj u v := (graph.deleteEdges {e}).Adj u v ∧
@@ -120,7 +126,8 @@ theorem groundComp_support_subset (graph : SimpleGraph V) (ground : V) (e : Sym2
   exact ⟨w, groundComp_le graph ground e hw⟩
 
 /--
-Reachability in `G.deleteEdges {e}` from ground implies reachability in the ground component.
+Reachability in `G.deleteEdges {e}` from ground implies reachability in the
+ground component.
 -/
 theorem reach_deleteEdges_imp_reach_groundComp {graph : SimpleGraph V} {ground : V} {e : Sym2 V}
     {v : V} (hv : (graph.deleteEdges {e}).Reachable v ground) :
@@ -136,7 +143,7 @@ theorem reach_deleteEdges_imp_reach_groundComp {graph : SimpleGraph V} {ground :
     exact SimpleGraph.Reachable.trans (SimpleGraph.Adj.reachable h₁) (SimpleGraph.Walk.reachable h₂)
 
 /--
-The ground component is connected
+The ground component is connected.
 -/
 theorem groundComp_connected (graph : SimpleGraph V) (ground : V) (e : Sym2 V) :
     ∀ v ∈ (groundComp graph ground e).support, (groundComp graph ground e).Reachable v ground := by
@@ -188,16 +195,18 @@ theorem edgeCard_remove_lt (hack : Hackenbush V) (e : Sym2 V) (he : e ∈ hack.g
   exact Finset.card_lt_card
     (Set.Finite.toFinset_ssubset_toFinset.mpr (groundComp_edgeSet_ssubset he))
 
-/-! ### Ground edges -/
+/-!
+### Ground edges
+-/
 
 /--
-The set of p-colored ground edges (edges incident with the ground vertex).
+The set of p-coloured ground edges (edges incident with the ground vertex).
 -/
 def groundEdges (hack : Hackenbush V) (p : Player) : Finset (Sym2 V) :=
   hack.edgeFinset.filter fun e => hack.ground ∈ e ∧ hack.coloring e = p
 
 /--
-The number of p-colored edges incident with ground vertex.
+The number of p-coloured edges incident with ground vertex.
 -/
 def groundCount (hack : Hackenbush V) (p : Player) : ℕ :=
   (hack.groundEdges p).card
@@ -240,7 +249,8 @@ theorem groundEdge_mem_groundComp {graph : SimpleGraph V}
     simp only [SimpleGraph.deleteEdges_adj, Set.mem_singleton_iff, not_false_eq_true, and_self, h2, hne]
 
 /--
-Ground edges of the removed position = ground edges of original minus the removed edge.
+Ground edges of the removed position = ground edges of original minus the
+removed edge.
 -/
 theorem groundEdges_remove_eq (hack : Hackenbush V) (e : Sym2 V)
     (p : Player) :
@@ -260,7 +270,9 @@ theorem groundEdges_remove_eq (hack : Hackenbush V) (e : Sym2 V)
       rw [SimpleGraph.mem_edgeSet] at he'_gc
       exact (SimpleGraph.deleteEdges_adj.mp he'_gc.1).2 (Set.mem_singleton _)
 
-/-! ### Ground count properties under edge removal -/
+/-!
+### Ground count properties under edge removal
+-/
 
 /--
 Ground count after removing a ground p-edge decreases by 1.
@@ -274,7 +286,7 @@ theorem groundCount_remove_ground {hack : Hackenbush V} {e : Sym2 V} {p : Player
   exact ⟨he, hg, hc⟩
 
 /--
-Ground count is preserved when removing an edge of different color.
+Ground count is preserved when removing an edge of different colour.
 -/
 theorem groundCount_remove_neg {hack : Hackenbush V} {e : Sym2 V} {p : Player}
     (hc : hack.coloring e = -p) :
@@ -298,7 +310,7 @@ theorem groundCount_remove_non_ground {hack : Hackenbush V} {e : Sym2 V} {p : Pl
   exact absurd hg hng
 
 /--
-Removing a p-colored edge preserves (-p)-colored ground count.
+Removing a p-coloured edge preserves (-p)-coloured ground count.
 -/
 theorem groundCount_neg_remove {hack : Hackenbush V} {e : Sym2 V} {p : Player}
     (hc : hack.coloring e = p) :
@@ -315,10 +327,13 @@ theorem groundCount_move {hack : Hackenbush V} {e : Sym2 V} {p : Player}
   · simp [groundCount_remove_ground he hg hc]
   · simp [groundCount_remove_non_ground hg]
 
-/-! ### Hackenbush game structure -/
+/-!
+### Hackenbush game structure
+-/
 
 /--
-Moves in Hackenbush: remove an edge of your color and take the ground component.
+Moves in Hackenbush: remove an edge of your colour and take the ground
+component.
 -/
 protected def moves (p : Player) (hack : Hackenbush V) : Set (Hackenbush V) :=
   {hack' | ∃ e ∈ hack.graph.edgeSet, hack.coloring e = p ∧ hack' = hack.remove e}
@@ -397,7 +412,9 @@ theorem toGameForm_eq_zero_iff {hack : Hackenbush V} :
     convert GameGraph.toForm_def' ( g := GameGraph.hackenbush ) hack
     simp only [zero_def, GameGraph.hackenbush, h_empty_moves, Set.image_empty]
 
-/-! ### Existence of ground edges -/
+/-!
+### Existence of ground edges
+-/
 
 /-
 If the graph has edges, there is a ground edge.
@@ -417,7 +434,8 @@ theorem exists_ground_edge {hack : Hackenbush V} (h_ne : hack.graph ≠ ⊥) :
   exact SimpleGraph.exist_edge_end_walk h3
 
 /-
-If position is nonempty and groundCount p = 0, then all ground edges are (-p)-colored.
+If position is nonempty and groundCount p = 0, then all ground edges are
+(-p)-coloured.
 -/
 theorem exists_neg_ground_edge {hack : Hackenbush V} {p : Player}
     (h_ne : hack.graph ≠ ⊥) (hgc : hack.groundCount p = 0) :
@@ -476,7 +494,9 @@ theorem groundCount_zero_of_option {hack : Hackenbush V} {p : Player} {e : Sym2 
   rw [hgc] at this
   exact absurd this (Finset.notMem_empty _)
 
-/-! ### Stride theory -/
+/-!
+### Stride theory
+-/
 
 /--
 When p has no ground edges, the position is solved for p.
@@ -551,7 +571,7 @@ theorem not_isSolved_of_groundCount_pos {hack : Hackenbush V} {p : Player}
     refine ih _ ?_ hgc' rfl h_solved'
     subst n
     exact hack.edgeCard_remove_lt e₁ he₁
-  · -- Case B: all edges are p-colored, so (-p)-end
+  · -- Case B: all edges are p-coloured, so (-p)-end
     push_neg at h_neg
     refine absurd ?_ (GameForm.isSolved_not_isEnd h_solved hne0)
     rw [isEnd_def, moves_toGameForm, Set.image_eq_empty]
@@ -561,7 +581,8 @@ theorem not_isSolved_of_groundCount_pos {hack : Hackenbush V} {p : Player}
     exact absurd hc (h_neg e he)
 
 /--
-The p-stride of a Hackenbush position equals the number of p-colored ground edges.
+The p-stride of a Hackenbush position equals the number of p-coloured ground
+edges.
 -/
 theorem hasStride_groundCount (hack : Hackenbush V) (p : Player) :
     GameForm.HasStride p hack.toGameForm (hack.groundCount p) := by
@@ -635,7 +656,8 @@ instance : Ruleset (Hackenbush V) where
     use r'
 
 /--
-The underlying star graph for Hackenbush: ground vertex `0` connected to vertices `1, ..., n`.
+The underlying star graph for Hackenbush: ground vertex `0` connected to
+vertices `1, ..., n`.
 -/
 private def starGraph (n : ℕ) : SimpleGraph ℕ where
   Adj u v := (u = 0 ∧ 1 ≤ v ∧ v ≤ n) ∨ (1 ≤ u ∧ u ≤ n ∧ v = 0)
@@ -646,10 +668,10 @@ private def starGraph (n : ℕ) : SimpleGraph ℕ where
   loopless := ⟨fun v h => by cases h with | inl h => omega | inr h => omega⟩
 
 /--
-A star Hackenbush position over ℕ with `l` left ground edges and `r` right ground edges.
-Ground vertex is `0`. Left edges connect `0` to `1, ..., l`.
-Right edges connect `0` to `l+1, ..., l+r`.
-The coloring uses `max u v` (the non-zero endpoint of each star edge) to determine color.
+A star Hackenbush position over ℕ with `l` left ground edges and `r` right
+ground edges. Ground vertex is `0`. Left edges connect `0` to `1, ..., l`.
+Right edges connect `0` to `l+1, ..., l+r`. The colouring uses `max u v` (the
+non-zero endpoint of each star edge) to determine colour.
 -/
 def starPos (l r : ℕ) : Hackenbush ℕ where
   graph := Hackenbush.starGraph (l + r)

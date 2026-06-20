@@ -29,7 +29,8 @@ namespace AugmentedForm
 public section
 
 /--
-The set of all adjoints $J^\circ$ (lifted to $u + 1$) for all $J$ in universe $u$.
+The set of all adjoints $J^\circ$ (lifted to $u + 1$) for all $J$ in universe
+$u$.
 -/
 noncomputable def adjointsOfSmall : Set AugmentedForm.{u + 1} :=
   Set.range (fun J : AugmentedForm.{u} => liftSucc (J°))
@@ -81,7 +82,8 @@ theorem misereOutcome_add_liftSucc_adjoint_eq_P (x : AugmentedForm.{u}) :
   exact misereOutcome_add_adjoint_eq_P x
 
 /--
-For all games in universe $u$ and $G$ in $u + 1$, $\operatorname{o}(G + X) = \mathscr{N}$.
+For all games in universe $u$ and $G$ in $u + 1$, $\operatorname{o}(G + X) =
+\mathscr{N}$.
 -/
 theorem misereOutcome_g_add_lift (x : AugmentedForm.{u}) :
     MisereOutcome (g + liftSucc x) = Outcome.N := by
@@ -101,7 +103,8 @@ theorem misereOutcome_g_add_lift (x : AugmentedForm.{u}) :
       exact misereOutcome_add_liftSucc_adjoint_eq_P x
 
 /--
-For all games in universe $u$ and $H$ in $u + 1$, $\operatorname{o}(G + X) = \mathscr{N}$.
+For all games in universe $u$ and $H$ in $u + 1$, $\operatorname{o}(G + X) =
+\mathscr{N}$.
 -/
 theorem misereOutcome_h_add_lift (x : AugmentedForm.{u}) :
     MisereOutcome (h + liftSucc x) = Outcome.N := by
@@ -121,15 +124,15 @@ theorem misereOutcome_h_add_lift (x : AugmentedForm.{u}) :
       exact misereOutcome_add_liftSucc_adjoint_eq_P x
 
 /--
-Lift a set on `AugmentedForm.{u}` to one on `AugmentedForm.{u + 1}` via the range of
-`AugmentedForm.liftSucc`.
+Lift a set on `AugmentedForm.{u}` to one on `AugmentedForm.{u + 1}` via the
+range of `AugmentedForm.liftSucc`.
 -/
 def liftSet (A : AugmentedForm.{u} → Prop) : AugmentedForm.{u + 1} → Prop :=
   fun x => ∃ y, A y ∧ liftSucc y = x
 
 /--
-If $G, H$ are in universe $u$ then there are indistinguishable modulo set $\mathcal{A}$
-lifted to $u + 1$.
+If $G, H$ are in universe $u$ then there are indistinguishable modulo set
+$\mathcal{A}$ lifted to $u + 1$.
 -/
 theorem g_misereEQ_h_lift (A : AugmentedForm.{u} → Prop) :
     g =m (liftSet A) h := by

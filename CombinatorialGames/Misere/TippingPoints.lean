@@ -152,8 +152,9 @@ noncomputable def NTippingPoint {g : GameForm} (h1 : IsShort g) : ℕ :=
   Nat.find (NTippingPoint.aux h1)
 
 /--
-The defining property of the $\mathscr{N}$-tipping point: at $\operatorname{n}(G)$ itself,
-either the positive or the negative shift has outcome $\mathscr{N}$.
+The defining property of the $\mathscr{N}$-tipping point: at
+$\operatorname{n}(G)$ itself, either the positive or the negative shift has
+outcome $\mathscr{N}$.
 -/
 theorem NTippingPoint_spec {g : GameForm} (h1 : IsShort g) :
     MisereOutcome (g + (NTippingPoint h1 : GameForm)) = .N ∨
@@ -221,8 +222,8 @@ theorem LTippingPoint_iff {g : GameForm} (h1 : IsShort g) (n : ℕ) :
     omega
 
 /--
-Negation sends the $\mathscr{R}$-tipping point to the $\mathscr{L}$-tipping point:
-$\operatorname{r}(-G) = \operatorname{l}(G)$.
+Negation sends the $\mathscr{R}$-tipping point to the $\mathscr{L}$-tipping
+point: $\operatorname{r}(-G) = \operatorname{l}(G)$.
 -/
 theorem RTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
     RTippingPoint (Short.neg hsg) = LTippingPoint hsg := by
@@ -246,8 +247,8 @@ theorem RTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
     exact (LTippingPoint_iff hsg (LTippingPoint hsg)).mp rfl |>.2 _ h_conj
 
 /--
-Negation sends the $\mathscr{L}$-tipping point to the $\mathscr{R}$-tipping point:
-$\operatorname{l}(-G) = \operatorname{r}(G)$.
+Negation sends the $\mathscr{L}$-tipping point to the $\mathscr{R}$-tipping
+point: $\operatorname{l}(-G) = \operatorname{r}(G)$.
 -/
 theorem LTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
     LTippingPoint (Short.neg hsg) = RTippingPoint hsg := by
@@ -256,24 +257,24 @@ theorem LTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
   rw [this, RTippingPoint_neg]
 
 /--
-The $\mathscr{R}$-tipping point is a witness:
-$\operatorname{o}(G + \operatorname{r}(G)) = \mathscr{R}$.
+The $\mathscr{R}$-tipping point is a witness: $\operatorname{o}(G +
+\operatorname{r}(G)) = \mathscr{R}$.
 -/
 theorem misereOutcome_add_RTippingPoint_R {g : GameForm} (hsg : IsShort g) :
     MisereOutcome (g + (RTippingPoint hsg : GameForm)) = .R :=
   ((RTippingPoint_iff hsg (RTippingPoint hsg)).mp rfl).left
 
 /--
-The $\mathscr{L}$-tipping point is a witness:
-$\operatorname{o}(G - \operatorname{l}(G)) = \mathscr{L}$.
+The $\mathscr{L}$-tipping point is a witness: $\operatorname{o}(G -
+\operatorname{l}(G)) = \mathscr{L}$.
 -/
 theorem misereOutcome_add_neg_LTippingPoint_L {g : GameForm} (hsg : IsShort g) :
     MisereOutcome (g + (-(LTippingPoint hsg : GameForm))) = .L :=
   ((LTippingPoint_iff hsg (LTippingPoint hsg)).mp rfl).left
 
 /--
-Minimality of the $\mathscr{R}$-tipping point:
-below $\operatorname{r}(G)$, the positive shift is not $\mathscr{R}$.
+Minimality of the $\mathscr{R}$-tipping point: below $\operatorname{r}(G)$, the
+positive shift is not $\mathscr{R}$.
 -/
 theorem misereOutcome_add_nat_ne_R_of_lt_RTippingPoint {g : GameForm} (hsg : IsShort g)
     {k : ℕ} (hk : k < RTippingPoint hsg) :
@@ -282,8 +283,8 @@ theorem misereOutcome_add_nat_ne_R_of_lt_RTippingPoint {g : GameForm} (hsg : IsS
   exact ( RTippingPoint_iff hsg _ |>.mp rfl |>.2 _ hk )
 
 /-
-Minimality of the $\mathscr{L}$-tipping point:
-below $\operatorname{l}(G)$, the negative shift is not $\mathscr{L}$.
+Minimality of the $\mathscr{L}$-tipping point: below $\operatorname{l}(G)$, the
+negative shift is not $\mathscr{L}$.
 -/
 theorem misereOutcome_add_neg_nat_ne_L_of_lt_LTippingPoint {g : GameForm} (hsg : IsShort g)
     {k : ℕ} (hk : k < LTippingPoint hsg) :

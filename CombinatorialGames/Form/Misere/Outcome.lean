@@ -257,7 +257,9 @@ theorem misereOutcome_N_iff_winsGoingFirst {g : G} :
   <;> cases h_right : MiserePlayerOutcome g .right
   <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
 
-/-- If `o(x) ≥ N` then Left wins going first on `x`. -/
+/--
+If `o(x) ≥ N` then Left wins going first on `x`.
+-/
 theorem winsGoingFirst_left_of_ge_N {x : G} (h : MisereOutcome x ≥ .N) :
     WinsGoingFirst .left x := by
   rcases hc : MisereOutcome x with _ | _ | _ | _
@@ -345,7 +347,7 @@ theorem misereOutcome_ge_iff_miserePlayerOutcome_ge {g h : G}
     simp [MisereOutcome, Outcome.ofPlayers, hgl, hgr, hhl, hhr, LE.le, LT.lt]
 
 /--
-Restricted misère equality, modulo a set `A`.
+Restricted misère equivalence, working modulo a set `A`.
 -/
 @[expose] def MisereEQ (A : G → Prop) (g h : G) : Prop :=
   ∀ (x : G), A x → MisereOutcome (g + x) = MisereOutcome (h + x)
@@ -378,7 +380,7 @@ theorem MisereEQ.trans {A : G → Prop} {g h k : G} (h1 : g =m A h) (h2 : h =m A
   exact cast (congrArg (Eq (MisereOutcome (g + x))) (h2 x h3)) (h1 x h3)
 
 /--
-The restricted misère inequality, modulo a set `A`.
+The restricted misère preorder, working modulo a set `A`.
 -/
 @[expose] def MisereGE (A : G → Prop) (g h : G) : Prop :=
   ∀ x, (A x → MisereOutcome (g + x) ≥ MisereOutcome (h + x))
@@ -434,7 +436,10 @@ theorem misereGE_of_subset (U : G → Prop) {V : G → Prop}
   intro x hv
   exact h2 x (h_v_subset_u x hv)
 
-/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère inequality. -/
+/--
+Adding a fixed element `c ∈ A` on the right preserves the restricted misère
+inequality.
+-/
 theorem misereGE_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
     (hc : A c) (h1 : g ≥m A h) : (g + c) ≥m A (h + c) := by
   intro x hx
@@ -442,7 +447,10 @@ theorem misereGE_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
   have := h1 (c + x) hcx
   rwa [← add_assoc, ← add_assoc] at this
 
-/-- Adding a fixed element `c ∈ A` on the right preserves the restricted misère equivalence. -/
+/--
+Adding a fixed element `c ∈ A` on the right preserves the restricted misère
+equivalence.
+-/
 theorem misereEQ_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
     (hc : A c) (h1 : g =m A h) : (g + c) =m A (h + c) := by
   intro x hx
@@ -450,7 +458,10 @@ theorem misereEQ_add_right {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
   have := h1 (c + x) hcx
   rwa [← add_assoc, ← add_assoc] at this
 
-/-- Adding a fixed element `c ∈ A` on the left preserves the restricted misère equivalence. -/
+/--
+Adding a fixed element `c ∈ A` on the left preserves the restricted misère
+equivalence.
+-/
 theorem misereEQ_add_left {A : G → Prop} [ClosedUnderAdd A] {g h c : G}
     (hc : A c) (h1 : g =m A h) : (c + g) =m A (c + h) := by
   have := misereEQ_add_right hc h1

@@ -32,7 +32,8 @@ theorem edgeSet_finite_of_support_finite {graph : SimpleGraph V}
       (graph.mem_support.mpr ⟨u, he.symm⟩)
 
 /--
-If a non-empty walk ends with a vertex `u` then there exists some edge incident to `u`.
+If a non-empty walk ends with a vertex `u`, then there exists some edge
+incident to `u`.
 -/
 theorem exist_edge_end_walk {graph : SimpleGraph V} {v u : V} (h1 : v ≠ u)
     (walk : graph.Walk v u) : ∃ e ∈ graph.edgeSet, u ∈ e := by

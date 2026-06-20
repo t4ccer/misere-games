@@ -16,7 +16,6 @@ namespace Form
 open Classical in
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}\def\adjr#1{\operatorname{adj}_r\left(#1\right)}$
-
 The *rooted adjoint* of `g` with *root* `r`. It is the same construction as the
 `adjoint`, except that we place an arbitrary *root* `r` at the ends rather than
 `0`:
@@ -36,7 +35,8 @@ $$
 
 Taking `r = 0` recovers the standard `adjoint`.
 -/
-@[expose] noncomputable def rootedAdjoint {G : Type (u + 1)} [Form G] (r g : G) : G :=
+@[expose]
+noncomputable def rootedAdjoint {G : Type (u + 1)} [Form G] (r g : G) : G :=
   have := moves_small.{u} .left g
   have := moves_small.{u} .right g
   if IsEnd .left g ∧ IsEnd .right g then !{{r} | {r}}
@@ -49,10 +49,9 @@ decreasing_by all_goals form_wf
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
-This extends the notion of the
-_adjoint_ of a short augmented form, as defined by
-[Siegel (Definition 5.6 on p. 214)][siegel:GeneralDeadendingUniverse:2025], to
-transfinite forms:
+This extends the notion of the _adjoint_ of a short augmented form, as defined
+by [Siegel (Definition 5.6 on p. 214)][siegel:GeneralDeadendingUniverse:2025],
+to transfinite forms:
 $$
 G^\circ =
 \begin{cases}
@@ -73,7 +72,8 @@ impartial _mate_ due to [Conway (p. 147)][conway:NumbersAndGames:2001].
 
 It is the special case of `rootedAdjoint` with root `0`.
 -/
-@[expose] noncomputable def adjoint {G : Type (u + 1)} [Form G] (g : G) : G :=
+@[expose]
+noncomputable def adjoint {G : Type (u + 1)} [Form G] (g : G) : G :=
   rootedAdjoint 0 g
 
 @[inherit_doc adjoint]
@@ -267,7 +267,7 @@ termination_by g
 decreasing_by all_goals form_wf
 
 /--
-Adjoint of a short game is also short
+The adjoint of a short game is also short.
 -/
 theorem short_adjoint {g : G} (h1 : IsShort g) : IsShort (g°) :=
   short_rootedAdjoint Short.zero h1
@@ -287,8 +287,10 @@ protected theorem moves (p : Player) (g : G) :
     moves p (g°) = if IsEnd (-p) g then {(0 : G)} else ( · °) '' moves (-p) g :=
   rootedAdjoint_moves 0 p g
 
-/-- The rooted adjoint of the conjugate is the conjugate of the rooted adjoint,
-with the root conjugated. -/
+/--
+The rooted adjoint of the conjugate is the conjugate of the rooted adjoint,
+with the root conjugated.
+-/
 theorem rootedAdjoint_neg (r g : G) : rootedAdjoint (-r) (-g) = -(rootedAdjoint r g) := by
   have key : ∀ p : Player,
       Set.range (fun x : moves p (-g) => rootedAdjoint (-r) (x : G))
@@ -307,7 +309,9 @@ theorem rootedAdjoint_neg (r g : G) : rootedAdjoint (-r) (-g) = -(rootedAdjoint 
 termination_by g
 decreasing_by all_goals form_wf
 
-/-- The adjoint of the conjugate is the conjugate of the adjoint. -/
+/--
+The adjoint of the conjugate is the conjugate of the adjoint.
+-/
 theorem adjoint_neg (g : G) : (-g)° = -(g°) := by
   have h := rootedAdjoint_neg (0 : G) g
   rwa [neg_zero] at h

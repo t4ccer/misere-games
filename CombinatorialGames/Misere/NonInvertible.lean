@@ -22,16 +22,19 @@ instance : ClosedUnderNeg AnyGame where
   neg_of _ := trivial
 
 /--
-Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegel:CombinatorialGameTheory:2013]
-
-$$T = \left\{ \left( H^R \right)^{\circ} \mid \left\{ \cdot \mid \left( G^L \right)^{\circ} \right\} \right\}$$
+Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p.
+270)][siegel:CombinatorialGameTheory:2013]:
+$$
+T = \left\{ \left( H^R \right)^{\circ} \mid \left\{ \cdot \mid \left( G^L
+\right)^{\circ} \right\} \right\}.
+$$
 -/
 noncomputable def leftEnd_not_leftEnd_not_ge.auxT (g h : GameForm) : GameForm :=
   !{ Set.range fun hr : moves .right h => (hr : GameForm)°
    | { !{∅ | Set.range fun gl : moves .left g => (gl : GameForm)°} } }
 
 /--
-$T$ is short if $G, H$ are short
+$T$ is short if $G$ and $H$ are short.
 -/
 theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
     : IsShort (leftEnd_not_leftEnd_not_ge.auxT g h) := by
@@ -68,7 +71,8 @@ theorem short_auxT {g h : GameForm} (h_g : IsShort g) (h_h : IsShort h)
         exact Adjoint.short_adjoint h_gl
 
 /--
-Generalizaton of [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p. 270)][siegel:CombinatorialGameTheory:2013]
+Generalisaton of [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p.
+270)][siegel:CombinatorialGameTheory:2013].
 -/
 theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h : GameForm}
     (h0 : A (leftEnd_not_leftEnd_not_ge.auxT g h)) (h1 : IsEnd .left h)
@@ -86,7 +90,9 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
     simp [Player.neg_right, not_exists, not_and, not_not]
     intro x h3
     apply Or.elim h3 <;> clear h3 <;> intro ⟨hr, h3, h4⟩ <;> rw [<-h4]
-    · -- If Right moves to H^R + T, then Left has a winning response to H^R + (H^R)°
+    ·
+      -- If Right moves to H^R + T, then Left has a winning response to H^R +
+      -- (H^R)°
       refine winsGoingFirst_left_of_move_misereOutcome_P ?_ (misereOutcome_add_adjoint_eq_P hr)
       refine add_left_mem_moves_add ?_ hr
       simp only [t, leftMoves_ofSets, Set.mem_range, Subtype.exists, exists_prop]
@@ -114,8 +120,8 @@ theorem not_misereGE_of_isEnd_left_not_isEnd_left {A : GameForm → Prop} {g h :
       intro gl h4
       -- from which Left's only options have the form G^L + { | (G^L)° }
       apply winsGoingFirst_of_moves
-      -- There must be at least one such option, by the assumption on G;
-      -- and each such option has a mirror-image response by Right, to G^L + (G^L)°
+      -- There must be at least one such option, by the assumption on G; and
+      -- each such option has a mirror-image response by Right, to G^L + (G^L)°
       use (gl + gl°)
       simp only [Player.neg_right, moves_add, moves_ofSets, Player.cases,
                  Set.mem_union, Set.mem_image, Set.mem_range, Subtype.exists, exists_prop,
@@ -168,7 +174,8 @@ theorem EqZeroIdentical.not_misereEQ_zero_of_ne_zero {A : GameForm → Prop} [Eq
             (MisereEQ.symm h3)
 
 /--
-Generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
+Generalisaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p.
+270)][siegel:CombinatorialGameTheory:2013].
 -/
 theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZeroIdentical A]
     {g : GameForm} (h0 : A g) : (g =m A 0 ↔ g = 0) := by
@@ -180,13 +187,15 @@ theorem EqZeroIdentical.misereEQ_zero_iff_eq_zero {A : GameForm → Prop} [EqZer
     exact congrFun rfl
 
 /--
-[Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
+[Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p.
+270)][siegel:CombinatorialGameTheory:2013].
 -/
 theorem Short.misereEQ_zero_iff_eq_zero {g : GameForm} (h_g : IsShort g) :
     (g =m IsShort 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero h_g
 
 /--
-Transfinite generalizaton of [Siegel, "Combinatorial Game Theory" (Proposition 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013]
+Transfinite generalisaton of [Siegel, "Combinatorial Game Theory" (Proposition
+6.7 on p. 270)][siegel:CombinatorialGameTheory:2013].
 -/
 theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
     (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial

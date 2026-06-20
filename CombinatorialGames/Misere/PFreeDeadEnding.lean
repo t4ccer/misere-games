@@ -502,7 +502,8 @@ private theorem isEnd_right_exists_intCast_misereEQ {g : GameForm}
   rwa [Form.intCast_neg n, misereEQ_neg_iff] at ha
 
 /--
-If $G \in \operatorname{pf}(\mathcal{E})$ is an end then it equals to some integer.
+If $G \in \operatorname{pf}(\mathcal{E})$ is an end, then it is equivalent to
+some integer.
 -/
 theorem isEnd_exists_intCast_misereEQ {p : Player} {g : GameForm} (h_g : PFreeDeadEnding g)
     (h_isEnd : IsEnd p g) :

@@ -21,9 +21,10 @@ universe u v
 
 public section
 
--- Implementation detail
-@[expose] def Moves.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
-   x ∈ ⋃ p, moves p y
+-- Implementation detail.
+@[expose]
+def Moves.IsOption' {G : Type v} (moves : Player → G → Set G) (x y : G) : Prop :=
+  x ∈ ⋃ p, moves p y
 
 class Moves (G : Type v) where
   moves (p : Player) (x : G) : Set G
@@ -56,8 +57,13 @@ namespace Moves
 
 variable {G : Type (u + 1)} [g_moves : Moves G]
 
-/-- `IsOption x y` means that `x` is either a left or a right move for `y`. -/
-@[expose] def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
+/--
+`IsOption x y` means that `x` is either a Left or a Right option for `y`.
+-/
+@[expose]
+def IsOption (x y : G) : Prop := IsOption' g_moves.moves x y
+
+-- TODO: remove this or keep?
 
 -- /-- The set of left moves of the game. -/
 -- scoped notation:max g:max "ᴸ" => Form.moves Player.left g
@@ -85,8 +91,14 @@ theorem IsOption.irrefl (x : G) : ¬ IsOption x x := _root_.irrefl x
 theorem self_notMem_moves (p : Player) (x : G) : x ∉ moves p x :=
   fun hx ↦ IsOption.irrefl x (.of_mem_moves hx)
 
-/-- A (proper) subposition is any game in the transitive closure of `IsOption`. -/
-@[expose] def Subposition : G → G → Prop :=
+/--
+A *proper subposition* is an element of the transitive closure of `IsOption`.
+Note that this is not the reflexive-transitive closure! While it is common to
+say that $G$ is a subposition of $G$ in the literature, here `Subposition`
+refers to a proper subposition.
+-/
+@[expose]
+def Subposition : G → G → Prop :=
   Relation.TransGen IsOption
 
 theorem Subposition.of_isOption {x y : G} (h : IsOption x y) : Subposition x y :=
@@ -398,21 +410,29 @@ instance : IntCast G where
   | .ofNat n => n
   | .negSucc n => -(n + 1)
 
-@[simp, norm_cast] protected theorem intCast_nat (n : ℕ) : ((n : ℤ) : G) = n := rfl
+@[simp, norm_cast]
+protected theorem intCast_nat (n : ℕ) : ((n : ℤ) : G) = n := rfl
 
-@[simp] protected theorem intCast_ofNat (n : ℕ) : ((ofNat(n) : ℤ) : G) = n := rfl
+@[simp]
+protected theorem intCast_ofNat (n : ℕ) : ((ofNat(n) : ℤ) : G) = n := rfl
 
-@[simp] protected theorem intCast_negSucc (n : ℕ) : (Int.negSucc n : G) = -(n + 1) := rfl
+@[simp]
+protected theorem intCast_negSucc (n : ℕ) : (Int.negSucc n : G) = -(n + 1) := rfl
 
-@[norm_cast] protected theorem intCast_zero : ((0 : ℤ) : G) = 0 := by simp
+@[norm_cast]
+protected theorem intCast_zero : ((0 : ℤ) : G) = 0 := by simp
 
-@[norm_cast] protected theorem intCast_one : ((1 : ℤ) : G) = 1 := by simp
+@[norm_cast]
+protected theorem intCast_one : ((1 : ℤ) : G) = 1 := by simp
 
-@[norm_cast] protected theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp
+@[norm_cast]
+protected theorem natCast_zero : ((0 : ℕ) : G) = 0 := by simp
 
-@[norm_cast] protected theorem natCast_one : ((1 : ℕ) : G) = 1 := by simp
+@[norm_cast]
+protected theorem natCast_one : ((1 : ℕ) : G) = 1 := by simp
 
-@[simp, norm_cast] protected theorem intCast_neg (n : ℤ) : ((-n : ℤ) : G) = -(n : G) := by
+@[simp, norm_cast]
+protected theorem intCast_neg (n : ℤ) : ((-n : ℤ) : G) = -(n : G) := by
   cases n with
   | ofNat n =>
     induction n with
@@ -665,7 +685,9 @@ theorem eq_add_one_of_mem_rightMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves
   rw [← neg_inj]
   simpa [← Form.intCast_neg, Int.neg_add] using eq_sub_one_of_mem_leftMoves_intCast this
 
-/-- Every left option of an integer is equal to a smaller integer. -/
+/--
+Every Left option of an integer is equal to a smaller integer.
+-/
 theorem eq_intCast_of_mem_leftMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves .left (n : G)) :
     ∃ m : ℤ, m < n ∧ m = x := by
   use n - 1
@@ -681,7 +703,10 @@ theorem eq_intCast_of_mem_rightMoves_intCast {n : ℤ} {x : G} (hx : x ∈ moves
 theorem succ_nat_end_right {p : Player} {n : ℕ} : IsEnd p (n.succ : G) ↔ p = .right := by
   cases p <;> simp [isEnd_def]
 
-/-- If it holds for the previous natural, it holds for all moves of this natural as it is the only move -/
+/--
+If `P` holds at `n`, then `P` holds at every option of `n+1` (since `n` is the
+only such option).
+-/
 theorem nat_forall_moves {n : ℕ} {P : G → Prop} (h1 : P n)
     : ∀ (p : Player), ∀ gp ∈ moves p (n.succ : G), P gp := by
   intro p; cases p

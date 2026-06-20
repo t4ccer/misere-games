@@ -12,8 +12,9 @@ import Mathlib.Data.Fintype.Order
 /-!
 # Short games
 
-A combinatorial game is `Short` if it has only finitely many subpositions. In particular, this means
-there is a finite set of moves at every point.
+A combinatorial game is `Short` if it is finite and loopfree: it has only
+finite many distinct subpositions, and every run has finite length. See
+[Siegel, Definition 4.1 on p. 34][siegel:CombinatorialGameTheory:2013].
 -/
 
 universe u

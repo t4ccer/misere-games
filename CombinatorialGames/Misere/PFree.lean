@@ -17,7 +17,8 @@ universe u
 
 public section
 
-@[expose] def IsPFree {G : Type (u + 1)} [Form G] (g : G) : Prop :=
+@[expose]
+def IsPFree {G : Type (u + 1)} [Form G] (g : G) : Prop :=
   (MisereOutcome g ≠ .P) ∧ (∀ p, ∀gp ∈ moves p g, IsPFree gp)
 termination_by g
 decreasing_by form_wf

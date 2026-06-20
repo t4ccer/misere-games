@@ -61,7 +61,9 @@ private theorem mem_of_sInf_mem {IsAmbient : G → Prop} {S : Set (Set.Iic IsAmb
   simp only [sInf_apply, iInf_Prop_eq] at hg'
   exact hg' ⟨(A : G → Prop), A, hAS, rfl⟩
 
-/-- An intersection of universes is a universe. -/
+/--
+An intersection of universes is a universe.
+-/
 theorem sInf_closed (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient]
     {S : Set (Set.Iic IsAmbient)}
     (hS : ∀ A ∈ S, Universe IsAmbient (A : G → Prop)) :
@@ -97,19 +99,27 @@ theorem sInf_closed (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient]
   isAmbient_of_mem hg :=
     (sInf S).2 _ hg
 
-/-- Sends a bounded predicate to the smallest `Universe IsAmbient` containing it. -/
+/--
+The closure operator for finding the universal closure of a given set (in the
+context of a given ambient).
+Sends a bounded predicate to the smallest `Universe IsAmbient` containing it.
+-/
 noncomputable abbrev closureOperator (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient] :
     ClosureOperator (Set.Iic IsAmbient) :=
   ClosureOperator.ofCompletePred
     (fun A : Set.Iic IsAmbient => Universe IsAmbient (A : G → Prop)) fun _ hS =>
       sInf_closed IsAmbient hS
 
-/-- The smallest bounded predicate containing `A` that is a `Universe IsAmbient`. -/
+/--
+The universal closure of a given set (within the context of a given ambient).
+-/
 noncomputable abbrev closureBounded (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient]
     (A : Set.Iic IsAmbient) : Set.Iic IsAmbient :=
   closureOperator IsAmbient A
 
-/-- The smallest `Universe IsAmbient` containing `A`. -/
+/--
+The universal closure of a given set (within the context of a given ambient).
+-/
 noncomputable abbrev closure (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient]
     (A : G → Prop) (hA : A ≤ IsAmbient) : G → Prop :=
   closureBounded IsAmbient ⟨A, hA⟩
@@ -263,7 +273,9 @@ end Universe
 
 namespace LongUniverse
 
-/-- The smallest long universe containing `A`. -/
+/--
+The smallest long universe containing `A`.
+-/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
   Universe.closure IsLong A (fun _ _ => trivial)
 
@@ -278,7 +290,9 @@ end LongUniverse
 
 namespace ShortUniverse
 
-/-- The smallest short universe containing `A`. -/
+/--
+The smallest short universe containing `A`.
+-/
 noncomputable abbrev closure (A : G → Prop) (hA : A ≤ IsShort) : G → Prop :=
   Universe.closure (IsShort (G := G)) A hA
 

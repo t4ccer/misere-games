@@ -46,13 +46,17 @@ theorem sInf_closed {S : Set (G → Prop)}
     haveI : ClosedUnderAdd (fun x => P.1 x) := hS P P.2
     exact ClosedUnderAdd.has_add g h (hg P) (hh P)
 
-/-- The closure operator sending a predicate to the smallest predicate containing it
-and closed under addition. -/
+/--
+The closure operator for finding the smallest additively closed set containing
+the given set.
+-/
 noncomputable abbrev closureOperator : ClosureOperator (G → Prop) :=
   ClosureOperator.ofCompletePred (fun A : G → Prop => ClosedUnderAdd A) fun _ hS =>
     sInf_closed hS
 
-/-- The smallest predicate containing `A` and closed under addition. -/
+/--
+The additive closure of a given set.
+-/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
   closureOperator A
 
@@ -96,12 +100,17 @@ theorem sInf_closed {S : Set (G → Prop)}
     haveI : Hereditary (fun x => P.1 x) := hS P P.2
     exact Hereditary.has_option (hg P) h
 
-/-- The closure operator sending a predicate to the smallest hereditary predicate containing it. -/
+/--
+The closure operator for finding the smallest hereditary set containing the
+given set.
+-/
 noncomputable abbrev closureOperator : ClosureOperator (G → Prop) :=
   ClosureOperator.ofCompletePred (fun A : G → Prop => Hereditary A) fun _ hS =>
     sInf_closed hS
 
-/-- The smallest hereditary predicate containing `A`. -/
+/--
+The hereditary closure of a given set.
+-/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
   closureOperator A
 
@@ -143,13 +152,17 @@ theorem sInf_closed {S : Set (G → Prop)}
     haveI : ClosedUnderNeg (fun x => P.1 x) := hS P P.2
     exact ClosedUnderNeg.neg_of (hg P)
 
-/-- The closure operator sending a predicate to the smallest predicate containing it
-and closed under negation. -/
+/--
+The closure operator for finding the smallest conjugate closed set containing
+the given set.
+-/
 noncomputable abbrev closureOperator : ClosureOperator (G → Prop) :=
   ClosureOperator.ofCompletePred (fun A : G → Prop => ClosedUnderNeg A) fun _ hS =>
     sInf_closed hS
 
-/-- The smallest predicate containing `A` and closed under negation. -/
+/--
+The conjugate closure of a given set.
+-/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
   closureOperator A
 
@@ -194,14 +207,18 @@ theorem sInf_closed (IsAmbient : G → Prop) {S : Set (G → Prop)}
     exact ClosedUnderDicotic.closed_dicotic B C
       (fun b hb => hB b hb P) (fun c hc => hC c hc P) hBne hCne hAmbient
 
-/-- The closure operator sending a predicate to the smallest predicate containing it
-and closed under dicotic forms in the ambient predicate. -/
+/--
+The closure operator for finding the smallest dicotically closed set (given the
+ambient context) containing the given set.
+-/
 noncomputable abbrev closureOperator (IsAmbient : G → Prop) : ClosureOperator (G → Prop) :=
   ClosureOperator.ofCompletePred
     (fun A : G → Prop => ClosedUnderDicotic IsAmbient A) fun _ hS =>
       sInf_closed IsAmbient hS
 
-/-- The smallest predicate containing `A` and closed under dicotic forms in the ambient predicate. -/
+/--
+The dicotic closure (within the ambient context) of a given set.
+-/
 noncomputable abbrev closure (IsAmbient : G → Prop) (A : G → Prop) : G → Prop :=
   closureOperator IsAmbient A
 

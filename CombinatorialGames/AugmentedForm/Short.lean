@@ -15,9 +15,9 @@ open Form
 public section
 
 /--
-A concrete encoding of the data of a short augmented form:
-a finite list of Left options, a finite list of Right options, and two tombstone bits.
-As an inductive type in `Type 0`, it is `Small.{u}` for every `u`.
+A concrete encoding of the data of a short augmented form: a finite list of
+Left options, a finite list of Right options, and two tombstone bits. As an
+inductive type in `Type 0`, it is `Small.{u}` for every `u`.
 -/
 inductive ShortTree : Type
   | mk (L R : List ShortTree) (tL tR : Bool) : ShortTree
@@ -60,7 +60,7 @@ theorem hasTombstone_toForm (p : Player) (L R : List ShortTree) (tL tR : Bool) :
   rw [toForm, AugmentedForm.hasTombstone_ofSetsWithTombs]
 
 /--
-Any finite set of forms, each of which is in the range of `toForm`,
+Any finite set of augmented forms, each of which is in the range of `toForm`,
 is the image under `toForm` of (the set of members of) some list.
 -/
 theorem exists_list_image (S : Set AugmentedForm.{u}) (hfin : S.Finite)

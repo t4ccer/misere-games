@@ -10,16 +10,21 @@ public import CombinatorialGames.Form
 /-!
 # Combinatorial games from a type of states
 
-In the literature, mathematicians often describe games as graphs, consisting of a set of states, as
-well as move relations for the left and right players. We define a structure `GameGraph` which
-facilitates this construction, bundling the left and right set functions along with the type, as
-well as function `GameGraph.toForm` which turn them into the appropriate type of game.
+In the literature, games are often described in terms of their *game graphs*,
+which can be thought of as (not necessarily properly) 2-edge-coloured rooted
+arborescences. Or more informally as a set of states with move relations for
+Left and Right (the two players).
+
+We define a structure `GameGraph` that facilitates this viewpoint, bundling the
+Left and Right option set functions along with the type, as well as
+`GameGraph.toForm`, which turns the graph into the relevant type of game form.
 
 ## Design notes
 
-When working with any "specific" game (nim, domineering, etc.) you can use `GameGraph` to set up
-the basic theorems and definitions, but the intent is that you're not working with `GameGraph`
-directly most of the time.
+When working with any "specific" game (Nim, Domineering, Hackenbush, et
+cetera), one can use `GameGraph` to set up the basic theorems and definitions,
+but the intent is that one need not work with `GameGraph` directly most of the
+time.
 -/
 
 universe u v
@@ -31,12 +36,14 @@ open Form Set
 variable {α : Type v}
 
 /--
-A game graph is a type of states endowed with move sets for the left and right players.
+A game graph is a type of states endowed with option sets for Left and Right.
 
-You can use `GameGraph.toForm` to turn this structure into the appropriate game type.
+Use `GameGraph.toForm` to turn this structure into the appropriate game type.
 -/
 structure GameGraph (α : Type v) : Type v where
-  /-- The sets of options for the players. -/
+  /--
+  The sets of options for the players.
+  -/
   moves : Player → α → Set α
 
 namespace GameGraph
@@ -45,11 +52,15 @@ variable {g : GameGraph.{v} α}
 
 variable [Hl : ∀ a, Small.{u} (g.moves .left a)] [Hr : ∀ a, Small.{u} (g.moves .right a)]
 
-/-! ### Well-founded games -/
+/-!
+### Well-founded games
+-/
 
 /--
-A game graph is well-founded if from every position there is no infinite sequence of
-(not necessarily alternating) left and right moves.
+A game graph is well-founded if from every position there is no infinite
+sequence of (not necessarily alternating) Left and Right moves. In the
+literature, such a game is called *loopfree* (see [Siegel, Definition 4.1 on p.
+34][siegel:CombinatorialGameTheory:2013]).
 -/
 protected class IsWellFounded (c : GameGraph α) where
   wf (c) : IsWellFounded α fun a b => ∃ p, a ∈ c.moves p b
@@ -63,7 +74,8 @@ theorem IsWellFounded.of_subrelation (r : α → α → Prop) [IsWellFounded α 
 variable [g.IsWellFounded]
 
 /--
-**Conway recursion**: build data for a game by recursively building it on its left and right sets.
+**Conway induction**: build data for a game by recursively building it on its
+Left and Right sets.
 -/
 @[elab_as_elim]
 def moveRecOn {motive : α → Sort*} (x)
@@ -81,7 +93,7 @@ theorem moveRecOn_eq {motive : α → Sort*} (x)
 variable {G : Type (u + 1)} [Form G]
 
 /--
-Turns a state of a `GameGraph` into an `Form`.
+Turns a state of a `GameGraph` into a `Form`.
 -/
 def toForm (a : α) : G :=
   g.moveRecOn a fun x IH ↦ !{fun p ↦ .range fun b : g.moves p x ↦ IH p b b.2}

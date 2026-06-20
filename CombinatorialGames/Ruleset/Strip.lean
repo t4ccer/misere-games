@@ -22,31 +22,35 @@ universe u
 /-!
 # Strips: shared board theory for `Shove` and `Push`
 
-Both `Shove` and `Push` are played on a horizontal strip of squares, each square either empty or
-occupied by a `Left` or `Right` piece (see `Strip.Piece`). In both games a move consists of choosing
-one of your pieces and shifting a contiguous "block" of pieces one square to the left.
+Both `Shove` and `Push` are played on a horizontal strip of squares, each
+square either empty or occupied by a `Left` or `Right` piece (see
+`Strip.Piece`). In both games a move consists of choosing one of your pieces
+and shifting a contiguous "block" of pieces one square to the left.
 
 The two rulesets differ only in *which* block of pieces is moved:
 
-* In `Shove`, choosing the piece at position `n` shifts everything at positions `0 .. n` one square
-  to the left, regardless of gaps. The piece at position `0` falls off the strip.
-* In `Push`, only the *adjacent* run of pieces moves: the block stops at the first empty square to
-  the left of `n` (which gets filled). If there is no empty square the leftmost piece falls off, just
-  like `Shove`.
+* In `Shove`, choosing the piece at position `n` shifts everything at positions
+`0 .. n` one square to the left, regardless of gaps. The piece at position `0`
+falls off the strip.
+* In `Push`, only the *adjacent* run of pieces moves: the block stops at the
+first empty square to the left of `n` (which gets filled). If there is no empty
+square the leftmost piece falls off, just like `Shove`.
 
-This module factors out everything that both rulesets have in common. The single shared primitive is
-`Strip.shiftDown b start n`, which shifts the squares `(start, n]` one place to the left into
-`[start, n)`. Both rulesets are special cases:
+This module factors out everything that both rulesets have in common. The
+single shared primitive is `Strip.shiftDown b start n`, which shifts the
+squares `(start, n]` one place to the left into `[start, n)`. Both rulesets are
+special cases:
 
 * `Shove`'s move is `shiftDown b 0 n`.
-* `Push`'s move is `shiftDown b g n`, where `g` is the position of the first empty square left of `n`
-  (or `0` if there is none).
+* `Push`'s move is `shiftDown b g n`, where `g` is the position of the first
+empty square left of `n` (or `0` if there is none).
 
-The crucial fact about either game is its *stride*: the distance to the rightmost tile of a given
-colour. Since the stride only ever depends on the rightmost tile, and since pushing the rightmost
-tile behaves identically in `Shove` and `Push`, the entire stride theory — culminating in the proof
-that the misère quotient is isomorphic to `ℤ` — is developed once here, generically, in terms of a
-`Strip` typeclass.
+The crucial fact about either game is its *stride*: the distance to the
+rightmost tile of a given colour. Since the stride only ever depends on the
+rightmost tile, and since pushing the rightmost tile behaves identically in
+`Shove` and `Push`, the entire stride theory — culminating in the proof that
+the misère quotient is isomorphic to `ℤ` — is developed once here, generically,
+in terms of a `Strip` typeclass.
 -/
 
 namespace Strip
@@ -85,8 +89,9 @@ theorem Piece.ne_none_of_ofPlayer {p : Player} {x : Piece} (h : x = Piece.ofPlay
   rw [h]; exact ofPlayer_ne_none p
 
 /--
-A strip board: a function from positions on the strip (leftmost being `0`) to the piece at that
-position, with finite support (only finitely many occupied squares).
+A strip board: a function from positions on the strip (leftmost being `0`) to
+the piece at that position, with finite support (only finitely many occupied
+squares).
 -/
 structure Board where
   board : ℕ → Piece
@@ -105,15 +110,19 @@ theorem ext {s t : Board} (h : ∀ n, s.board n = t.board n) : s = t := by
 @[simp]
 theorem zero_board (n : ℕ) : Board.zero.board n = .none := rfl
 
-/-! ### `shiftDown`: the shared move primitive -/
+/-!
+### `shiftDown`: the shared move primitive
+-/
 
 /--
-`shiftDown b start n` shifts the squares in `(start, n]` one place to the left, into `[start, n)`.
-Concretely: squares strictly below `start` are unchanged; squares `start ≤ i < n` receive the piece
-from `i + 1`; square `n` becomes empty; squares above `n` are unchanged.
+`shiftDown b start n` shifts the squares in `(start, n]` one place to the left,
+into `[start, n)`. Concretely: squares strictly below `start` are unchanged;
+squares `start ≤ i < n` receive the piece from `i + 1`; square `n` becomes
+empty; squares above `n` are unchanged.
 
-When `start = 0` this is the `Shove` move (the piece at `0` falls off). When `start` is the position
-of the first empty square below `n`, the empty square is filled and this is the `Push` move.
+When `start = 0` this is the `Shove` move (the piece at `0` falls off). When
+`start` is the position of the first empty square below `n`, the empty square
+is filled and this is the `Push` move.
 -/
 @[expose] def shiftDown (b : ℕ → Piece) (start n : ℕ) : ℕ → Piece := fun i =>
   if i < start then b i
@@ -166,12 +175,14 @@ theorem shiftDown_gt (b : ℕ → Piece) {start n i : ℕ} (h : n < i) :
 theorem shiftDownB_board (s : Board) (start n : ℕ) :
     (s.shiftDownB start n).board = shiftDown s.board start n := rfl
 
-/-! ### Weight measure for well-foundedness -/
+/-!
+### Weight measure for well-foundedness
+-/
 
 /--
-The weight of a board is the sum of `i + 1` over each non-empty position `i`. This is finite by
-finite support, and strictly decreases with each `shiftDown` (as long as the pushed square `n` was
-occupied).
+The weight of a board is the sum of `i + 1` over each non-empty position `i`.
+This is finite by finite support, and strictly decreases with each `shiftDown`
+(as long as the pushed square `n` was occupied).
 -/
 noncomputable def weight (s : Board) : ℕ :=
   ∑ i ∈ Finset.range s.finite_support.choose,
@@ -192,8 +203,9 @@ theorem weight_eq_of_bound {s : Board} (N : ℕ) (hN : ∀ n, N ≤ n → s.boar
   simpa using fun i hi₁ hi₂ => hN i hi₁
 
 /-
-`shiftDown` strictly decreases the weight, provided `start ≤ n` and the pushed square `n` is
-occupied. This single lemma serves both `Shove` (`start = 0`) and `Push`.
+`shiftDown` strictly decreases the weight, provided `start ≤ n` and the pushed
+square `n` is occupied. This single lemma serves both `Shove` (`start = 0`) and
+`Push`.
 -/
 theorem weight_shiftDownB_lt {s : Board} {start n : ℕ} (hsn : start ≤ n)
     (hn : s.board n ≠ .none) : (s.shiftDownB start n).weight < s.weight := by
@@ -237,9 +249,13 @@ theorem weight_shiftDownB_lt {s : Board} {start n : ℕ} (hsn : start ≤ n)
     rw [shiftDown]
     grind only [usr Exists.choose_spec]
 
-/-! ### The rightmost occupied position -/
+/-!
+### The rightmost occupied position
+-/
 
-/-- The position of the rightmost occupied square (or `0` if the board is empty). -/
+/--
+The position of the rightmost occupied square (or `0` if the board is empty).
+-/
 noncomputable def rightmostPos (s : Board) : ℕ :=
   Nat.findGreatest (fun n => s.board n ≠ .none) s.finite_support.choose
 
@@ -276,11 +292,14 @@ theorem board_rightmostPos_ne_none {s : Board} (h : 0 < s.rightmostPos) :
     Nat.findGreatest (fun n => s.board n ≠ .none) s.finite_support.choose = s.rightmostPos)).2.1
     h.ne'
 
-/-! ### The stride -/
+/-!
+### The stride
+-/
 
 /--
-The `p`-stride of a board: the distance to the rightmost tile when it is of colour `p`, and `0`
-otherwise. This is the same definition for `Shove` and `Push`.
+The `p`-stride of a board: the distance to the rightmost tile when it is of
+colour `p`, and `0` otherwise. This is the same definition for `Shove` and
+`Push`.
 -/
 noncomputable def stride (s : Board) (p : Player) : ℕ :=
   if s.board s.rightmostPos = .ofPlayer p then s.rightmostPos + 1
@@ -317,16 +336,19 @@ end Strip
 /-!
 ## The `Strip` typeclass
 
-A `Strip` is a type `R` of game positions whose underlying data is a `Board`, equipped with a move
-`push r n` (push the piece at position `n`). Both `Shove` and `Push` are instances. The move is
-required to be a `shiftDown` of the board, anchored at a position `start r n ≤ n` (with
-`start r n < n` whenever `n > 0`). This single description captures both rulesets.
+A `Strip` is a type `R` of game positions whose underlying data is a `Board`,
+equipped with a move `push r n` (push the piece at position `n`). Both `Shove`
+and `Push` are instances. The move is required to be a `shiftDown` of the
+board, anchored at a position `start r n ≤ n` (with `start r n < n` whenever `n
+> 0`). This single description captures both rulesets.
 -/
 
 class Strip (R : Type u) where
   /-- The underlying board of a position. -/
   toBoard : R → Strip.Board
-  /-- Construct a position from a board (used to realise prescribed strides). -/
+  /--
+  Construct a position from a board (used to realise prescribed strides).
+  -/
   ofBoard : Strip.Board → R
   toBoard_ofBoard (b : Strip.Board) : toBoard (ofBoard b) = b
   /-- The move: push the piece at position `n`. -/
@@ -362,7 +384,9 @@ theorem weight_def (r : R) : weight r = (toBoard r).weight := rfl
 theorem rightmostPos_def (r : R) : rightmostPos r = (toBoard r).rightmostPos := rfl
 theorem stride_def (r : R) (p : Player) : stride r p = (toBoard r).stride p := rfl
 
-/-! ### Structural lemmas for `push` -/
+/-!
+### Structural lemmas for `push`
+-/
 
 theorem board_push_above (r : R) {n i : ℕ} (h : n < i) :
     board (push r n) i = board r i := by
@@ -388,7 +412,9 @@ theorem weight_push_lt (r : R) {n : ℕ} (hn : board r n ≠ .none) :
   rw [weight, weight, push_eq]
   exact Board.weight_shiftDownB_lt (start_le r n) hn
 
-/-! ### Moves and the associated `GameForm` -/
+/-!
+### Moves and the associated `GameForm`
+-/
 
 protected def moves : Player → R → Set R :=
   fun p s ↦ push s '' {n : ℕ | board s n = Piece.ofPlayer p}
@@ -457,7 +483,9 @@ theorem mem_moves_toGameForm_iff (s : R) (p : Player) (g' : GameForm) :
   · rintro ⟨m, hm, rfl⟩
     exact ⟨push s m, (mem_moves_iff p s _).mpr ⟨m, hm, rfl⟩, rfl⟩
 
-/-! ### `rightmostPos` and `stride` under `push` -/
+/-!
+### `rightmostPos` and `stride` under `push`
+-/
 
 theorem rightmostPos_push_below {s : R} {m : ℕ}
     (hm : m < rightmostPos s) :
@@ -465,8 +493,10 @@ theorem rightmostPos_push_below {s : R} {m : ℕ}
   have hpos : 0 < rightmostPos s := by omega
   have hb : board (push s m) (rightmostPos s) = board s (rightmostPos s) := board_push_above s hm
   apply Nat.le_antisymm
-  · -- Every square strictly above `rightmostPos s` agrees with `s` (by `board_push_above`) and is
-    -- therefore empty, so the rightmost square of `push s m` cannot exceed `rightmostPos s`.
+  ·
+  -- Every square strictly above `rightmostPos s` agrees with `s` (by
+  -- `board_push_above`) and is therefore empty, so the rightmost square of
+  -- `push s m` cannot exceed `rightmostPos s`.
     by_contra hcon
     push_neg at hcon
     have hpush_pos : 0 < rightmostPos (push s m) := by omega
@@ -482,7 +512,8 @@ theorem rightmostPos_push_below {s : R} {m : ℕ}
 theorem rightmostPos_push_at {s : R} {k : ℕ}
     (hk : rightmostPos s = k) (hpos : 0 < k) (hne : board s k ≠ .none) :
     rightmostPos (push s k) = k - 1 := by
-  -- By definition of `rightmostPos`, we know that for any `j > k - 1`, `board (push s k) j = .none`.
+  -- By definition of `rightmostPos`, we know that for any `j > k - 1`, `board
+  -- (push s k) j = .none`.
   have h_rightmost_le : ∀ j, j > k - 1 → (‹Strip R›.board (‹Strip R›.push s k)) j = .none := by
     intro j hj
     by_cases hjk : j = k
@@ -494,8 +525,10 @@ theorem rightmostPos_push_at {s : R} {k : ℕ}
         exact Strip.Board.board_eq_none_of_gt_rightmostPos ( by aesop )
       convert ‹Strip R›.board_push_above s ‹_› using 1
       exact h_rightmost_le.symm
-  -- By definition of `rightmostPos`, we know that `board (push s k) (k - 1) ≠ .none`.
-  have h_rightmost_ge : (‹Strip R›.board (‹Strip R›.push s k)) (k - 1) ≠ .none := by
+  -- By definition of `rightmostPos`, we know that `board (push s k) (k - 1) ≠
+  -- .none`.
+  have h_rightmost_ge : (‹Strip R›.board (‹Strip R›.push s k)) (k - 1) ≠ .none
+  := by
     have := ‹Strip R›.board_push_shift s hpos; aesop
   refine' Nat.findGreatest_eq_iff.mpr _
   refine ⟨?_, ?_, ?_⟩
@@ -790,11 +823,14 @@ theorem toGameForm_hasStride (s : R) (p : Player) :
       rw [← h_stride_eq]
       exact ih_push m p hm_ne
 
-/-! ### Building the `Strided` structure and the equivalence with `ℤ` -/
+/-!
+### Building the `Strided` structure and the equivalence with `ℤ`
+-/
 
 /--
-For every player `p` and every `n`, there is a strip position with `p`-stride `n` and `(-p)`-stride
-`0`: namely a single piece of colour `p` at position `n - 1`.
+For every player `p` and every `n`, there is a strip position with `p`-stride
+`n` and `(-p)`-stride `0`: namely a single piece of colour `p` at position `n -
+1`.
 -/
 theorem mk_with_stride (p : Player) (n : ℕ) :
     ∃ r : R, HasStride p (Strip.toGameForm r) n ∧ HasStride (-p) (Strip.toGameForm r) 0 := by
@@ -844,7 +880,9 @@ noncomputable instance ruleset (R : Type u) [Strip R] : Ruleset R where
     obtain ⟨r', _, rfl⟩ := h_g'
     exact ⟨r', rfl⟩
 
-/-- The `Strided` structure on the additive closure of any `Strip` ruleset. -/
+/--
+The `Strided` structure on the additive closure of any `Strip` ruleset.
+-/
 noncomputable instance strided (R : Type u) [Strip R] :
     Strided (Form.ClosedUnderAdd.closure (Ruleset.Forms R)) where
   mk_with_strides :=

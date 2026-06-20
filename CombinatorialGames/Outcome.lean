@@ -11,21 +11,29 @@ public import Mathlib.Order.Defs.PartialOrder
 public section
 
 inductive Outcome where
-  /-- Left wins -/
+  /--
+  Left always wins, regardless of who starts.
+  -/
   | L
-  /-- Next player wins -/
+  /--
+  The Next (first) player wins.
+  -/
   | N
-  /-- Previous (second) player wins -/
+  /--
+  The Previous (second) player wins.
+  -/
   | P
-  /-- Right wins -/
+  /--
+  Right always wins, regardless of who starts.
+  -/
   | R
 deriving DecidableEq
 
 namespace Outcome
 
 /--
-Game outcomes are ordered in favour of Left player (see Hasse diagram)
-
+Game outcomes are partially ordered in favour of Left, as illustrated in the
+following Hasse diagram:
 ```
   L
  / \
@@ -100,7 +108,8 @@ theorem le_N_eq_N_or_R  {o : Outcome} (hp : o ≤ Outcome.N)
   cases o
   all_goals simp [LE.le, LT.lt, LE.le] at *
 
-@[expose] def Conjugate : Outcome → Outcome
+@[expose]
+def Conjugate : Outcome → Outcome
   | .L => .R
   | .R => .L
   | .P => .P
@@ -121,13 +130,15 @@ theorem outcome_ge_conjugate_le {x y : Outcome} (h1 : x ≥ y) :
     <;> simp only [LE.le, LT.lt, and_false, and_self, and_true, ne_eq, not_false_eq_true,
                    not_true_eq_false, or_self, reduceCtorEq]
 
-@[expose] def ofPlayers : Player → Player → Outcome
+@[expose]
+def ofPlayers : Player → Player → Outcome
   | .left, .left => Outcome.L
   | .right, .right => Outcome.R
   | .right, .left => Outcome.P
   | .left, .right => Outcome.N
 
-@[expose] def ofPlayer : Player → Outcome
+@[expose]
+def ofPlayer : Player → Outcome
   | .left => Outcome.L
   | .right => Outcome.R
 

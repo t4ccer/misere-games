@@ -15,21 +15,25 @@ public section
 /-!
 # Shove
 
-Shove is played on a horizontal strip of squares, each square either empty or occupied by a Left or
-Right piece (see `Strip.Piece`). On their turn a player chooses one of their pieces and moves it,
-together with *everything* to the left of it (not even necessarily adjacent), one square to the left.
-Pieces can fall off the left side of the strip and are removed.
+Shove is played on a horizontal strip of squares, each square either empty or
+occupied by a Left or Right piece (see `Strip.Piece`). On their turn a player
+chooses one of their pieces and moves it, together with *everything* to the
+left of it (not even necessarily adjacent), one square to the left. Pieces can
+fall off the left side of the strip and are removed.
 
-In terms of the shared `Strip` primitive `shiftDown`, a Shove move pushing the piece at position `n`
-is `shiftDown b 0 n`: the whole prefix `0 .. n` shifts left and the piece at position `0` falls off.
-So `Shove` is exactly the `Strip` ruleset whose shift anchor `start` is always `0`.
+In terms of the shared `Strip` primitive `shiftDown`, a Shove move pushing the
+piece at position `n` is `shiftDown b 0 n`: the whole prefix `0 .. n` shifts
+left and the piece at position `0` falls off. So `Shove` is exactly the `Strip`
+ruleset whose shift anchor `start` is always `0`.
 
-The stride theory developed in `CombinatorialGames.Ruleset.Strip` then immediately gives that the
-misère quotient of `Shove` is isomorphic to `ℤ` (`Shove.equivInt`).
+The stride theory developed in `CombinatorialGames.Ruleset.Strip` then
+immediately gives that the misère quotient of `Shove` is isomorphic to `ℤ`
+(`Shove.equivInt`).
 -/
 
 /--
-A `Shove` position is a strip board (a function from positions to pieces with finite support).
+A `Shove` position is a strip board (a function from positions to pieces with
+finite support).
 -/
 structure Shove where
   /-- The underlying strip board. -/
@@ -41,8 +45,9 @@ namespace Shove
 @[expose] def board (s : Shove) (n : ℕ) : Strip.Piece := s.toBoard.board n
 
 /--
-`Shove` is the `Strip` ruleset whose shift always starts at position `0`: pushing the piece at
-position `n` shifts the entire prefix `0 .. n` to the left, dropping the piece that falls off.
+`Shove` is the `Strip` ruleset whose shift always starts at position `0`:
+pushing the piece at position `n` shifts the entire prefix `0 .. n` to the
+left, dropping the piece that falls off.
 -/
 instance : Strip Shove where
   toBoard := Shove.toBoard

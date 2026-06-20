@@ -81,8 +81,10 @@ $\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
 abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
   Separating A .right g h
 
-/-- We have `g ≥ h` modulo `A` exactly when `g` and `h` are neither Left- nor
-Right-separating. -/
+/--
+We have `g ≥ h` modulo `A` exactly when `g` and `h` are neither Left- nor
+Right-separating.
+-/
 theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
     g ≥m A h ↔ ¬ LeftSeparating A g h ∧ ¬ RightSeparating A g h := by
   constructor
@@ -139,7 +141,9 @@ theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
           rw [hh] at h_out
           cases h_out
 
-/-- Negation of `misereGE_iff_not_separating`. -/
+/--
+Negation of `misereGE_iff_not_separating`.
+-/
 theorem not_misereGE_iff_separating {A : G → Prop} {g h : G} :
     ¬(g ≥m A h) ↔ LeftSeparating A g h ∨ RightSeparating A g h := by
   constructor

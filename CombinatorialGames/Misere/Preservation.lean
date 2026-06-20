@@ -58,9 +58,13 @@ private theorem isOption_add_cases {g h x : G} (hx : Moves.IsOption x (g + h)) :
      · exact Or.inl ⟨g', Moves.IsOption.of_mem_moves hg', hx.symm⟩
      · exact Or.inr ⟨h', Moves.IsOption.of_mem_moves hh', hx.symm⟩)
 
-/-! ### The closures preservations -/
+/-!
+### The closures preservations
+-/
 
-/-- The hereditary closure of a conjugate closed set is conjugate closed. -/
+/--
+The hereditary closure of a conjugate closed set is conjugate closed.
+-/
 instance hereditaryClosure_closedUnderNeg {A : G → Prop} [ClosedUnderNeg A] :
     ClosedUnderNeg (Hereditary.closure A) where
   neg_of {g} hg := by
@@ -74,7 +78,9 @@ instance hereditaryClosure_closedUnderNeg {A : G → Prop} [ClosedUnderNeg A] :
       exact Hereditary.mem_closure_of_mem (ClosedUnderNeg.neg_of hg)
     exact Hereditary.closure_min hAB g hg
 
-/-- The conjugate closure of a hereditary set is hereditary. -/
+/--
+The conjugate closure of a hereditary set is hereditary.
+-/
 instance closedUnderNegClosure_hereditary {A : G → Prop} [Hereditary A] :
     Hereditary (ClosedUnderNeg.closure A) where
   has_option {g g'} hg h := by
@@ -90,7 +96,9 @@ instance closedUnderNegClosure_hereditary {A : G → Prop} [Hereditary A] :
       exact ClosedUnderNeg.mem_closure_of_mem (Hereditary.has_option hg h')
     exact ClosedUnderNeg.closure_min hAB g hg g' h
 
-/-- Conjugate closure commutes with hereditary closure. -/
+/--
+Conjugate closure commutes with hereditary closure.
+-/
 theorem closedUnderNegClosure_hereditaryClosure_comm (A : G → Prop) :
     ClosedUnderNeg.closure (Hereditary.closure A) =
       Hereditary.closure (ClosedUnderNeg.closure A) := by
@@ -100,7 +108,9 @@ theorem closedUnderNegClosure_hereditaryClosure_comm (A : G → Prop) :
   · exact Hereditary.closure_min
       (ClosedUnderNeg.closure_mono (Hereditary.subset_closure A))
 
-/-- The additive closure of a hereditary set is hereditary. -/
+/--
+The additive closure of a hereditary set is hereditary.
+-/
 instance closedUnderSumClosure_hereditary {A : G → Prop} [Hereditary A] :
     Hereditary (ClosedUnderAdd.closure A) where
   has_option {g g'} hg h := by
@@ -121,7 +131,9 @@ instance closedUnderSumClosure_hereditary {A : G → Prop} [Hereditary A] :
         ClosedUnderAdd.mem_closure_of_mem (Hereditary.has_option hg h')⟩
     exact (ClosedUnderAdd.closure_min hAB g hg).2 g' h
 
-/-- The additive closure of a conjugate closed set is conjugate closed. -/
+/--
+The additive closure of a conjugate closed set is conjugate closed.
+-/
 instance closedUnderSumClosure_closedUnderNeg {A : G → Prop} [ClosedUnderNeg A] :
     ClosedUnderNeg (ClosedUnderAdd.closure A) where
   neg_of {g} hg := by
@@ -137,7 +149,9 @@ instance closedUnderSumClosure_closedUnderNeg {A : G → Prop} [ClosedUnderNeg A
       exact ClosedUnderAdd.mem_closure_of_mem (ClosedUnderNeg.neg_of hg)
     exact ClosedUnderAdd.closure_min hAB g hg
 
-/-- The dicotic closure of a hereditary set is hereditary. -/
+/--
+The dicotic closure of a hereditary set is hereditary.
+-/
 instance closedUnderDicoticClosure_hereditary {IsAmbient A : G → Prop} [Hereditary A] :
     Hereditary (ClosedUnderDicotic.closure IsAmbient A) where
   has_option {g g'} hg h := by
@@ -163,8 +177,10 @@ instance closedUnderDicoticClosure_hereditary {IsAmbient A : G → Prop} [Heredi
         ClosedUnderDicotic.mem_closure_of_mem (Hereditary.has_option hg h')⟩
     exact (ClosedUnderDicotic.closure_min hAB g hg).2 g' h
 
-/-- The dicotic closure of a conjugate closed set is conjugate closed (when the
-ambient set is conjugate closed). -/
+/--
+The dicotic closure of a conjugate closed set is conjugate closed (when the
+ambient set is conjugate closed).
+-/
 instance closedUnderDicoticClosure_closedUnderNeg {IsAmbient A : G → Prop}
     [ClosedUnderNeg IsAmbient] [ClosedUnderNeg A] :
     ClosedUnderNeg (ClosedUnderDicotic.closure IsAmbient A) where
@@ -192,7 +208,8 @@ instance closedUnderDicoticClosure_closedUnderNeg {IsAmbient A : G → Prop}
       exact ClosedUnderDicotic.mem_closure_of_mem (ClosedUnderNeg.neg_of hg)
     exact ClosedUnderDicotic.closure_min hAB g hg
 
-/-! ### Dicotic closure preserves addition
+/-!
+### Dicotic closure preserves addition
 
 This is slightly delicate: a sum need not be dicotic, so we consider cases
 where it is end-like and recurse on options otherwise.
@@ -220,7 +237,9 @@ private theorem mem_of_mem_closedUnderDicoticClosure_of_isEndLike {IsAmbient A :
       constructor
       · exact ClosedUnderDicotic.dicotic_mem_closure B C
           (fun b hb => (hB b hb).1) (fun c hc => (hC c hc).1) hBne hCne hAmbient
-      · -- A non-zero dicotic form has moves for both players, so it is never end-like.
+      ·
+        -- A non-zero dicotic form has moves for both players, so it is never
+        -- end-like.
         intro hEnd
         rw [ofSets_isEndLike_iff, isEnd_def] at hEnd
         cases p
@@ -290,23 +309,30 @@ decreasing_by
     | exact Prod.Lex.left h h (Relation.TransGen.single hg')
     | exact Prod.Lex.right g (Relation.TransGen.single hh')
 
-/-- The dicotic closure of an additively closed hereditary set is additively
-closed. -/
+/--
+The dicotic closure of an additively closed hereditary set is additively
+closed.
+-/
 theorem closedUnderDicoticClosure_closedUnderSum {IsAmbient A : G → Prop}
     [ClosedUnderAdd IsAmbient] [ClosedUnderAdd A] [Hereditary A] (hA : A ≤ IsAmbient) :
     ClosedUnderAdd (ClosedUnderDicotic.closure IsAmbient A) :=
   { has_add := fun _ _ hg hh => closedUnderDicoticClosure_add_mem hA hg hh }
 
-/-! ### The closure chain -/
+/-!
+### The closure chain
+-/
 
-/-- The set obtained by applying the conjugate, hereditary, additive, and
-dicotic closures in that order. -/
+/--
+The set obtained by applying the conjugate, hereditary, additive, and dicotic
+closures in that order.
+-/
 noncomputable abbrev closureChain (IsAmbient A : G → Prop) : G → Prop :=
   ClosedUnderDicotic.closure IsAmbient
     (ClosedUnderAdd.closure (Hereditary.closure (ClosedUnderNeg.closure A)))
 
-/-- The conjugate–hereditary–additive–dicotic closure chain yields a universe.
-  -/
+/--
+The conjugate–hereditary–additive–dicotic closure chain yields a universe.
+-/
 theorem closureChain_universe {IsAmbient A : G → Prop} [Universe IsAmbient IsAmbient]
     (hA : A ≤ IsAmbient) (h0 : A 0) :
     Universe IsAmbient (closureChain IsAmbient A) := by
@@ -322,7 +348,9 @@ theorem closureChain_universe {IsAmbient A : G → Prop} [Universe IsAmbient IsA
     isAmbient_of_mem := fun hg => closedUnderDicoticClosure_le_ambient hB2 _ hg
   }
 
-/-- The closure chain agrees with the universal closure operator. -/
+/--
+The closure chain agrees with the universal closure operator.
+-/
 theorem closureChain_eq_universeClosure {IsAmbient A : G → Prop} [Universe IsAmbient IsAmbient]
     (hA : A ≤ IsAmbient) (h0 : A 0) :
     closureChain IsAmbient A = Universe.closure IsAmbient A hA := by
@@ -336,8 +364,9 @@ theorem closureChain_eq_universeClosure {IsAmbient A : G → Prop} [Universe IsA
       ClosedUnderDicotic.mem_closure_of_mem (ClosedUnderAdd.mem_closure_of_mem
         (Hereditary.mem_closure_of_mem (ClosedUnderNeg.mem_closure_of_mem hg)))
 
-/-- The conjugate–hereditary–additive–dicotic closure chain yields a long
-  universe. -/
+/--
+The conjugate–hereditary–additive–dicotic closure chain yields a long universe.
+-/
 theorem closureChain_longUniverse
     {A : G → Prop} (h0 : A 0) :
     LongUniverse (closureChain IsLong A) where
@@ -345,23 +374,28 @@ theorem closureChain_longUniverse
     closureChain_universe (IsAmbient := IsLong)
       (fun _ _ => trivial) h0
 
-/-- The long closure chain agrees with the long universal closure operator. -/
+/--
+The long closure chain agrees with the long universal closure operator.
+-/
 theorem closureChain_eq_longUniverseClosure
     {A : G → Prop} (h0 : A 0) :
     closureChain IsLong A = LongUniverse.closure A :=
   closureChain_eq_universeClosure (IsAmbient := IsLong)
     (fun _ _ => trivial) h0
 
-/-- The conjugate–hereditary–additive–dicotic closure chain yields a short
-  universe. -/
+/--
+The conjugate–hereditary–additive–dicotic closure chain yields a short
+universe.
+-/
 theorem closureChain_shortUniverse
     {A : G → Prop} (hA : A ≤ IsShort) (h0 : A 0) :
     ShortUniverse (closureChain IsShort A) where
   toUniverse :=
     closureChain_universe (IsAmbient := IsShort) hA h0
 
-/-- The short closure chain agrees with the short universal closure operator.
-  -/
+/--
+The short closure chain agrees with the short universal closure operator.
+-/
 theorem closureChain_eq_shortUniverseClosure
     {A : G → Prop} (hA : A ≤ IsShort) (h0 : A 0) :
     closureChain IsShort A = ShortUniverse.closure A hA :=
@@ -375,7 +409,9 @@ gives a bijection between the bounded `p` seeds and the universes within a
 fixed ambient set.
 -/
 
-/-- The `p` end-like part of a set of games. -/
+/--
+The `p` end-like part of a set of games.
+-/
 def endLikePart (p : Player) (A : G → Prop) : G → Prop :=
   fun g => A g ∧ IsEndLike p g
 
@@ -386,8 +422,10 @@ theorem endLikePart_le_ambient (p : Player) {IsAmbient A : G → Prop}
     [Universe IsAmbient A] : endLikePart p A ≤ IsAmbient :=
   fun _ hg => Universe.isAmbient_of_mem hg.1
 
-/-- A set of games closed under taking relevant end-like subpositions for
-  player `p`. -/
+/--
+A set of games closed under taking relevant end-like subpositions for player
+`p`.
+-/
 class EndLikeClosed (p : Player) (A : G → Prop) where
   neg_mem_of_isEndLike_neg {g : G} (hg : A g) (hEnd : IsEndLike (-p) g) : A (-g)
   mem_of_subposition_isEndLike {g h : G} (hg : A g) (hsub : Subposition h g)
@@ -395,8 +433,10 @@ class EndLikeClosed (p : Player) (A : G → Prop) where
   neg_mem_of_subposition_isEndLike_neg {g h : G} (hg : A g) (hsub : Subposition h g)
     (hEnd : IsEndLike (-p) h) : A (-h)
 
-/-- A `p` seed: an additive set of `p` end-like games containing zero and its
-relevant end-like subpositions. -/
+/--
+A `p` seed: an additive set of `p` end-like games containing zero and its
+relevant end-like subpositions.
+-/
 class EndLikeSeed (p : Player) (A : G → Prop) extends EndLikeClosed p A, ClosedUnderAdd A where
   zero_mem : A 0
   isEndLike_of_mem {g : G} : A g → IsEndLike p g
@@ -499,8 +539,10 @@ private theorem mem_of_mem_closedUnderSumClosure_of_isEndLike [EndLikeSeed p A] 
 
 end EndLikeSeed
 
-/-- The `p` end-like part of the universe closure of a bounded `p` seed is the
-  seed. -/
+/--
+The `p` end-like part of the universe closure of a bounded `p` seed is the
+seed.
+-/
 theorem endLikePart_universeClosure_eq_of_seed {p : Player} {IsAmbient A : G → Prop}
     [Universe IsAmbient IsAmbient] [EndLikeSeed p A] (hA : A ≤ IsAmbient) :
     endLikePart p (Universe.closure IsAmbient A hA) = A := by
@@ -517,7 +559,9 @@ theorem endLikePart_universeClosure_eq_of_seed {p : Player} {IsAmbient A : G →
           (ClosedUnderNeg.mem_closure_of_mem hg))),
       EndLikeSeed.isEndLike_of_mem hg⟩
 
-/-- The `p` end-like part of a universe is a `p` seed. -/
+/--
+The `p` end-like part of a universe is a `p` seed.
+-/
 theorem endLikePart_seed_of_universe {p : Player} {IsAmbient A : G → Prop}
     [Universe IsAmbient A] : EndLikeSeed p (endLikePart p A) := by
   have sub_mem {g h : G} (hg : A g) (hsub : Subposition h g) : A h := by
@@ -562,7 +606,8 @@ private theorem mem_universeClosure_endLikePart_of_mem_universe {p : Player}
         · exact hp
         · rw [Player.ne_iff_eq_neg.mp hq]
           exact hnp
-      -- `g` isn't end-like, so rebuild it from its options and apply dicotic closure.
+      -- `g` isn't end-like, so rebuild it from its options and apply dicotic
+      -- closure.
       have hEq : !{fun q => moves q g} = g := ofSets_moves_of_not_isEndLike hNo
       rw [← hEq, ofSets_eq_ofSets_cases (fun q => moves q g)]
       refine ClosedUnderDicotic.closed_dicotic
@@ -583,7 +628,9 @@ termination_by g
 decreasing_by
   all_goals exact Moves.Subposition.of_mem_moves (by assumption)
 
-/-- A universe is the universal closure of its `p` end-like part. -/
+/--
+A universe is the universal closure of its `p` end-like part.
+-/
 theorem universeClosure_endLikePart_eq_of_universe {p : Player} {IsAmbient A : G → Prop}
     [Universe IsAmbient IsAmbient] [Universe IsAmbient A] :
     Universe.closure IsAmbient (endLikePart p A) (endLikePart_le_ambient p) = A := by
@@ -592,25 +639,35 @@ theorem universeClosure_endLikePart_eq_of_universe {p : Player} {IsAmbient A : G
   · intro g hg
     exact mem_universeClosure_endLikePart_of_mem_universe hg
 
-/-! ### The seed–universe bijection -/
+/-!
+### The seed–universe bijection
+-/
 
-/-- The type of `p` seeds contained in an ambient set. -/
+/--
+The type of `p` seeds contained in an ambient set.
+-/
 def AmbientEndLikeSeed (G : Type (u + 1)) [Form G] (IsAmbient : G → Prop)
     (p : Player) :=
   {A : G → Prop // EndLikeSeed p A ∧ A ≤ IsAmbient}
 
-/-- The type of universes with a fixed ambient set. -/
+/--
+The type of universes with a fixed ambient set.
+-/
 def AmbientUniverse (G : Type (u + 1)) [Form G] (IsAmbient : G → Prop) :=
   {A : G → Prop // Universe IsAmbient A}
 
-/-- Sending a bounded `p` seed to its universe closure. -/
+/--
+Sending a bounded `p` seed to its universe closure.
+-/
 noncomputable def endLikeSeedToUniverse (G : Type (u + 1)) [Form G]
     (IsAmbient : G → Prop) [Universe IsAmbient IsAmbient] (p : Player) :
     AmbientEndLikeSeed G IsAmbient p → AmbientUniverse G IsAmbient :=
   fun A => ⟨Universe.closure IsAmbient A.1 A.2.2,
     Universe.closure_universe IsAmbient A.2.2⟩
 
-/-- Sending a universe to its `p` end-like part. -/
+/--
+Sending a universe to its `p` end-like part.
+-/
 noncomputable def universeToEndLikeSeed (G : Type (u + 1)) [Form G]
     (IsAmbient : G → Prop) (p : Player) :
     AmbientUniverse G IsAmbient → AmbientEndLikeSeed G IsAmbient p :=
@@ -619,8 +676,10 @@ noncomputable def universeToEndLikeSeed (G : Type (u + 1)) [Form G]
     ⟨endLikePart p A.1, endLikePart_seed_of_universe (IsAmbient := IsAmbient),
       endLikePart_le_ambient p⟩
 
-/-- Universe closure is an equivalence from bounded `p` seeds to universes,
-with inverse taking the `p` end-like part. -/
+/--
+Universe closure is an equivalence from bounded `p` seeds to universes, with
+inverse taking the `p` end-like part.
+-/
 noncomputable def endLikeSeedEquivUniverse {IsAmbient : G → Prop}
     [Universe IsAmbient IsAmbient] (p : Player) :
     AmbientEndLikeSeed G IsAmbient p ≃ AmbientUniverse G IsAmbient where
@@ -637,57 +696,72 @@ noncomputable def endLikeSeedEquivUniverse {IsAmbient : G → Prop}
     dsimp [universeToEndLikeSeed, endLikeSeedToUniverse]
     exact universeClosure_endLikePart_eq_of_universe
 
-/-- Universal closure gives a bijection from bounded `p` seeds to universes. -/
+/--
+Universal closure gives a bijection from bounded `p` seeds to universes.
+-/
 theorem endLikeSeedToUniverse_bijective {IsAmbient : G → Prop}
     [Universe IsAmbient IsAmbient] (p : Player) :
     Function.Bijective (endLikeSeedToUniverse G IsAmbient p) :=
   (endLikeSeedEquivUniverse p).bijective
 
-/-- The `p` end-like part of the long universal closure of a `p` seed is the
-  seed. -/
+/--
+The `p` end-like part of the long universal closure of a `p` seed is the seed.
+-/
 theorem endLikePart_longUniverseClosure_eq_of_seed {p : Player} {A : G → Prop}
     [EndLikeSeed p A] : endLikePart p (LongUniverse.closure A) = A :=
   endLikePart_universeClosure_eq_of_seed (IsAmbient := IsLong)
     (fun _ _ => trivial)
 
-/-- The `p` end-like part of a long universe is a `p` seed. -/
+/--
+The `p` end-like part of a long universe is a `p` seed.
+-/
 theorem endLikePart_seed_of_longUniverse {p : Player} {A : G → Prop} [LongUniverse A] :
     EndLikeSeed p (endLikePart p A) :=
   endLikePart_seed_of_universe (IsAmbient := IsLong) (A := A)
 
-/-- A long universe is the long universal closure of its `p` end-like part. -/
+/--
+A long universe is the long universal closure of its `p` end-like part.
+-/
 theorem longUniverseClosure_endLikePart_eq_of_longUniverse {p : Player} {A : G → Prop}
     [LongUniverse A] : LongUniverse.closure (endLikePart p A) = A :=
   universeClosure_endLikePart_eq_of_universe
     (IsAmbient := IsLong) (A := A)
 
-/-- Long universal closure gives a bijection from `p` seeds to long universes.
-  -/
+/--
+Long universal closure gives a bijection from `p` seeds to long universes.
+-/
 theorem endLikeSeedToLongUniverse_bijective (p : Player) :
     Function.Bijective (endLikeSeedToUniverse G IsLong p) :=
   endLikeSeedToUniverse_bijective (IsAmbient := IsLong) p
 
-/-- The `p` end-like part of the short universal closure of a short `p` seed is
-  the seed. -/
+/--
+The `p` end-like part of the short universal closure of a short `p` seed is the
+seed.
+-/
 theorem endLikePart_shortUniverseClosure_eq_of_seed {p : Player} {A : G → Prop}
     [EndLikeSeed p A] (hA : A ≤ IsShort) :
     endLikePart p (ShortUniverse.closure A hA) = A :=
   endLikePart_universeClosure_eq_of_seed (IsAmbient := IsShort) hA
 
-/-- The `p` end-like part of a short universe is a `p` seed. -/
+/--
+The `p` end-like part of a short universe is a `p` seed.
+-/
 theorem endLikePart_seed_of_shortUniverse {p : Player} {A : G → Prop} [ShortUniverse A] :
     EndLikeSeed p (endLikePart p A) :=
   endLikePart_seed_of_universe (IsAmbient := IsShort) (A := A)
 
-/-- A short universe is the short universal closure of its `p` end-like part.
-  -/
+/--
+A short universe is the short universal closure of its `p` end-like part.
+-/
 theorem shortUniverseClosure_endLikePart_eq_of_shortUniverse {p : Player} {A : G → Prop}
     [ShortUniverse A] :
     ShortUniverse.closure (endLikePart p A) (endLikePart_le_ambient p) = A :=
   universeClosure_endLikePart_eq_of_universe (IsAmbient := IsShort) (A := A)
 
-/-- Short universal closure gives a bijection from short `p` seeds to short
-  universes. -/
+/--
+Short universal closure gives a bijection from short `p` seeds to short
+universes.
+-/
 theorem endLikeSeedToShortUniverse_bijective (p : Player) :
     Function.Bijective (endLikeSeedToUniverse G (IsShort (G := G)) p) :=
   endLikeSeedToUniverse_bijective (IsAmbient := IsShort) p

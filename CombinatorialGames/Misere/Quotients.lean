@@ -17,13 +17,19 @@ open Form.Misere.Outcome
 
 public noncomputable section
 
-/-- Restricted misère equality modulo `A`, as a setoid on `A`'s games. -/
-@[expose] def MisereSetoid (A : G → Prop) : Setoid {g : G // A g} where
+/--
+Restricted misère equality modulo `A`, as a setoid on `A`'s games.
+-/
+@[expose]
+def MisereSetoid (A : G → Prop) : Setoid {g : G // A g} where
   r g h := (g : G) =m A (h : G)
   iseqv := ⟨fun _ _ _ => rfl, MisereEQ.symm, MisereEQ.trans⟩
 
-/-- The games in `A` taken up to misère equality modulo `A`. -/
-@[expose] def MisereQuotient (A : G → Prop) : Type (u + 1) :=
+/--
+The games in `A` taken up to misère equality modulo `A`.
+-/
+@[expose]
+def MisereQuotient (A : G → Prop) : Type (u + 1) :=
   Quotient (MisereSetoid A)
 
 instance (A : G → Prop) : Setoid {g : G // A g} :=
@@ -33,12 +39,18 @@ namespace Form.MisereQuotient
 
 variable {A : G → Prop}
 
-/-- The class of a game in the misère quotient. -/
-@[expose] def mk (g : {g : G // A g}) : MisereQuotient A :=
+/--
+The class of a game in the misère quotient.
+-/
+@[expose]
+def mk (g : {g : G // A g}) : MisereQuotient A :=
   Quotient.mk (MisereSetoid A) g
 
-/-- A chosen representative of a misère-quotient class. -/
-@[no_expose] def out (x : MisereQuotient A) : {g : G // A g} :=
+/--
+A chosen representative of a misère-quotient class.
+-/
+@[no_expose]
+def out (x : MisereQuotient A) : {g : G // A g} :=
   Quotient.out x
 
 theorem mk_eq_mk {g h : {g : G // A g}} : mk g = mk h ↔ (g : G) =m A (h : G) :=
@@ -127,7 +139,9 @@ instance instAddCommMonoid [ClosedUnderAdd A] [Fact (A 0)] :
   add_assoc := add_assoc
   nsmul := nsmulRec
 
-/-- The order on the quotient: `mk g ≤ mk h` exactly when `h ≥m A g`. -/
+/--
+The order on the quotient: `mk g ≤ mk h` exactly when `h ≥m A g`.
+-/
 instance instLE : LE (MisereQuotient A) where
   le x y :=
     Quotient.liftOn₂ x y (fun g h => (h : G) ≥m A (g : G)) fun g h g' h' hg hh => by

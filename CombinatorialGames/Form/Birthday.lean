@@ -11,11 +11,17 @@ public import CombinatorialGames.Mathlib.NatOrdinal
 /-!
 # Birthdays of games
 
-There are two related but distinct notions of a birthday within combinatorial game theory. One is
-the birthday of an `GameForm`, which represents the "step" at which it is constructed. We define it
-recursively as the least ordinal larger than the birthdays of its left and right options.
+There are two related but distinct notions of a birthday within combinatorial
+game theory. One is the birthday of an `GameForm`, which represents the "step"
+at which it is constructed; the *day* on which it is *born*. This is sometimes
+called the *formal birthday* of a game (see [Siegel, Definition 1.27 on p.
+61][siegel:CombinatorialGameTheory:2013]).
 
-The birthday of an `GameForm` can be understood as representing the depth of its game tree.
+It can be defined recursively as the least ordinal strictly larger than the
+birthdays of its Left and Right options.
+
+The birthday of an `GameForm` can also be understood as the depth of its game
+tree.
 -/
 
 open NatOrdinal Order Set
@@ -30,9 +36,13 @@ open Form
 
 variable {G : Type (u + 1)} [g_form : Form G]
 
-/-- The birthday of a form is inductively defined as the least strict upper bound of the
-birthdays of its options. It may be thought as the "step" in which a certain game is constructed. -/
-@[expose] noncomputable def birthday (x : G) : NatOrdinal.{u + 1} :=
+/--
+The birthday of a form is inductively defined as the least ordinal strictly
+larger than the birthdays of its options. It may be thought as the "step" in
+which the given game is constructed.
+-/
+@[expose]
+noncomputable def birthday (x : G) : NatOrdinal.{u + 1} :=
   ⨆ y : {y // IsOption y x}, Order.succ (birthday y)
 termination_by x
 decreasing_by form_wf
