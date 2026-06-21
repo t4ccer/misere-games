@@ -513,3 +513,102 @@ theorem isEnd_exists_intCast_misereEQ {p : Player} {g : GameForm} (h_g : PFreeDe
     exact ⟨-(a : ℤ), ha⟩
   · obtain ⟨a, ha⟩ := isEnd_right_exists_intCast_misereEQ h_g h_isEnd
     exact ⟨(a : ℤ), ha⟩
+
+theorem pfreeDeadEnding_ofSets {L R : Set GameForm} [Small.{u} L] [Small.{u} R]
+    (h_L_mem : ∀ gl ∈ L, PFreeDeadEnding gl) (h_R_mem : ∀ gr ∈ R, PFreeDeadEnding gr)
+    (h_L_nonempty : L.Nonempty) (h_L_finite : L.Finite)
+    (h_R_nonempty : R.Nonempty) (h_R_finite : R.Finite)
+    (h_outcome_ne_P : MisereOutcome (!{L | R}) ≠ .P) :
+    PFreeDeadEnding (!{L | R}) := by
+  have h_moves : ∀ p x, x ∈ moves p (!{L | R}) → PFreeDeadEnding x := by
+    intro p x h_x_mem
+    cases p
+    · rw [leftMoves_ofSets] at h_x_mem; exact h_L_mem x h_x_mem
+    · rw [rightMoves_ofSets] at h_x_mem; exact h_R_mem x h_x_mem
+  apply PFreeSubset.mk
+  · refine ⟨?_, ?_⟩
+    · refine Short.ofSets h_L_finite ?_ h_R_finite ?_
+      · intro gl h_gl
+        exact (h_L_mem gl h_gl).isShort
+      · intro gr h_gr
+        exact (h_R_mem gr h_gr).isShort
+    · unfold IsDeadEnding
+      refine ⟨?_, ?_⟩
+      · intro p h_isEnd
+        exfalso
+        cases p
+        · rw [isEnd_def, leftMoves_ofSets] at h_isEnd
+          exact h_L_nonempty.ne_empty h_isEnd
+        · rw [isEnd_def, rightMoves_ofSets] at h_isEnd
+          exact h_R_nonempty.ne_empty h_isEnd
+      · intro p gp hgp
+        exact (h_moves p gp hgp).isDeadEnding
+  · unfold IsPFree
+    refine ⟨h_outcome_ne_P, ?_⟩
+    intro p gp h_gp_mem
+    exact (h_moves p gp h_gp_mem).isPFree
+
+theorem rightSeparating_of_leftSeparating {g h : GameForm}
+    (h_h : IsShort h) (h_left : AreLeftSeparating PFreeDeadEnding g h) :
+    AreRightSeparating PFreeDeadEnding g h := by
+  obtain ⟨x, h_x_pf, h_not_wins_left, h_wins_left⟩ := h_left
+  set L : Set GameForm :=
+    Set.range (fun r : moves .right h => (-((LTippingPoint (Hereditary.of_mem_moves h_h r.prop)))))
+    ∪ {((-1 : ℤ) : GameForm)} with h_L_def
+  have h_conj_one_mem : ((-1 : ℤ) : GameForm) ∈ L := Set.mem_union_right _ (Set.mem_singleton _)
+  have h_x_mem : x ∈ moves .right (!{L | {x}} : GameForm) := by simp
+  have := (misereOutcome_L_intCast_iff (G := GameForm) (-1)).mpr (by decide)
+  have h_not_wins_right : ¬ WinsGoingFirst .right (((-1 : ℤ) : GameForm)) :=
+    (misereOutcome_L_iff_winsGoingFirst.mp this).2
+  refine ⟨!{L | {x}}, ?_, ?_, ?_⟩
+  · apply pfreeDeadEnding_ofSets
+    · intro a h_a_mem
+      rw [h_L_def] at h_a_mem
+      rcases h_a_mem with ⟨r, rfl⟩ | rfl
+      · exact HasInt.has_neg_int (A := PFreeDeadEnding) _
+      · exact HasInt.has_int (A := PFreeDeadEnding) (-1)
+    · intro a h_a_mem
+      rw [Set.mem_singleton_iff] at h_a_mem
+      subst h_a_mem
+      exact h_x_pf
+    · exact ⟨_, h_conj_one_mem⟩
+    · rw [h_L_def]
+      have := Short.finite_moves' .right h_h
+      simp [Set.finite_range]
+    · exact ⟨x, Set.mem_singleton x⟩
+    · exact Set.finite_singleton x
+    · intro h_outcome_P
+      rw [misereOutcome_P_iff_winsGoingFirst' (p := .left)] at h_outcome_P
+      refine h_outcome_P.left (winsGoingFirst_of_moves ⟨((-1 : ℤ) : GameForm), ?_, ?_⟩)
+      · rwa [leftMoves_ofSets]
+      · rwa [Player.neg_left]
+  · refine winsGoingFirst_of_moves ⟨g + x, add_left_mem_moves_add h_x_mem g, ?_⟩
+    rwa [Player.neg_right]
+  · rw [not_winsGoingFirst_iff]
+    refine ⟨?_, ?_⟩
+    · simp [isEnd_def]
+    · intro k hk
+      rw [moves_add] at hk
+      rw [Player.neg_right]
+      rcases hk with ⟨h_r, h_r_mem, rfl⟩ | ⟨r, h_r_mem, rfl⟩
+      · apply winsGoingFirst_of_moves
+        use h_r + (-(LTippingPoint (Hereditary.of_mem_moves h_h h_r_mem)))
+        constructor
+        · apply add_left_mem_moves_add
+          rw [leftMoves_ofSets, h_L_def]
+          exact Set.mem_union_left _ ⟨⟨h_r, h_r_mem⟩, rfl⟩
+        · rw [Player.neg_left]
+          have := LTippingPoint_spec (Hereditary.of_mem_moves h_h h_r_mem)
+          rw [misereOutcome_L_iff_winsGoingFirst] at this
+          exact this.right
+      · rw [rightMoves_ofSets, Set.mem_singleton_iff] at h_r_mem
+        subst h_r_mem
+        exact h_wins_left
+
+instance : Separating IsShort PFreeDeadEnding where
+  separating_pair_of_not_misereGE h_g h_h h_not_ge := by
+    rcases not_misereGE_iff_separating.mp h_not_ge with h_left | h_right
+    · exact ⟨h_left, rightSeparating_of_leftSeparating h_h h_left⟩
+    · have hLneg := Separation.leftSeparating_neg_of_rightSeparating h_right
+      have hRneg := rightSeparating_of_leftSeparating (Short.neg h_g) hLneg
+      exact ⟨Separation.leftSeparating_of_rightSeparating_neg hRneg, h_right⟩

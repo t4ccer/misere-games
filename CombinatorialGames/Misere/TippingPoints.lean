@@ -221,6 +221,10 @@ theorem LTippingPoint_iff {g : GameForm} (h1 : IsShort g) (n : ℕ) :
     have h6 := h3 x h5
     omega
 
+theorem LTippingPoint_spec {g : GameForm} (h1 : IsShort g) :
+    MisereOutcome (g + (-(LTippingPoint h1 : GameForm))) = .L :=
+  Nat.find_spec (LTippingPoint.aux h1)
+
 /--
 Negation sends the $\mathscr{R}$-tipping point to the $\mathscr{L}$-tipping
 point: $\operatorname{r}(-G) = \operatorname{l}(G)$.
