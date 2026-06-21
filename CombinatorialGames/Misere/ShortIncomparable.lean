@@ -193,11 +193,11 @@ theorem g_mem_longUniverse (U : AugmentedForm.{u} → Prop) [LongUniverse U] :
   have h_ambient : Ambient (IsLong : AugmentedForm.{u} → Prop) := inferInstance
   have h_mem : ∀ b ∈ adjointsOfShort.{u}, U b := by
     rintro b ⟨⟨J, h_j⟩, rfl⟩
-    exact Form.rootedAdjoint_mem_of_isAmbient (IsAmbient := IsLong) (r := 0)
-      (Universe.zero_mem IsLong) (fun _ _ => trivial) trivial
+    exact Form.rootedAdjoint_mem_of_isAmbient (r := 0)
+      (Universe.zero_mem IsLong) (fun _ _ => isLong _) (isLong _)
   have h_notempty : (adjointsOfShort.{u}).Nonempty := ⟨_,  adjoint_mem_adjointsOfShort Short.zero⟩
   exact ClosedUnderDicotic.closed_dicotic (IsAmbient := IsLong)
-    adjointsOfShort adjointsOfShort h_mem h_mem h_notempty h_notempty trivial
+    adjointsOfShort adjointsOfShort h_mem h_mem h_notempty h_notempty (isLong _)
 
 theorem g_h_incomparable_longUniverse (U : AugmentedForm.{u} → Prop) [LongUniverse U] :
     ¬(g ≥m U h) ∧ ¬ (h ≥m U g) :=

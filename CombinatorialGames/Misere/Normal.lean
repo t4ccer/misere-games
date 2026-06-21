@@ -139,7 +139,7 @@ theorem misereGE_iff_maintenance {g h : AugmentedForm.{u}} (hg : Normal g) (hh :
       Maintenance IsLong g h .right ∧ Maintenance IsLong g h .left :=
   misereGE_iff_maintenance_of_isEndLike
     (Form.Promain.of_isDownlinking_of_hereditary (IsAmbient := IsLong) (A := IsLong))
-    hg.isEndLike hh.isEndLike trivial trivial
+    hg.isEndLike hh.isEndLike (isLong _) (isLong _)
 
 theorem misereGE_iff_maintenance_isShort {g h : AugmentedForm.{u}}
     (hgs : IsShort g) (hhs : IsShort h) (hg : Normal g) (hh : Normal h) :
@@ -229,12 +229,12 @@ abbrev LongQuotient : Type (u + 1) :=
 The class of an augmented form in the long quotient.
 -/
 noncomputable def mkLong (g : AugmentedForm.{u}) : LongQuotient.{u} :=
-  mk (A := IsLong) ⟨g, trivial⟩
+  mk (A := IsLong) ⟨g, isLong _⟩
 
 @[simp]
 theorem mkLong_add (g h : AugmentedForm.{u}) :
     mkLong (g + h) = mkLong g + mkLong h :=
-  (mk_add_mk (A := IsLong) ⟨g, trivial⟩ ⟨h, trivial⟩).symm
+  (mk_add_mk (A := IsLong) ⟨g, isLong _⟩ ⟨h, isLong _⟩).symm
 
 @[simp]
 theorem mkLong_zero : mkLong (0 : AugmentedForm.{u}) = 0 :=
@@ -242,11 +242,11 @@ theorem mkLong_zero : mkLong (0 : AugmentedForm.{u}) = 0 :=
 
 theorem mkLong_add_neg {g : AugmentedForm.{u}} (hg : Normal g) :
     mkLong g + mkLong (-g) = 0 :=
-  sound fun x _ => hg.add_neg_misereEQ_zero x trivial
+  sound fun x _ => hg.add_neg_misereEQ_zero x (isLong _)
 
 theorem mkLong_neg_add {g : AugmentedForm.{u}} (hg : Normal g) :
     mkLong (-g) + mkLong g = 0 :=
-  sound fun x _ => hg.neg_add_misereEQ_zero x trivial
+  sound fun x _ => hg.neg_add_misereEQ_zero x (isLong _)
 
 theorem isAddUnit_mkLong_of_normal {g : AugmentedForm.{u}}
     (hg : Normal g) : IsAddUnit (mkLong g) :=
@@ -295,11 +295,11 @@ theorem mkShort_zero : mkShort (0 : AugmentedForm.{u}) Short.zero = 0 :=
 
 theorem mkShort_add_neg {g : AugmentedForm.{u}} (hgs : IsShort g)
     (hg : Normal g) : mkShort g hgs + mkShort (-g) (Short.neg hgs) = 0 :=
-  sound fun x _ => hg.add_neg_misereEQ_zero x trivial
+  sound fun x _ => hg.add_neg_misereEQ_zero x (isLong _)
 
 theorem mkShort_neg_add {g : AugmentedForm.{u}} (hgs : IsShort g)
     (hg : Normal g) : mkShort (-g) (Short.neg hgs) + mkShort g hgs = 0 :=
-  sound fun x _ => hg.neg_add_misereEQ_zero x trivial
+  sound fun x _ => hg.neg_add_misereEQ_zero x (isLong _)
 
 theorem isAddUnit_mkShort_of_normal {g : AugmentedForm.{u}} (hgs : IsShort g)
     (hg : Normal g) : IsAddUnit (mkShort g hgs) :=

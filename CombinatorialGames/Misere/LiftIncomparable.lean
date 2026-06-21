@@ -209,11 +209,11 @@ theorem g_mem_longUniverse (U : AugmentedForm.{u + 1} → Prop) [LongUniverse U]
     simp only [liftSucc_adjoint]
     exact Form.rootedAdjoint_mem_of_isAmbient
       (IsAmbient := IsLong) (A := U) (r := 0)
-      (Universe.zero_mem IsLong) (fun _ _ => trivial) trivial
+      (Universe.zero_mem IsLong) (fun _ _ => isLong _) (isLong _)
   have h_notempty : (adjointsOfSmall.{u}).Nonempty := ⟨_, liftAdjoint_mem_adjointsOfSmall 0⟩
   show U !{adjointsOfSmall | adjointsOfSmall}
   exact ClosedUnderDicotic.closed_dicotic (IsAmbient := IsLong)
-    adjointsOfSmall adjointsOfSmall h_mem h_mem h_notempty h_notempty trivial
+    adjointsOfSmall adjointsOfSmall h_mem h_mem h_notempty h_notempty (isLong _)
 
 /--
 $G$ and $H$ are incomparable modulo any universe $\mathcal{U}$ in $u + 1$.

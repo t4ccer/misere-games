@@ -41,12 +41,9 @@ theorem Ambient.isAmbient_leftSeparatorCandidate {IsAmbient : G → Prop} [Ambie
     (ClosedUnderNeg.neg_of h_root) (ClosedUnderNeg.neg_of hg) (ClosedUnderNeg.neg_of hx))
 
 instance : Ambient (IsLong : G → Prop) where
-  isAmbient_rootedAdjoint _ _ := by
-    trivial
-  isAmbient_rightSeparatorCandidate _ _ _ := by
-    trivial
-  isAmbient_downlinkWitness _ _ _ _ _ := by
-    trivial
+  isAmbient_rootedAdjoint _ _ := isLong _
+  isAmbient_rightSeparatorCandidate _ _ _ := isLong _
+  isAmbient_downlinkWitness _ _ _ _ _ := isLong _
 
 private lemma rightSeparatorLeftSet_finite {r h : G} (hh : IsShort h) :
     (Separation.rightSeparatorLeftSet r h).Finite := by

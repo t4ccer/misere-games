@@ -29,12 +29,12 @@ class LongUniverse (A : G → Prop) extends Universe IsLong A
 class ShortUniverse (A : G → Prop) extends Universe IsShort A
 
 instance : LongUniverse (IsLong : G → Prop) where
-  has_add _ _ _ _ := trivial
-  has_option _ _ := trivial
-  neg_of _ := trivial
-  closed_dicotic _ _ _ _ _ _ _ _ _ := trivial
-  zero_mem := trivial
-  isAmbient_of_mem _ := trivial
+  has_add _ _ _ _ := isLong _
+  has_option _ _ := isLong _
+  neg_of _ := isLong _
+  closed_dicotic _ _ _ _ _ _ _ _ _ := isLong _
+  zero_mem := isLong _
+  isAmbient_of_mem _ := isLong _
 
 instance : ShortUniverse (IsShort (G := G)) where
   zero_mem := Short.zero
@@ -277,14 +277,14 @@ namespace LongUniverse
 The smallest long universe containing `A`.
 -/
 noncomputable abbrev closure (A : G → Prop) : G → Prop :=
-  Universe.closure IsLong A (fun _ _ => trivial)
+  Universe.closure IsLong A (fun _ _ => isLong _)
 
 instance closure_universe (A : G → Prop) : LongUniverse (closure A) where
   toUniverse :=
-    Universe.closure_universe IsLong (A := A) (fun _ _ => trivial)
+    Universe.closure_universe IsLong (A := A) (fun _ _ => isLong _)
 
 theorem closure_le {A B : G → Prop} [LongUniverse B] : closure A ≤ B ↔ A ≤ B :=
-  Universe.closure_le IsLong (fun _ _ => trivial)
+  Universe.closure_le IsLong (fun _ _ => isLong _)
 
 end LongUniverse
 

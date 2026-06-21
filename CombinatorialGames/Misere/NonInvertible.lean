@@ -16,11 +16,6 @@ open Misere.Adjoint
 
 public section
 
-def AnyGame (_ : GameForm) := True
-
-instance : ClosedUnderNeg AnyGame where
-  neg_of _ := trivial
-
 /--
 Definition of $T$ from [Siegel, "Combinatorial Game Theory" (Theorem 6.6 on p.
 270)][siegel:CombinatorialGameTheory:2013]:
@@ -152,8 +147,8 @@ theorem ClosedUnderNeg.not_misereGE_of_isEnd_right_not_isEnd_right {A : GameForm
 class EqZeroIdentical (A : GameForm → Prop) extends (ClosedUnderNeg A) where
   has_T_g_zero {g : GameForm} (h1 : A g) : A (leftEnd_not_leftEnd_not_ge.auxT g 0)
 
-instance : EqZeroIdentical AnyGame where
-  has_T_g_zero _ := trivial
+instance : EqZeroIdentical IsLong where
+  has_T_g_zero _ := isLong _
 
 instance : EqZeroIdentical IsShort where
   has_T_g_zero h_g := short_auxT h_g Short.zero
@@ -197,5 +192,5 @@ theorem Short.misereEQ_zero_iff_eq_zero {g : GameForm} (h_g : IsShort g) :
 Transfinite generalisaton of [Siegel, "Combinatorial Game Theory" (Proposition
 6.7 on p. 270)][siegel:CombinatorialGameTheory:2013].
 -/
-theorem Transfinite.misereEQ_zero_iff_eq_zero {g : GameForm} :
-    (g =m AnyGame 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero trivial
+theorem Long.misereeq_zero_iff_eq_zero {g : GameForm} :
+    (g =m IsLong 0 ↔ g = 0) := EqZeroIdentical.misereEQ_zero_iff_eq_zero (isLong _)

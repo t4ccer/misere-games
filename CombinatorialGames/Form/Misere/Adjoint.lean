@@ -90,6 +90,6 @@ short augmented forms. The present result generalises further to transfinite
 augmented forms.
 -/
 theorem misereOutcome_add_adjoint_eq_P (g : G) : MisereOutcome (g + g°) = Outcome.P :=
-  misereOutcome_add_rootedAdjoint_eq_P (A := IsLong) (isRoot_zero _) trivial
+  misereOutcome_add_rootedAdjoint_eq_P (A := IsLong) (isRoot_zero _) (isLong _)
 
 end Form.Misere.Adjoint

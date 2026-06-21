@@ -372,7 +372,7 @@ theorem closureChain_longUniverse
     LongUniverse (closureChain IsLong A) where
   toUniverse :=
     closureChain_universe (IsAmbient := IsLong)
-      (fun _ _ => trivial) h0
+      (fun _ _ => isLong _) h0
 
 /--
 The long closure chain agrees with the long universal closure operator.
@@ -381,7 +381,7 @@ theorem closureChain_eq_longUniverseClosure
     {A : G → Prop} (h0 : A 0) :
     closureChain IsLong A = LongUniverse.closure A :=
   closureChain_eq_universeClosure (IsAmbient := IsLong)
-    (fun _ _ => trivial) h0
+    (fun _ _ => isLong _) h0
 
 /--
 The conjugate–hereditary–additive–dicotic closure chain yields a short
@@ -710,7 +710,7 @@ The `p` end-like part of the long universal closure of a `p` seed is the seed.
 theorem endLikePart_longUniverseClosure_eq_of_seed {p : Player} {A : G → Prop}
     [EndLikeSeed p A] : endLikePart p (LongUniverse.closure A) = A :=
   endLikePart_universeClosure_eq_of_seed (IsAmbient := IsLong)
-    (fun _ _ => trivial)
+    (fun _ _ => isLong _)
 
 /--
 The `p` end-like part of a long universe is a `p` seed.

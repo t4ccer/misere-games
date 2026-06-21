@@ -40,7 +40,7 @@ instance {A : G → Prop} [HasInt A] : HasNat A where
   has_nat n := HasInt.has_int n
 
 instance : HasInt (IsLong : G → Prop) where
-  has_int _ := trivial
+  has_int _ := isLong _
 
 theorem HasInt.has_neg_int {A : G → Prop} [HasInt A] (n : ℕ) : A (-(n : G)) := by
   have hi := HasInt.has_int (A := A) (-(n : ℤ))
@@ -58,13 +58,13 @@ class ClosedUnderAddNat {G : Type (u + 1)} [Form G] (A : G → Prop) where
   has_add {g : G} (h1 : A g) (n : ℕ) : A (g + n)
 
 instance : ClosedUnderAddNat (IsLong : G → Prop) where
-  has_add _ _ := trivial
+  has_add _ _ := isLong _
 
 class ClosedUnderAdd (A : G → Prop) where
   has_add (g h : G) (h_g : A g) (h_h : A h) : A (g + h)
 
 instance : ClosedUnderAdd (IsLong : G → Prop) where
-  has_add _ _ _ _ := trivial
+  has_add _ _ _ _ := isLong _
 
 variable {A : G → Prop}
 
@@ -76,7 +76,7 @@ theorem Hereditary.of_mem_moves {A : G → Prop} [Hereditary A]
   Hereditary.has_option hA (IsOption.of_mem_moves h_mem)
 
 instance : Hereditary (IsLong : G → Prop) where
-  has_option _ _ := trivial
+  has_option _ _ := isLong _
 
 private theorem exists_isZeroLike_of_mem [Hereditary A] {g : G} (hg : A g) :
     ∃ z, A z ∧ IsZeroLike z := by
@@ -100,7 +100,7 @@ class ClosedUnderNeg (A : G → Prop) where
   neg_of {g : G} (h1 : A g) : A (-g)
 
 instance : ClosedUnderNeg (IsLong : G → Prop) where
-  neg_of _ := trivial
+  neg_of _ := isLong _
 
 @[simp, nolint simpVarHead] -- It does fire, despite what linter comment says
 theorem ClosedUnderNeg.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g : G}
