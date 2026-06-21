@@ -132,6 +132,9 @@ protected theorem zero : IsShort (0 : G) := by
   rw [Form.short_def]
   simp
 
+instance : HasZero IsShort (G := G) where
+  has_zero := Short.zero
+
 protected theorem ofSets {s t : Set G} [Small s] [Small t]
     (hs_fin : s.Finite) (hs_short : ∀ g ∈ s, IsShort g)
     (ht_fin : t.Finite) (ht_short : ∀ g ∈ t, IsShort g) :

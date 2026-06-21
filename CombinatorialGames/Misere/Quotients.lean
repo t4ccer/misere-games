@@ -116,14 +116,14 @@ instance instAddCommSemigroup [ClosedUnderAdd A] : AddCommSemigroup (MisereQuoti
     intro t ht
     simp only [add_comm]
 
-instance instZero [h0 : Fact (A 0)] : Zero (MisereQuotient A) where
-  zero := mk ⟨0, h0.out⟩
+instance instZero [HasZero A] : Zero (MisereQuotient A) where
+  zero := mk ⟨0, HasZero.has_zero⟩
 
 @[simp]
-theorem mk_zero [h0 : Fact (A 0)] : mk (A := A) ⟨0, h0.out⟩ = (0 : MisereQuotient A) :=
+theorem mk_zero [HasZero A] : mk (A := A) ⟨0, HasZero.has_zero⟩ = (0 : MisereQuotient A) :=
   rfl
 
-instance instAddCommMonoid [ClosedUnderAdd A] [Fact (A 0)] :
+instance instAddCommMonoid [HasZero A] [ClosedUnderAdd A] :
     AddCommMonoid (MisereQuotient A) where
   add_zero x := by
     induction x using Quotient.inductionOn
@@ -177,7 +177,7 @@ theorem out_le_out {a b : MisereQuotient A} :
   conv_lhs => rw [← mk_out a, ← mk_out b]
   exact mk_le_mk _ _
 
-instance instIsOrderedAddMonoid [ClosedUnderAdd A] [Fact (A 0)] :
+instance instIsOrderedAddMonoid [HasZero A] [ClosedUnderAdd A] :
     IsOrderedAddMonoid (MisereQuotient A) where
   add_le_add_left x y hxy z := by
     induction x using Quotient.inductionOn

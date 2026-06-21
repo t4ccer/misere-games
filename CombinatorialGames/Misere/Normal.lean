@@ -216,9 +216,6 @@ namespace MisereQuotient
 
 namespace Augmented
 
-instance : Fact (IsLong (0 : AugmentedForm.{u})) :=
-  ⟨trivial⟩
-
 /--
 The long augmented misère monoid: augmented forms modulo misère equality.
 -/
@@ -274,9 +271,6 @@ equality.
 -/
 abbrev ShortQuotient : Type (u + 1) :=
   MisereQuotient (G := AugmentedForm.{u}) IsShort
-
-instance : Fact (IsShort (0 : AugmentedForm.{u})) :=
-  ⟨Short.zero⟩
 
 /--
 The class of a short augmented form in the short quotient.
