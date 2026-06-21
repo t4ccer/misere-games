@@ -120,7 +120,7 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
         exact misereOutcome_add_one_R_of_misereOutcome_R (isPFree_natCast_add (PFree.pfree h2) n) h4
     · have h4 := misereOutcome_of_add_RN
         (HasNat.has_nat n) h2
-        (pos_nat_misereOutcome_R h1) h3
+        ((misereOutcome_R_natCast_iff _).mpr h1) h3
       apply Or.elim h4 <;> intro h4
       · have h_A_nx : A (n + x) := by
           have := (ClosedUnderAddNat.has_add h2 n)
@@ -138,7 +138,7 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
     · refine False.elim (misereOutcome_ne_P_of_pfree h2 h3)
     · have h4 := misereOutcome_of_add_RR
          (HasNat.has_nat n) h2
-         (pos_nat_misereOutcome_R h1) h3
+         ((misereOutcome_R_natCast_iff _).mpr h1) h3
       simp only [ge_iff_le, Outcome.le_R_iff, h4]
       exact misereOutcome_add_one_R_of_misereOutcome_R (isPFree_natCast_add (PFree.pfree h2) n) h4
   · simp only [gt_iff_lt, not_lt, nonpos_iff_eq_zero] at h1

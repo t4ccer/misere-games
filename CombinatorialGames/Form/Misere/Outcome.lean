@@ -610,21 +610,65 @@ theorem one_misereOutcome_R : MisereOutcome (1 : G) = .R := by
   simp [misereOutcome_R_iff_winsGoingFirst]
 
 @[simp]
-theorem pos_nat_misereOutcome_R {n : ℕ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
-  simp [misereOutcome_R_iff_winsGoingFirst]
-  exact Nat.ne_zero_iff_zero_lt.mpr h1
+theorem misereOutcome_R_intCast_iff (n : ℤ) : MisereOutcome (n : G) = .R ↔ 0 < n := by
+  rw [misereOutcome_R_iff_winsGoingFirst]
+  constructor <;> intro h
+  · exact not_le.mp ((winsGoingFirst_left_intCast_iff n).not.mp h.right)
+  · constructor
+    · exact (winsGoingFirst_right_intCast_iff n).mpr h.le
+    · exact (winsGoingFirst_left_intCast_iff n).not.mpr (not_le.mpr h)
 
 @[simp]
-theorem pos_int_misereOutcome_R {n : ℤ} (h1 : n > 0) : MisereOutcome (n : G) = .R := by
-  rw [<-Int.toNat_of_nonneg (Int.le_of_lt h1)]
-  exact pos_nat_misereOutcome_R (Int.pos_iff_toNat_pos.mp h1)
+theorem misereOutcome_R_natCast_iff (n : ℕ) : MisereOutcome (n : G) = .R ↔ 0 < n := by
+  rw [<-Form.intCast_nat, misereOutcome_R_intCast_iff]
+  simp only [Int.natCast_pos]
 
 @[simp]
-theorem neg_int_misereOutcome_L {n : ℤ} (h1 : n < 0) : MisereOutcome (n : G) = .L := by
-  have h2 := pos_int_misereOutcome_R (G := G) (Int.neg_pos.mpr h1)
-  rwa [Form.intCast_neg, misereOutcome_neg_R_iff_misereOutcome] at h2
+theorem misereOutcome_L_intCast_iff (n : ℤ) : MisereOutcome (n : G) = .L ↔ n < 0 := by
+  rw [misereOutcome_L_iff_winsGoingFirst]
+  constructor <;> intro h
+  · exact not_le.mp ((winsGoingFirst_right_intCast_iff n).not.mp h.right)
+  · constructor
+    · exact (winsGoingFirst_left_intCast_iff n).mpr h.le
+    · exact (winsGoingFirst_right_intCast_iff n).not.mpr (not_le.mpr h)
 
-theorem zero_int_misereOutcome_N {n : ℤ} (h1 : n = 0) : MisereOutcome (n : G) = .N := by
-  rw [h1, Form.intCast_ofNat, Nat.cast_zero, misereOutcome_zero_N]
+@[simp]
+theorem misereOutcome_L_natCast (n : ℕ) : ¬MisereOutcome (n : G) = .L := by
+  rw [<-Form.intCast_nat, misereOutcome_L_intCast_iff]
+  simp only [not_lt, Int.natCast_nonneg]
+
+@[simp]
+theorem misereOutcome_N_intCast_iff (n : ℤ) : MisereOutcome (n : G) = .N ↔ n = 0 := by
+  rw [misereOutcome_N_iff_winsGoingFirst]
+  constructor <;> intro h
+  · have h1 := (winsGoingFirst_left_intCast_iff (G := G) n).mp h.left
+    have h2 := (winsGoingFirst_right_intCast_iff (G := G) n).mp h.right
+    exact Eq.symm (Int.le_antisymm h2 h1)
+  · constructor
+    · exact (winsGoingFirst_left_intCast_iff n).mpr h.le
+    · exact (winsGoingFirst_right_intCast_iff (G := G) n).mpr (Int.le_of_eq (Eq.symm h))
+
+@[simp]
+theorem misereOutcome_N_natCast_iff (n : ℕ) : MisereOutcome (n : G) = .N ↔ n = 0 := by
+  rw [<-Form.intCast_nat, misereOutcome_N_intCast_iff]
+  simp only [Int.natCast_eq_zero]
+
+@[simp]
+theorem misereOutcome_P_intCast (n : ℤ) : ¬MisereOutcome (n : G) = .P := by
+  apply Or.elim3 (Int.lt_trichotomy n 0) <;> intro h
+  · rw [<-misereOutcome_L_intCast_iff (G := G)] at h
+    rw [h]
+    decide
+  · rw [<-misereOutcome_N_intCast_iff (G := G)] at h
+    rw [h]
+    decide
+  · rw [<-misereOutcome_R_intCast_iff (G := G)] at h
+    rw [h]
+    decide
+
+@[simp]
+theorem misereOutcome_P_natCast (n : ℕ) : ¬MisereOutcome (n : G) = .P := by
+  rw [<-Form.intCast_nat]
+  exact misereOutcome_P_intCast (G := G) _
 
 end Form.Misere.Outcome
