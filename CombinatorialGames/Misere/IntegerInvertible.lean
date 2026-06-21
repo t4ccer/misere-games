@@ -130,16 +130,6 @@ theorem misereOutcome_add_int_neg_LTippingPoint_L {g : GameForm} (hsg : IsShort 
   have h := misereOutcome_add_neg_LTippingPoint_L hsg
   simpa only [Form.intCast_neg, Form.intCast_nat] using h
 
-theorem misereOutcome_add_ge_N_of_misereOutcome_L_left {g h : GameForm} [OutcomeStable A]
-    (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h) (hL : MisereOutcome g = .L)
-    (hh : MisereOutcome h = .N ∨ MisereOutcome h = .L) :
-    MisereOutcome (g + h) ≥ .N := by
-  rcases hh with hN | hL'
-  · rcases OutcomeStable.misereOutcome_of_add_LN hAg hAh hL hN with h1 | h1
-    · rw [h1]
-    · rw [h1]; exact Outcome.L_ge _
-  · rw [OutcomeStable.misereOutcome_of_add_LL hAg hAh hL hL']; exact Outcome.L_ge _
-
 variable [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
          [ClosedUnderAdd A] [IntegerInvertible A]
 
@@ -445,5 +435,16 @@ theorem pf_misereOutcome_add_le_N_of_RL {g h : GameForm}
   rw [h_conj]
   have h := Outcome.outcome_ge_conjugate_le hge
   rwa [show (Outcome.N).Conjugate = Outcome.N from rfl] at h
+
+/--
+$0 =_{\operatorname{pf}(\mathcal{E})} 1 + \overline{1} = \{ \overline{1} \mid 1 \}$.
+-/
+theorem zero_misereEQ_minusOne_one {A : GameForm → Prop} [IntegerInvertible A] :
+    (0 : GameForm) =m A !{{(-1 : GameForm)} | {(1 : GameForm)}} := by
+  have := IntegerInvertible.int_add_neg_misereEQ (A := A) 1
+  apply MisereEQ.symm
+  convert this
+  ext p x
+  cases p <;> simp
 
 end IntegerInvertible

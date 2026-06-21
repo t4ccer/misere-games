@@ -50,6 +50,28 @@ the sets were short universes.
   ∃ t, A t ∧ ¬WinsGoingFirst .left (g + t) ∧
     ¬WinsGoingFirst .right (h + t)
 
+private theorem downlinked_neg_of {A : GameForm → Prop} [ClosedUnderNeg A] {g h : GameForm}
+    (H : Downlinked A (-h) (-g)) : Downlinked A g h := by
+  obtain ⟨t, h_t_mem, h_ht_win_left, h_gt_win_right⟩ := H
+  refine ⟨-t, ClosedUnderNeg.neg_of h_t_mem, ?_, ?_⟩
+  · intro h_gt_win_left
+    apply h_gt_win_right
+    have h_eq : g + (-t) = -((-g) + t) := by rw [neg_add, neg_neg]
+    rw [h_eq, winsGoingFirst_neg_iff] at h_gt_win_left
+    simpa using h_gt_win_left
+  · intro h_ht_win_right
+    apply h_ht_win_left
+    have heq : h + (-t) = -((-h) + t) := by rw [neg_add, neg_neg]
+    rw [heq, winsGoingFirst_neg_iff] at h_ht_win_right
+    simpa using h_ht_win_right
+
+protected theorem Downlinked.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {g h : GameForm} :
+    Downlinked A (-h) (-g) ↔ Downlinked A g h := by
+  constructor
+  · exact downlinked_neg_of
+  · intro h1
+    rw [←neg_neg g, ←neg_neg h] at h1
+    exact downlinked_neg_of h1
 
 /--
 If there exists some $X\in\mathcal{A}$ whereby

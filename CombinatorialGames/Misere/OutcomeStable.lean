@@ -1107,3 +1107,118 @@ theorem NTippingPoint_lt_LTippingPoint_of_misereOutcome_R
     (ClosedUnderNeg.neg_of hAg) (Short.neg hsg)
     (by rw [misereOutcome_neg_L_iff_misereOutcome]; exact hRg)
   rwa [NTippingPoint.neg hsg, RTippingPoint_neg hsg] at this
+
+theorem misereOutcome_add_ge_N_of_misereOutcome_L_left {g h : GameForm} [OutcomeStable A]
+    (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h) (hL : MisereOutcome g = .L)
+    (hh : MisereOutcome h = .N ∨ MisereOutcome h = .L) :
+    MisereOutcome (g + h) ≥ .N := by
+  rcases hh with hN | hL'
+  · rcases OutcomeStable.misereOutcome_of_add_LN hAg hAh hL hN with h1 | h1
+    · rw [h1]
+    · rw [h1]; exact Outcome.L_ge _
+  · rw [OutcomeStable.misereOutcome_of_add_LL hAg hAh hL hL']; exact Outcome.L_ge _
+
+theorem misereGE_zero_of_misereOutcome_L
+    {A : GameForm → Prop} [OutcomeStable A]
+    {g : GameForm} (h_g : (PFreeSubset A) g) (h_L : MisereOutcome g = .L) :
+    g ≥m (PFreeSubset A) ((0 : ℤ) : GameForm) := by
+  intro x hx
+  rw [Form.intCast_zero, zero_add]
+  cases hxo : MisereOutcome x with
+  | R => exact Outcome.ge_R _
+  | N =>
+    exact misereOutcome_add_ge_N_of_misereOutcome_L_left h_g hx h_L (Or.inl hxo)
+  | L =>
+    rw [OutcomeStable.misereOutcome_of_add_LL h_g hx h_L hxo]
+  | P => exact absurd hxo (misereOutcome_ne_P_of_pfree hx)
+
+theorem misereGE_intCast_of_misereOutcome_L
+    {A : GameForm → Prop} [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} {n : ℤ}
+    (h_g : (PFreeSubset A) g) (h_n : 0 ≤ n) (h_L : MisereOutcome g = .L) :
+    g ≥m (PFreeSubset A) ((n : ℤ) : GameForm) :=
+  MisereGE.trans (misereGE_zero_of_misereOutcome_L h_g h_L)
+    (OutcomeStable.misereGE_of_int_le _ 0 n h_n)
+
+/--
+If $\mathcal{A}$ is outcome-stable monoid closed under conjugation and
+$G \in \operatorname{pf}(\mathcal{A})$ such that $\operatorname{o}(G) = \mathscr{R}$
+then \operatorname{o}(G + \overline{1}) \ne \mathscr{L}$
+-/
+theorem misereOutcome_add_neg_one_ne_L_of_R
+    {A : GameForm → Prop}
+    [OutcomeStable A] [ClosedUnderAddNat A] [ClosedUnderAdd A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm}
+    (h_g : (PFreeSubset A) g) (h_g_isShort : IsShort g) (h_out_R : MisereOutcome g = .R) :
+    MisereOutcome (g + ((-1 : ℤ) : GameForm)) ≠ .L := by
+  intro h_outcome_L
+  have h_out_N : MisereOutcome (g + (-((NTippingPoint h_g_isShort : ℕ) : GameForm))) = .N := by
+    rcases NTippingPoint_spec h_g_isShort with h_pos | h_neg
+    · exfalso
+      have h_le := OutcomeStable.misereOutcome_add_natCast_le
+          h_g.mem h_g.isPFree (NTippingPoint h_g_isShort)
+      rw [h_out_R, Outcome.le_R_iff, h_pos] at h_le
+      exact absurd h_le (by decide)
+    · exact h_neg
+  have h_ntip_pos : 1 ≤ NTippingPoint h_g_isShort := by
+    rcases Nat.eq_zero_or_pos (NTippingPoint h_g_isShort) with h_eq_zero | h_gt_zero
+    · exfalso
+      rw [h_eq_zero] at h_out_N
+      simp only [Nat.cast_zero, neg_zero, add_zero] at h_out_N
+      rw [h_out_R] at h_out_N
+      exact absurd h_out_N (by decide)
+    · exact h_gt_zero
+  have h_ntip_neg : (-((NTippingPoint h_g_isShort : ℕ) : ℤ)) ≤ (-1 : ℤ) := by
+    have : (1 : ℤ) ≤ ((NTippingPoint h_g_isShort : ℕ) : ℤ) := by exact_mod_cast h_ntip_pos
+    omega
+  have hmono := OutcomeStable.misereOutcome_add_int_antitone h_g h_ntip_neg
+  rw [h_outcome_L] at hmono
+  have h_ntip_eq_ntip : (((-((NTippingPoint h_g_isShort : ℕ) : ℤ)) : ℤ) : GameForm)
+      = -((NTippingPoint h_g_isShort : ℕ) : GameForm) := by
+    rw [Form.intCast_neg]; rfl
+  rw [h_ntip_eq_ntip] at hmono
+  have h_outcome_ntip_L : MisereOutcome (g + (-((NTippingPoint h_g_isShort : ℕ) : GameForm))) = .L :=
+    le_antisymm (Outcome.L_ge _) hmono
+  rw [h_outcome_ntip_L] at h_out_N
+  exact absurd h_out_N (by decide)
+
+theorem misereOutcome_R_of_not_leftMoves_misereGE
+    {A : GameForm → Prop}
+    [Hereditary A] [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} {n : ℤ}
+    (h_g : (PFreeSubset A) g) (h_not_left_end : ¬ IsEnd .left g) (h_n : 0 ≤ n)
+    (h : ∀ gl ∈ moves .left g, ¬ (gl ≥m (PFreeSubset A) ((n : ℤ) : GameForm))) :
+    MisereOutcome g = .R := by
+  by_contra h_outcome_R
+  have h_win_left : WinsGoingFirst .left g := by
+    cases h_outcome : MisereOutcome g with
+    | P => exact absurd h_outcome (misereOutcome_ne_P_of_pfree h_g)
+    | R => exact absurd h_outcome h_outcome_R
+    | L => exact (misereOutcome_L_iff_winsGoingFirst.mp h_outcome).left
+    | N => exact (misereOutcome_N_iff_winsGoingFirst.mp h_outcome).left
+  rw [winsGoingFirst_iff] at h_win_left
+  rcases h_win_left with h_isEnd | ⟨gl, h_gl_mem, h_gl_win⟩
+  · exact h_not_left_end (GameForm.isEndLike_iff_isEnd.mp h_isEnd)
+  · have h_gl_pf := Hereditary.of_mem_moves h_g h_gl_mem
+    have h_outcome_L : MisereOutcome gl = .L := by
+      cases h_outcome : MisereOutcome gl with
+      | L => rfl
+      | P => exact absurd h_outcome (misereOutcome_ne_P_of_pfree h_gl_pf)
+      | N => exact absurd (misereOutcome_N_iff_winsGoingFirst.mp h_outcome).right h_gl_win
+      | R => exact absurd (misereOutcome_R_iff_winsGoingFirst.mp h_outcome).left h_gl_win
+    exact h gl h_gl_mem (misereGE_intCast_of_misereOutcome_L h_gl_pf h_n h_outcome_L)
+
+theorem winsGoingFirst_right_sub_one_of_not_leftMoves_misereGE
+    {A : GameForm → Prop}
+    [Hereditary A] [OutcomeStable A] [HasInt A]
+    [ClosedUnderAddNat A] [ClosedUnderAdd A] [ClosedUnderNeg A]
+    {g : GameForm} {n : ℤ}
+    (h_g : (PFreeSubset A) g) (h_isShort : IsShort g) (h_not_left_end : ¬ IsEnd .left g)
+    (h_n : 0 ≤ n) (h : ∀ gl ∈ moves .left g, ¬ (gl ≥m (PFreeSubset A) ((n : ℤ) : GameForm))) :
+    WinsGoingFirst .right (g + ((-1 : ℤ) : GameForm)) := by
+  have h_outcome_R := misereOutcome_R_of_not_leftMoves_misereGE h_g h_not_left_end h_n h
+  cases h_outcome : MisereOutcome (g + ((-1 : ℤ) : GameForm)) with
+  | L => exact absurd h_outcome (misereOutcome_add_neg_one_ne_L_of_R h_g h_isShort h_outcome_R)
+  | P => exact absurd h_outcome (OutcomeStable.misereOutcome_add_int_ne_P h_g (-1))
+  | N => exact (misereOutcome_N_iff_winsGoingFirst.mp h_outcome).right
+  | R => exact (misereOutcome_R_iff_winsGoingFirst.mp h_outcome).left
