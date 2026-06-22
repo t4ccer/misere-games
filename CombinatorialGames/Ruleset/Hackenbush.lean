@@ -596,7 +596,7 @@ theorem hasStride_groundCount (hack : Hackenbush V) (p : Player) :
     subst n
     exact hack.edgeCard_remove_lt e he
   by_cases h_groundCount : hack.groundCount p = 0
-  · rw [h_groundCount, GameForm.hasStride_zero_iff]
+  · rw [h_groundCount, hasStride_eq_zero_iff]
     exact isSolved_of_groundCount_zero h_groundCount
   · obtain ⟨k, hk⟩ : ∃ k, hack.groundCount p = k + 1 :=
       ⟨hack.groundCount p - 1, Eq.symm (Nat.succ_pred_eq_of_ne_zero h_groundCount)⟩

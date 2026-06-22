@@ -738,7 +738,7 @@ theorem toGameForm_hasStride (s : R) (p : Player) :
     intro m q hm
     exact ih _ (by rw [← w]; exact weight_push_lt s hm) _ _ rfl
   by_cases hs : stride s p = 0
-  · rw [hs]; exact GameForm.hasStride_zero_iff.mpr (isSolved_of_stride_zero hs)
+  · rw [hs]; exact hasStride_eq_zero_iff.mpr (isSolved_of_stride_zero hs)
   · obtain ⟨hrm, hrm_eq⟩ := rightmost_of_stride_pos hs
     set k := rightmostPos s with hk_def
     have hstride_eq : stride s p = k + 1 := by omega
@@ -791,7 +791,7 @@ theorem toGameForm_hasStride (s : R) (p : Player) :
           have h_zero : Strip.toGameForm (push s k) = 0 := by
             rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
           rw [h_zero, hk_zero]
-          exact GameForm.hasStride_zero_iff.mpr (GameForm.isSolved_zero p)
+          exact hasStride_eq_zero_iff.mpr (GameForm.isSolved_zero p)
       · intro g'' hg'' m_val hm_val
         obtain ⟨m', hm'_p, rfl⟩ := (mem_moves_toGameForm_iff s p g'').mp hg''
         have h_m_zero : m_val = 0 := by
@@ -839,9 +839,9 @@ theorem mk_with_stride (p : Player) (n : ℕ) :
       intro k; rw [board_def, toBoard_ofBoard]; rfl
     refine ⟨ofBoard Board.zero, ?_, ?_⟩
     · rw [(toGameForm_zero_iff _).mpr h_empty]
-      exact GameForm.hasStride_zero_iff.mpr (GameForm.isSolved_zero p)
+      exact hasStride_eq_zero_iff.mpr (GameForm.isSolved_zero p)
     · rw [(toGameForm_zero_iff _).mpr h_empty]
-      exact GameForm.hasStride_zero_iff.mpr (GameForm.isSolved_zero (-p))
+      exact hasStride_eq_zero_iff.mpr (GameForm.isSolved_zero (-p))
   · set b : Board :=
       { board := fun m => if m = n then Piece.ofPlayer p else Piece.none,
         finite_support := ⟨n + 1, by
