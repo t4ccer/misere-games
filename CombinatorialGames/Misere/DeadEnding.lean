@@ -592,27 +592,25 @@ theorem IsStrongTest.right_strong {A : GameForm → Prop} [DeadEnding A] {g : Ga
   have h_deadEnd := isDeadEnd_of_isDeadEnding (DeadEnding.isDeadEnding hx) h_isEnd
   exact isDeadEnd_right_strongTest_winsGoingFirst h_deadEnd h_test
 
--- TODO: [HasZero A]
-theorem PFree.strong_right_iff_misereOutcome_L {A : GameForm → Prop} [DeadEnding A] [HasNat A]
+theorem PFree.strong_right_iff_misereOutcome_L {A : GameForm → Prop} [DeadEnding A] [HasZero A]
     {g : GameForm} (h_isPFree : IsPFree g) :
     Strong A g .right ↔ MisereOutcome g ≠ .L := by
   constructor
   · intro h_strong h_outcome
     rw [misereOutcome_L_iff_winsGoingFirst] at h_outcome
-    have h_wins := h_strong 0 HasNat.zero (isEndLike_of_isEnd isEnd_zero)
+    have h_wins := h_strong 0 HasZero.has_zero (isEndLike_of_isEnd isEnd_zero)
     rw [add_zero] at h_wins
     exact h_outcome.right h_wins
   · intro h_outcome
     exact IsStrongTest.right_strong (PFree.isStrongTest_right h_isPFree h_outcome)
 
--- TODO: [HasZero A]
-theorem PFree.strong_left_iff_misereOutcome_R {A : GameForm → Prop} [DeadEnding A] [HasNat A]
+theorem PFree.strong_left_iff_misereOutcome_R {A : GameForm → Prop} [DeadEnding A] [HasZero A]
     {g : GameForm} (h_isPFree : IsPFree g) :
     Strong A g .left ↔ MisereOutcome g ≠ .R := by
   constructor
   · intro h_strong h_outcome
     rw [misereOutcome_R_iff_winsGoingFirst] at h_outcome
-    have h_wins := h_strong 0 HasNat.zero (isEndLike_of_isEnd isEnd_zero)
+    have h_wins := h_strong 0 HasZero.has_zero (isEndLike_of_isEnd isEnd_zero)
     rw [add_zero] at h_wins
     exact h_outcome.right h_wins
   · intro h_outcome
