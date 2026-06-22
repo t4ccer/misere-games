@@ -26,8 +26,8 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: docbuild/.lake
-          key: ${{ runner.os }}-docbuild-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.lean', 'docbuild/lake-manifest.json') }}
-          restore-keys: ${{ runner.os }}-docbuild-
+          key: docbuild-${{ runner.os }}-${{ runner.arch}}-${{ hashFiles('docbuild/lean-toolchain') }}-${{ hashFiles('docbuild/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: docbuild-${{ runner.os }}-${{ runner.arch}}-${{ hashFiles('docbuild/lean-toolchain') }}-${{ hashFiles('docbuild/lake-manifest.json') }}
 
       - name: docs
         run: |
