@@ -28,6 +28,45 @@ def Maintenance (A : G → Prop) (g h : G) (p : Player) : Prop :=
       (∃ gl ∈ moves .left g, gl ≥m A hl) ∨
       (∃ hlr ∈ moves .right hl, g ≥m A hlr)
 
+private theorem Maintenance.neg_aux
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} {p : Player}
+    (h_maintenance : Maintenance A (-h) (-g) (-p)) :
+    Maintenance A g h p := by
+  cases p
+  · intro hl hhl
+    rcases h_maintenance (-hl) (by simp [moves_neg, hhl]) with hopt | hreply
+    · rcases hopt with ⟨ngl, hngl, hge⟩
+      left
+      refine ⟨-ngl, ?_, ?_⟩
+      · simpa [moves_neg] using hngl
+      · exact (ClosedUnderNeg.neg_ge_neg_iff (-ngl) hl).mp (by simpa using hge)
+    · rcases hreply with ⟨nhlr, hnhlr, hge⟩
+      right
+      refine ⟨-nhlr, ?_, ?_⟩
+      · simpa [moves_neg] using hnhlr
+      · exact (ClosedUnderNeg.neg_ge_neg_iff g (-nhlr)).mp (by simpa using hge)
+  · intro gr hgr
+    rcases h_maintenance (-gr) (by simp [moves_neg, hgr]) with hopt | hreply
+    · rcases hopt with ⟨nhr, hnhr, hge⟩
+      left
+      refine ⟨-nhr, ?_, ?_⟩
+      · simpa [moves_neg] using hnhr
+      · exact (ClosedUnderNeg.neg_ge_neg_iff gr (-nhr)).mp (by simpa using hge)
+    · rcases hreply with ⟨ngrl, hngrl, hge⟩
+      right
+      refine ⟨-ngrl, ?_, ?_⟩
+      · simpa [moves_neg] using hngrl
+      · exact (ClosedUnderNeg.neg_ge_neg_iff (-ngrl) h).mp (by simpa using hge)
+
+protected theorem Maintenance.neg_iff
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} (p : Player) :
+    Maintenance A (-h) (-g) (-p) ↔ Maintenance A g h p := by
+  constructor
+  · exact Maintenance.neg_aux
+  · intro hm
+    have hm_neg : Maintenance A (- -g) (- -h) (- -p) := by simpa only [neg_neg] using hm
+    simpa using Maintenance.neg_aux (g := -h) (h := -g) (p := -p) hm_neg
+
 @[expose]
 def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
   ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
@@ -100,6 +139,27 @@ protected theorem IsStrongTest.neg_iff {p : Player} {g : GameForm} :
 @[expose]
 def Proviso (A : G → Prop) (g h : G) (p : Player) : Prop :=
   IsEndLike p g → Strong A h p
+
+private theorem Proviso.neg_aux
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} {p : Player}
+    (h_proviso : Proviso A (-g) (-h) (-p)) :
+    Proviso A g h p := by
+  intro hg_end x hx hx_end
+  have hwin_neg : WinsGoingFirst (-p) ((-h) + (-x)) :=
+    h_proviso (by simpa [IsEndLike.neg_iff_neg] using hg_end)
+      (-x) (ClosedUnderNeg.neg_of hx)
+      (by simpa [IsEndLike.neg_iff_neg] using hx_end)
+  rw [← winsGoingFirst_neg_iff, neg_add_rev, neg_neg, neg_neg, add_comm] at hwin_neg
+  exact hwin_neg
+
+protected theorem Proviso.neg_iff
+    {A : G → Prop} [ClosedUnderNeg A] {g h : G} (p : Player) :
+    Proviso A (-g) (-h) (-p) ↔ Proviso A g h p := by
+  constructor
+  · exact Proviso.neg_aux
+  · intro hp
+    have hp_neg : Proviso A (- -g) (- -h) (- -p) := by simpa only [neg_neg] using hp
+    simpa using Proviso.neg_aux (g := -g) (h := -h) (p := -p) hp_neg
 
 private theorem auxCases {h x : G} {p : Player} (h1 : MiserePlayerOutcome (h + x) p = p)
     : (∃ xl ∈ moves p x, MiserePlayerOutcome (h + xl) (-p) = p)
@@ -279,8 +339,6 @@ decreasing_by
     | form_wf
 
 end
-
--- TODO: Move, this doesn't require the set to be hereditary
 
 theorem proviso_right_of_misereGE {A : G → Prop}
     {g h : G} (hge : g ≥m A h) :
