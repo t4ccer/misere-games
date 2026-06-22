@@ -58,7 +58,7 @@ $\operatorname{o_L}(H+X)=\mathscr{L}$, then we say that $G$ and $H$ are _Left
 separated_ (with respect to $\mathcal{A}$). (See `LeftSeparating` and
 `RightSeparating`.)
 -/
-@[expose] def Separating (A : G → Prop) (p : Player) (g h : G) : Prop :=
+@[expose] def AreSeparating (A : G → Prop) (p : Player) (g h : G) : Prop :=
   match p with
   | .left => ∃ x, A x ∧ ¬WinsGoingFirst .left (g + x) ∧
       WinsGoingFirst .left (h + x)
@@ -70,23 +70,23 @@ There exists some $X\in\mathcal{A}$ whereby
 $\operatorname{o_L}(G+X)=\mathscr{R}$ and
 $\operatorname{o_L}(H+X)=\mathscr{L}$. (See `Separating`.)
 -/
-abbrev LeftSeparating (A : G → Prop) (g h : G) : Prop :=
-  Separating A .left g h
+abbrev AreLeftSeparating (A : G → Prop) (g h : G) : Prop :=
+  AreSeparating A .left g h
 
 /--
 There exists some $X\in\mathcal{A}$ whereby
 $\operatorname{o_R}(G+X)=\mathscr{R}$ and
 $\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
 -/
-abbrev RightSeparating (A : G → Prop) (g h : G) : Prop :=
-  Separating A .right g h
+abbrev AreRightSeparating (A : G → Prop) (g h : G) : Prop :=
+  AreSeparating A .right g h
 
 /--
 We have `g ≥ h` modulo `A` exactly when `g` and `h` are neither Left- nor
 Right-separating.
 -/
 theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
-    g ≥m A h ↔ ¬ LeftSeparating A g h ∧ ¬ RightSeparating A g h := by
+    g ≥m A h ↔ ¬ AreLeftSeparating A g h ∧ ¬ AreRightSeparating A g h := by
   constructor
   · intro hge
     refine ⟨?_, ?_⟩
@@ -145,7 +145,7 @@ theorem misereGE_iff_not_separating {A : G → Prop} {g h : G} :
 Negation of `misereGE_iff_not_separating`.
 -/
 theorem not_misereGE_iff_separating {A : G → Prop} {g h : G} :
-    ¬(g ≥m A h) ↔ LeftSeparating A g h ∨ RightSeparating A g h := by
+    ¬(g ≥m A h) ↔ AreLeftSeparating A g h ∨ AreRightSeparating A g h := by
   constructor
   · intro h1
     have := misereGE_iff_not_separating.not.mp h1
@@ -222,8 +222,8 @@ lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
     {A IsAmbient : G → Prop} [Hereditary IsAmbient] {r g h : G}
     (h_isRoot : IsRoot IsAmbient r) (hh : IsAmbient h)
     (h_candidate : ∀ {x : G}, A x → A (rightSeparatorCandidate r h x))
-    (h_left_sep : LeftSeparating A g h) :
-    RightSeparating A g h := by
+    (h_left_sep : AreLeftSeparating A g h) :
+    AreRightSeparating A g h := by
   obtain ⟨x, hx, hgx, hhx⟩ := h_left_sep
   let y := rightSeparatorCandidate r h x
   have hy : A y := h_candidate hx
@@ -278,8 +278,8 @@ lemma leftSeparating_of_rightSeparating_of_leftSeparatorCandidate_mem
     {A IsAmbient : G → Prop} [Hereditary IsAmbient] {r g h : G}
     (h_isRoot : IsRoot IsAmbient r) (hg : IsAmbient g)
     (h_candidate : ∀ {x : G}, A x → A (leftSeparatorCandidate r g x))
-    (h_right_sep : RightSeparating A g h) :
-    LeftSeparating A g h := by
+    (h_right_sep : AreRightSeparating A g h) :
+    AreLeftSeparating A g h := by
   obtain ⟨x, hx, hgx, hhx⟩ := h_right_sep
   let y := leftSeparatorCandidate r g x
   have hy : A y := h_candidate hx
@@ -445,15 +445,13 @@ lemma downlinked_of_downlinkWitness_mem
         have hwin : WinsGoingFirst .left (h + r) := h_isRoot hh hz.left
         simpa [htr_zero] using hwin
 
--- TODO: the next two lemmas are now unused (the comparison proof no longer
--- negates to build separators); keep, move, or remove them later.
 /--
 If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
 must be `LeftSeparating`.
 -/
 lemma leftSeparating_neg_of_rightSeparating {A : G → Prop} [ClosedUnderNeg A]
-    {g h : G} (h_right_sep : RightSeparating A g h) :
-    LeftSeparating A (-h) (-g) := by
+    {g h : G} (h_right_sep : AreRightSeparating A g h) :
+    AreLeftSeparating A (-h) (-g) := by
   obtain ⟨y, hy, hgy, hhy⟩ := h_right_sep
   refine ⟨-y, ClosedUnderNeg.neg_of hy, ?_, ?_⟩
   · intro h_win
@@ -470,8 +468,8 @@ If $\overline{H}$ and $\overline{G}$ are `RightSeparating`, then $G$ and $H$
 must be `LeftSeparating`.
 -/
 lemma leftSeparating_of_rightSeparating_neg {A : G → Prop} [ClosedUnderNeg A]
-    {g h : G} (h_right_sep : RightSeparating A (-h) (-g)) :
-    LeftSeparating A g h := by
+    {g h : G} (h_right_sep : AreRightSeparating A (-h) (-g)) :
+    AreLeftSeparating A g h := by
   simpa using (leftSeparating_neg_of_rightSeparating h_right_sep)
 
 end Separation

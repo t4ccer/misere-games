@@ -138,14 +138,14 @@ theorem misereGE_iff_maintenance {g h : AugmentedForm.{u}} (hg : Normal g) (hh :
     g ≥m IsLong h ↔
       Maintenance IsLong g h .right ∧ Maintenance IsLong g h .left :=
   misereGE_iff_maintenance_of_isEndLike
-    (Form.Promain.of_isDownlinking_of_hereditary (IsAmbient := IsLong) (A := IsLong))
+    (Form.Promain.of_downlinking_of_hereditary (IsAmbient := IsLong) (A := IsLong))
     hg.isEndLike hh.isEndLike (isLong _) (isLong _)
 
 theorem misereGE_iff_maintenance_isShort {g h : AugmentedForm.{u}}
     (hgs : IsShort g) (hhs : IsShort h) (hg : Normal g) (hh : Normal h) :
     g ≥m IsShort h ↔ Maintenance IsShort g h .right ∧ Maintenance IsShort g h .left :=
   misereGE_iff_maintenance_of_isEndLike
-    (Form.Promain.of_isDownlinking_of_hereditary (IsAmbient := IsShort) (A := IsShort))
+    (Form.Promain.of_downlinking_of_hereditary (IsAmbient := IsShort) (A := IsShort))
     hg.isEndLike hh.isEndLike hgs hhs
 
 private theorem add_neg_misereGE_zero {g : AugmentedForm} (hg : Normal g) :

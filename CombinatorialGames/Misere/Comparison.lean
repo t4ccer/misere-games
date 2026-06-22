@@ -21,7 +21,7 @@ directions, since each can be meaningful on its own:
 
 Strikingly, sufficiency needs only that `A` is `Form.Hereditary`. Necessity,
 however, is the more complicated of the two: it holds when `A` is
-`IsDownlinking`, a property guaranteed for dicotically closed sets containing a
+`Downlinking`, a property guaranteed for dicotically closed sets containing a
 root, and in particular for every `Universe`.
 
 Note that we are providing sufficient conditions for `Promain.Necessary` and
@@ -109,12 +109,12 @@ A set `A` is *separating* (within the ambient `IsAmbient`) when incomparable
 ambient forms are separated from both sides. This is essentially [Siegel, Lemma
 5.8][siegel:GeneralDeadendingUniverse:2025] extracted into a property.
 -/
-class IsSeparating (IsAmbient : G → Prop) (A : G → Prop) where
+class Separating (IsAmbient : G → Prop) (A : G → Prop) where
   /-- If `g ≱ h` modulo `A`, then `g` and `h` are both Left- and
   Right-separating. -/
   separating_pair_of_not_misereGE {g h : G} :
     IsAmbient g → IsAmbient h → ¬(g ≥m A h) →
-      LeftSeparating A g h ∧ RightSeparating A g h
+      AreLeftSeparating A g h ∧ AreRightSeparating A g h
 
 /--
 A set `A` is *downlinking* (within the ambient `IsAmbient`) when we can
@@ -124,9 +124,9 @@ option of `g` is better than `h`, and `g` is better than no Right option of
 [Siegel, Lemma 5.10][siegel:GeneralDeadendingUniverse:2025]
 
 This is currently the crux of proving a set is `Promain.Necessary` (see
-`Promain.Necessary.of_isDownlinking`).
+`Promain.Necessary.of_downlinking`).
 -/
-class IsDownlinking (IsAmbient : G → Prop) (A : G → Prop) extends Hereditary IsAmbient where
+class Downlinking (IsAmbient : G → Prop) (A : G → Prop) extends Hereditary IsAmbient where
   downlinked_of_not_exists_moves_misereGE {g h : G} :
     IsAmbient g → IsAmbient h →
     (¬∃ gl ∈ moves .left g, gl ≥m A h) →
@@ -291,8 +291,8 @@ If every Left option of `g` is separated from `h`, and every Right option of
 theorem Downlinked.of_separating (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
     (h_sub : A ≤ IsAmbient)
     {g h : G} (hg : IsAmbient g) (hh : IsAmbient h)
-    (h_left_sep : ∀ gl : moves .left g, LeftSeparating A (gl : G) h)
-    (h_right_sep : ∀ hr : moves .right h, RightSeparating A g (hr : G)) :
+    (h_left_sep : ∀ gl : moves .left g, AreLeftSeparating A (gl : G) h)
+    (h_right_sep : ∀ hr : moves .right h, AreRightSeparating A g (hr : G)) :
     Downlinked A g h := by
   classical
   choose x hxA hxLose hxWin using h_left_sep
@@ -316,7 +316,7 @@ If `g ≱ h` modulo `A`, then `g` and `h` are both Left- and Right-separating.
 theorem Separating.pair_of_not_misereGE
     (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient)
     {g h : G} (hg : IsAmbient g) (hh : IsAmbient h) (h_not_ge : ¬(g ≥m A h)) :
-    LeftSeparating A g h ∧ RightSeparating A g h := by
+    AreLeftSeparating A g h ∧ AreRightSeparating A g h := by
   cases not_misereGE_iff_separating.mp h_not_ge with
   | inl h_left =>
       refine ⟨h_left, ?_⟩
@@ -331,76 +331,76 @@ theorem Separating.pair_of_not_misereGE
 
 /--
 A dicotically closed `A` lying in the ambient space and containing a *root* `r`
-(see `Form.Misere.Adjoint.IsRoot`) is `IsSeparating` (no further closure
+(see `Form.Misere.Adjoint.IsRoot`) is `Separating` (no further closure
 properties required!).
 -/
-def IsSeparating.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
+def Separating.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
     (h_sub : A ≤ IsAmbient) :
-    IsSeparating IsAmbient A where
+    Separating IsAmbient A where
   separating_pair_of_not_misereGE hg hh h_not_ge :=
     Separating.pair_of_not_misereGE h_root h_isRoot h_sub hg hh h_not_ge
 
 /--
 A nonempty, hereditary, dicotically closed `A` lying in the ambient space is
-`IsSeparating`. Note that this is strictly weaker than `of_dicotic`; it is
+`Separating`. Note that this is strictly weaker than `of_dicotic`; it is
 mainly included for convenience.
 -/
-def IsSeparating.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
+def Separating.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
     (h_sub : A ≤ IsAmbient) :
-    IsSeparating IsAmbient A :=
+    Separating IsAmbient A :=
   let ⟨_, hr, hr_zero⟩ := exists_isZeroLike h_ne
   .of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
 
-private theorem downlinked_of_not_exists_moves_of_isSeparating [IsSeparating IsAmbient A]
+private theorem downlinked_of_not_exists_moves_of_separating [Separating IsAmbient A]
     (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient)
     {g h : G} (hg : IsAmbient g) (hh : IsAmbient h)
     (h_left : ¬∃ gl ∈ moves .left g, gl ≥m A h)
     (h_right : ¬∃ hr ∈ moves .right h, g ≥m A hr) :
     Downlinked A g h := by
-  have h_left_sep : ∀ gl : moves .left g, LeftSeparating A (gl : G) h := by
+  have h_left_sep : ∀ gl : moves .left g, AreLeftSeparating A (gl : G) h := by
     intro gl
     have h_not_ge : ¬((gl : G) ≥m A h) := fun hge => h_left ⟨gl, gl.prop, hge⟩
-    exact (IsSeparating.separating_pair_of_not_misereGE
+    exact (Separating.separating_pair_of_not_misereGE
       (Hereditary.has_option hg (IsOption.of_mem_moves gl.prop)) hh h_not_ge).left
-  have h_right_sep : ∀ hr : moves .right h, RightSeparating A g (hr : G) := by
+  have h_right_sep : ∀ hr : moves .right h, AreRightSeparating A g (hr : G) := by
     intro hr
     have h_not_ge : ¬(g ≥m A (hr : G)) := fun hge => h_right ⟨hr, hr.prop, hge⟩
-    exact (IsSeparating.separating_pair_of_not_misereGE
+    exact (Separating.separating_pair_of_not_misereGE
       hg (Hereditary.has_option hh (IsOption.of_mem_moves hr.prop)) h_not_ge).right
   exact Downlinked.of_separating h_root h_isRoot h_sub hg hh h_left_sep h_right_sep
 
 /--
 A separating, dicotically closed `A` in the ambient space with a root is
-downlinking (`IsSeparating` supplies what the downlink construction needs).
+downlinking (`Separating` supplies what the downlink construction needs).
 -/
-def IsDownlinking.of_isSeparating [IsSeparating IsAmbient A]
+def Downlinking.of_dicotic_separating [Separating IsAmbient A]
     (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient) :
-    IsDownlinking IsAmbient A where
+    Downlinking IsAmbient A where
   downlinked_of_not_exists_moves_misereGE hg hh h_left h_right :=
-    downlinked_of_not_exists_moves_of_isSeparating h_root h_isRoot h_sub hg hh h_left h_right
+    downlinked_of_not_exists_moves_of_separating h_root h_isRoot h_sub hg hh h_left h_right
 
 /--
 A dicotically closed `A` lying in the ambient space and containing a *root* `r`
-(see `Form.Misere.Adjoint.IsRoot`) is `IsDownlinking` (no further closure
+(see `Form.Misere.Adjoint.IsRoot`) is `Downlinking` (no further closure
 properties required!). Taking `r = 0` recovers the usual case where `A`
 contains `0`.
 -/
-def IsDownlinking.of_dicotic (h_root : A r) (h_isRoot : IsRoot IsAmbient r)
-    (h_sub : A ≤ IsAmbient) :
-    IsDownlinking IsAmbient A :=
-  letI := IsSeparating.of_dicotic h_root h_isRoot h_sub
-  IsDownlinking.of_isSeparating h_root h_isRoot h_sub
+def Downlinking.of_dicotic
+    (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient) :
+    Downlinking IsAmbient A :=
+  letI := Separating.of_dicotic h_root h_isRoot h_sub
+  Downlinking.of_dicotic_separating h_root h_isRoot h_sub
 
 /--
 A nonempty, hereditary, dicotically closed `A` lying in the ambient space is
-`IsDownlinking`. The zero-like form it must contain (`Form.exists_isZeroLike`)
+`Downlinking`. The zero-like form it must contain (`Form.exists_isZeroLike`)
 serves as the required root.
 -/
-def IsDownlinking.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
+def Downlinking.of_dicotic_of_nonempty [Hereditary A] (h_ne : ∃ g, A g)
     (h_sub : A ≤ IsAmbient) :
-    IsDownlinking IsAmbient A :=
+    Downlinking IsAmbient A :=
   let ⟨_, hr, hr_zero⟩ := exists_isZeroLike h_ne
-  .of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
+  Downlinking.of_dicotic hr (isRoot_of_isZeroLike IsAmbient hr_zero) h_sub
 
 end
 
@@ -408,7 +408,7 @@ end
 
 section
 
-variable [IsDownlinking IsAmbient A]
+variable [Downlinking IsAmbient A]
 
 private lemma not_misereGE_of_right_left_outcomes
     {g h t : G} (hge : g ≥m A h) (ht : A t) (p : Player)
@@ -454,7 +454,7 @@ theorem not_downlinked_right_option_of_misereGE
     simp [hht]
   exact not_misereGE_of_right_left_outcomes hge ht .right hgt hht_out
 
-private lemma maintenance_of_misereGE
+private lemma maintenance_of_misereGE_downlinking
     {g h : G} (p : Player)
     (hg : IsAmbient g) (hh : IsAmbient h) (hge : g ≥m A h) :
     Maintenance A g h p := by
@@ -462,7 +462,7 @@ private lemma maintenance_of_misereGE
   · intro hl hhl
     by_contra h_not
     have h_downlinked : Downlinked A g hl := by
-      apply IsDownlinking.downlinked_of_not_exists_moves_misereGE hg
+      apply Downlinking.downlinked_of_not_exists_moves_misereGE hg
         (Hereditary.has_option hh (IsOption.of_mem_moves hhl))
       · intro h_exists
         exact h_not (Or.inl h_exists)
@@ -472,7 +472,7 @@ private lemma maintenance_of_misereGE
   · intro gr hgr
     by_contra h_not
     have h_downlinked : Downlinked A gr h := by
-      apply IsDownlinking.downlinked_of_not_exists_moves_misereGE
+      apply Downlinking.downlinked_of_not_exists_moves_misereGE
         (Hereditary.has_option hg (IsOption.of_mem_moves hgr)) hh
       · intro h_exists
         exact h_not (Or.inr h_exists)
@@ -484,10 +484,10 @@ private lemma maintenance_of_misereGE
 If `A` is downlinking, then comparison forces the maintenance–proviso test;
 i.e. `Test` is *necessary* for comparison.
 -/
-theorem Promain.Necessary.of_isDownlinking : Promain.Necessary IsAmbient A := by
+theorem Promain.Necessary.of_downlinking : Promain.Necessary IsAmbient A := by
   intro g h hg hh hge
-  exact ⟨maintenance_of_misereGE .right hg hh hge,
-    maintenance_of_misereGE .left hg hh hge,
+  exact ⟨maintenance_of_misereGE_downlinking .right hg hh hge,
+    maintenance_of_misereGE_downlinking .left hg hh hge,
     proviso_right_of_misereGE hge,
     proviso_left_of_misereGE hge⟩
 
@@ -504,8 +504,8 @@ ambient space containing a root.
 theorem Promain.Necessary.of_dicotic {r : G}
     (h_root : A r) (h_isRoot : IsRoot IsAmbient r) (h_sub : A ≤ IsAmbient) :
     Promain.Necessary IsAmbient A :=
-  letI := IsDownlinking.of_dicotic h_root h_isRoot h_sub
-  Promain.Necessary.of_isDownlinking
+  letI := Downlinking.of_dicotic h_root h_isRoot h_sub
+  Promain.Necessary.of_downlinking
 
 /--
 A nonempty, hereditary, dicotically closed set in the ambient space has the
@@ -514,8 +514,8 @@ necessity direction.
 theorem Promain.Necessary.of_dicotic_of_nonempty [Hereditary A]
     (h_ne : ∃ g, A g) (h_sub : A ≤ IsAmbient) :
     Promain.Necessary IsAmbient A :=
-  letI := IsDownlinking.of_dicotic_of_nonempty h_ne h_sub
-  Promain.Necessary.of_isDownlinking
+  letI := Downlinking.of_dicotic_of_nonempty h_ne h_sub
+  Promain.Necessary.of_downlinking
 
 end
 
@@ -539,9 +539,9 @@ theorem Promain.Sufficient.of_hereditary [Hereditary A] : Promain.Sufficient IsA
 If `A` is downlinking and hereditary, comparison modulo `A` is characterised by
 the maintenance–proviso test.
 -/
-theorem Promain.of_isDownlinking_of_hereditary [IsDownlinking IsAmbient A] [Hereditary A] :
+theorem Promain.of_downlinking_of_hereditary [Downlinking IsAmbient A] [Hereditary A] :
     Promain IsAmbient A :=
-  Promain.mk Promain.Necessary.of_isDownlinking Promain.Sufficient.of_hereditary
+  Promain.mk Promain.Necessary.of_downlinking Promain.Sufficient.of_hereditary
 
 /--
 A nonempty, hereditary, dicotically closed set in the ambient space is promain.
@@ -549,22 +549,22 @@ A nonempty, hereditary, dicotically closed set in the ambient space is promain.
 theorem Promain.of_dicotic_of_nonempty [Ambient IsAmbient] [ClosedUnderDicotic IsAmbient A]
     [Hereditary A] (h_ne : ∃ g, A g) (h_sub : A ≤ IsAmbient) :
     Promain IsAmbient A :=
-  letI := IsDownlinking.of_dicotic_of_nonempty h_ne h_sub
-  Promain.of_isDownlinking_of_hereditary
+  letI := Downlinking.of_dicotic_of_nonempty h_ne h_sub
+  Promain.of_downlinking_of_hereditary
 
 /--
 Every universe is separating.
 -/
-instance instIsSeparatingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
-    IsSeparating IsAmbient A :=
+instance instSeparatingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
+    Separating IsAmbient A :=
   .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
     (fun _ ha => Universe.isAmbient_of_mem ha)
 
 /--
 Every universe is downlinking.
 -/
-instance instIsDownlinkingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
-    IsDownlinking IsAmbient A :=
+instance instDownlinkingUniverse [Ambient IsAmbient] [Universe IsAmbient A] :
+    Downlinking IsAmbient A :=
   .of_dicotic_of_nonempty ⟨0, Universe.zero_mem IsAmbient⟩
     (fun _ ha => Universe.isAmbient_of_mem ha)
 
@@ -574,7 +574,7 @@ Comparison modulo a universe is characterised by the maintenance–proviso test
 -/
 theorem Promain.of_universe [Ambient IsAmbient] [Universe IsAmbient A] :
     Promain IsAmbient A :=
-  Promain.of_isDownlinking_of_hereditary
+  Promain.of_downlinking_of_hereditary
 
 /-!
 ### Maintenance under refinement

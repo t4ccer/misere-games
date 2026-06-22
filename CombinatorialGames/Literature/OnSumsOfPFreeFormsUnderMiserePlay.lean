@@ -27,7 +27,7 @@ public section
 ## 2. Preliminaries
 -/
 
-doc_alias theorem_2_1 := Promain.of_isDownlinking_of_hereditary
+doc_alias theorem_2_1 := Promain.of_downlinking_of_hereditary
 
 doc_alias definition_2_2_pfree := IsPFree
 doc_alias definition_2_2_set := PFreeSubset
