@@ -77,8 +77,8 @@ protected theorem Downlinked.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] 
 If there exists some $X\in\mathcal{A}$ whereby
 $\operatorname{o_L}(G+X)=\mathscr{R}$ and
 $\operatorname{o_L}(H+X)=\mathscr{L}$, then we say that $G$ and $H$ are _Left
-separated_ (with respect to $\mathcal{A}$). (See `LeftSeparating` and
-`RightSeparating`.)
+separated_ (with respect to $\mathcal{A}$). (See `AreLeftSeparating` and
+`AreRightSeparating`.)
 -/
 @[expose] def AreSeparating (A : G → Prop) (p : Player) (g h : G) : Prop :=
   match p with
@@ -90,7 +90,7 @@ separated_ (with respect to $\mathcal{A}$). (See `LeftSeparating` and
 /--
 There exists some $X\in\mathcal{A}$ whereby
 $\operatorname{o_L}(G+X)=\mathscr{R}$ and
-$\operatorname{o_L}(H+X)=\mathscr{L}$. (See `Separating`.)
+$\operatorname{o_L}(H+X)=\mathscr{L}$. (See `AreSeparating`.)
 -/
 abbrev AreLeftSeparating (A : G → Prop) (g h : G) : Prop :=
   AreSeparating A .left g h
@@ -98,7 +98,7 @@ abbrev AreLeftSeparating (A : G → Prop) (g h : G) : Prop :=
 /--
 There exists some $X\in\mathcal{A}$ whereby
 $\operatorname{o_R}(G+X)=\mathscr{R}$ and
-$\operatorname{o_R}(H+X)=\mathscr{L}$. (See `Separating`.)
+$\operatorname{o_R}(H+X)=\mathscr{L}$. (See `AreSeparating`.)
 -/
 abbrev AreRightSeparating (A : G → Prop) (g h : G) : Prop :=
   AreSeparating A .right g h
@@ -191,8 +191,8 @@ abbrev rightSeparatorLeftSet (r h : G) : Set G :=
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
 Given forms $H$ and $X$ and a root $r$, this constructs the form
 $\form<r,\operatorname{adj}_r(H^\mathcal{R})>[X]$, which is used by
-`Separating.pair_of_not_misereGE` to show that $G$ and $H$ must be both
-`LeftSeparating` and `RightSeparating` whenever $G\ngeq_\mathcal{U}H$.
+`Separating.separating_pair_of_not_misereGE` to show that $G$ and $H$ must be both
+`AreLeftSeparating` and `AreRightSeparating` whenever $G\ngeq_\mathcal{U}H$.
 -/
 noncomputable abbrev rightSeparatorCandidate (r h x : G) : G :=
   !{rightSeparatorLeftSet r h | {x}}
@@ -236,9 +236,9 @@ theorem leftSeparatorCandidate_eq_neg (r g x : G) :
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
-If $G$ and $H$ are `LeftSeparating`, and
+If $G$ and $H$ are `AreLeftSeparating`, and
 $\form<r,\operatorname{adj}_r(H^\mathcal{R})>[X]\in\mathcal{A}$ for every
-$X\in\mathcal{A}$, then $G$ and $H$ are `RightSeparating`.
+$X\in\mathcal{A}$, then $G$ and $H$ are `AreRightSeparating`.
 -/
 lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
     {A IsAmbient : G → Prop} [Hereditary IsAmbient] {r g h : G}
@@ -291,9 +291,9 @@ lemma rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem
 
 /--
 $\def\form<#1>[#2]{\left\{#1 \mid #2\right\}}$
-If $G$ and $H$ are `RightSeparating`, and
+If $G$ and $H$ are `AreRightSeparating`, and
 $\form<X>[r,\operatorname{adj}_r(G^\mathcal{L})]\in\mathcal{A}$ for every
-$X\in\mathcal{A}$, then $G$ and $H$ are `LeftSeparating`. The Left/Right mirror
+$X\in\mathcal{A}$, then $G$ and $H$ are `AreLeftSeparating`. The Left/Right mirror
 of `rightSeparating_of_leftSeparating_of_rightSeparatorCandidate_mem`.
 -/
 lemma leftSeparating_of_rightSeparating_of_leftSeparatorCandidate_mem
@@ -468,8 +468,8 @@ lemma downlinked_of_downlinkWitness_mem
         simpa [htr_zero] using hwin
 
 /--
-If $G$ and $H$ are `RightSeparating`, then $\overline{H}$ and $\overline{G}$
-must be `LeftSeparating`.
+If $G$ and $H$ are `AreRightSeparating`, then $\overline{H}$ and $\overline{G}$
+must be `AreLeftSeparating`.
 -/
 lemma leftSeparating_neg_of_rightSeparating {A : G → Prop} [ClosedUnderNeg A]
     {g h : G} (h_right_sep : AreRightSeparating A g h) :
@@ -486,8 +486,8 @@ lemma leftSeparating_neg_of_rightSeparating {A : G → Prop} [ClosedUnderNeg A]
     simpa [neg_add_rev, add_comm] using h_win
 
 /--
-If $\overline{H}$ and $\overline{G}$ are `RightSeparating`, then $G$ and $H$
-must be `LeftSeparating`.
+If $\overline{H}$ and $\overline{G}$ are `AreRightSeparating`, then $G$ and $H$
+must be `AreLeftSeparating`.
 -/
 lemma leftSeparating_of_rightSeparating_neg {A : G → Prop} [ClosedUnderNeg A]
     {g h : G} (h_right_sep : AreRightSeparating A (-h) (-g)) :
