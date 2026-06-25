@@ -421,6 +421,9 @@ private lemma not_misereGE_of_right_left_outcomes
 /--
 Comparison forbids downlinking to options: if `g ≥m A h`, then `g` is not
 downlinked to any Left option of `h`.
+
+This is contrapositive of (i) => (ii) in
+[Siegel (Proof of Lemma 5.10 on p. 215)][siegel:GeneralDeadendingUniverse:2025]
 -/
 theorem not_downlinked_left_option_of_misereGE
     {g h hl : G} (hge : g ≥m A h) (hhl : hl ∈ moves .left h) :
@@ -439,6 +442,9 @@ theorem not_downlinked_left_option_of_misereGE
 /--
 Comparison forbids downlinking to options: if `g ≥m A h`, then no Right option
 of `g` is downlinked to `h`.
+
+This is contrapositive of (i) => (ii) in
+[Siegel (Proof of Lemma 5.10 on p. 215)][siegel:GeneralDeadendingUniverse:2025]
 -/
 theorem not_downlinked_right_option_of_misereGE
     {g h gr : G} (hge : g ≥m A h) (hgr : gr ∈ moves .right g) :
