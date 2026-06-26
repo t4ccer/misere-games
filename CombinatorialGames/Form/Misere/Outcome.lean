@@ -689,4 +689,20 @@ theorem misereOutcome_eq_winsGoingFirst_iff {p : Player} {g h : G}
       <;> by_cases h4 : WinsGoingFirst .left h
       <;> simp [h1, h2, h3, h4] at h_eq
 
+theorem winsGoingFirst_left_add_of_misereGE_zero {A : G → Prop} {g h : G}
+    (h_h : A h) (h_g_ge_zero : g ≥m A ((0 : ℤ) : G))
+    (h_h_left_win : WinsGoingFirst .left h) : WinsGoingFirst .left (g + h) := by
+  apply winsGoingFirst_left_of_ge_N
+  have h_ge : MisereOutcome (g + h) ≥ MisereOutcome h := by simpa using h_g_ge_zero h h_h
+  refine le_trans ?_ h_ge
+  cases h_out : MisereOutcome h with
+  | P =>
+    absurd (misereOutcome_P_iff_winsGoingFirst.mp h_out).right
+    simpa using h_h_left_win
+  | N => decide
+  | L => decide
+  | R =>
+    absurd h_h_left_win
+    simpa using (misereOutcome_R_iff_winsGoingFirst.mp h_out).right
+
 end Form.Misere.Outcome

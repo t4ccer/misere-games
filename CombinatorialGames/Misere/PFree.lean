@@ -602,4 +602,11 @@ theorem isStrongTest_right {g : GameForm} (h_isPFree : IsPFree g)
   · rw [Ne, misereOutcome_neg_R_iff_misereOutcome]
     exact h_outcome
 
+theorem misereOutcome_of_not_winsGoingFirst {g : GameForm}
+    (h_pfree : IsPFree g) (h_not_right : ¬WinsGoingFirst .right g) : MisereOutcome g = .L := by
+  rw [misereOutcome_L_iff_winsGoingFirst]
+  refine ⟨?_, h_not_right⟩
+  by_contra h_not_left
+  exact misereOutcome_ne_P_of_pfree h_pfree (misereOutcome_P_iff_winsGoingFirst.mpr ⟨h_not_right, h_not_left⟩)
+
 end PFree

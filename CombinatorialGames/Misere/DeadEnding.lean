@@ -454,6 +454,12 @@ instance : IntegerInvertible.PropertyX ShortDeadEnding where
     · absurd hNh.symm.trans (isDeadEnd_right_misereOutcome_R h hh0 (isDeadEnd_of_isDeadEnding hAh.mem.dead_ending hge))
       decide
 
+theorem eq_zero_of_misereOutcome {g : GameForm} (hg : IsDeadEnding g)
+    (hN : MisereOutcome g = .N) (h_left_end : IsEnd .left g) : g = 0 := by
+  by_contra h_ne_zero
+  have h_left_dead := isDeadEnd_of_isDeadEnding hg h_left_end
+  exact absurd (DeadEnding.isDeadEnd_left_misereOutcome_L g h_ne_zero h_left_dead) (by simp [hN])
+
 end GameForm.DeadEnding
 
 namespace Form

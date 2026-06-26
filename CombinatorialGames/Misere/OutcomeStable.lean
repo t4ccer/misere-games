@@ -1222,3 +1222,23 @@ theorem winsGoingFirst_right_sub_one_of_not_leftMoves_misereGE
   | P => exact absurd h_outcome (OutcomeStable.misereOutcome_add_int_ne_P h_g (-1))
   | N => exact (misereOutcome_N_iff_winsGoingFirst.mp h_outcome).right
   | R => exact (misereOutcome_R_iff_winsGoingFirst.mp h_outcome).left
+
+theorem exists_leftMove_misereGE_zero_of_misereOutcome_add_neg_one_L
+    {A : GameForm → Prop} [Hereditary A] [OutcomeStable A]
+    {g : GameForm} (h_g : (PFreeSubset A) g) (h_g_not_isEnd : ¬ IsEnd .left g)
+    (h_pred_L : MisereOutcome (g + ((-1 : ℤ) : GameForm)) = .L) :
+    ∃ gl ∈ moves .left g, gl ≥m (PFreeSubset A) ((0 : ℤ) : GameForm) := by
+  have h_not_win_right : ¬ WinsGoingFirst .right (g + ((-1 : ℤ) : GameForm)) :=
+    (misereOutcome_L_iff_winsGoingFirst.mp h_pred_L).right
+  have h_zero_mem : ((0 : ℤ) : GameForm) ∈ moves .right ((-1 : ℤ) : GameForm) := by
+    rw [Form.intCast_neg]; simp
+  have := (not_winsGoingFirst_iff.mp h_not_win_right).right _ (add_left_mem_moves_add h_zero_mem g)
+  have h_win_left : WinsGoingFirst .left g := by simpa using this
+  rw [winsGoingFirst_iff] at h_win_left
+  rcases h_win_left with h_g_isEnd | ⟨gl, h_gl_mem, h_not_win_gl⟩
+  · exact absurd (GameForm.isEndLike_iff_isEnd.mp h_g_isEnd) h_g_not_isEnd
+  · rw [Player.neg_left] at h_not_win_gl
+    refine ⟨gl, h_gl_mem, ?_⟩
+    apply OutcomeStable.misereGE_zero_of_misereOutcome_L (Hereditary.of_mem_moves h_g h_gl_mem)
+    apply PFree.misereOutcome_of_not_winsGoingFirst (Hereditary.of_mem_moves h_g h_gl_mem).isPFree
+    exact h_not_win_gl

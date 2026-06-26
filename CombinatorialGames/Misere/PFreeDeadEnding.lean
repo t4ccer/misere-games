@@ -26,19 +26,6 @@ open Form.Misere.Outcome
 open GameForm
 open PFree
 
-private theorem misereOutcome_of_isPFree_not_winsGoingFirst {g : GameForm}
-    (h_pfree : IsPFree g) (h_not_right : ¬WinsGoingFirst .right g) : MisereOutcome g = .L := by
-  rw [misereOutcome_L_iff_winsGoingFirst]
-  refine ⟨?_, h_not_right⟩
-  by_contra h_not_left
-  exact misereOutcome_ne_P_of_pfree h_pfree (misereOutcome_P_iff_winsGoingFirst.mpr ⟨h_not_right, h_not_left⟩)
-
-private theorem eq_zero_of_misereOutcome {g : GameForm} (hg : IsDeadEnding g)
-    (hN : MisereOutcome g = .N) (h_left_end : IsEnd .left g) : g = 0 := by
-  by_contra h_ne_zero
-  have h_left_dead := isDeadEnd_of_isDeadEnding hg h_left_end
-  exact absurd (DeadEnding.isDeadEnd_left_misereOutcome_L g h_ne_zero h_left_dead) (by simp [hN])
-
 mutual
 
 private theorem misereOutcome_of_add_LL.aux {g h : GameForm}
@@ -55,12 +42,12 @@ private theorem misereOutcome_of_add_LL.aux {g h : GameForm}
           hh_end | ⟨hl, hhl, hhl_not_right⟩
       · exact winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨isEndLike_iff_isEnd.mp hg_end, isEndLike_iff_isEnd.mp  hh_end⟩)
       · have hhl_pfde := Hereditary.of_mem_moves hh hhl
-        have hhlL := misereOutcome_of_isPFree_not_winsGoingFirst hhl_pfde.isPFree hhl_not_right
+        have hhlL := PFree.misereOutcome_of_not_winsGoingFirst hhl_pfde.isPFree hhl_not_right
         have hsumL := misereOutcome_of_add_LL.aux hg hhl_pfde hgL hhlL
         exact winsGoingFirst_of_moves
           ⟨g + hl, add_left_mem_moves_add hhl g, (misereOutcome_L_iff_winsGoingFirst.mp hsumL).right⟩
     · have hgl_pfde := Hereditary.of_mem_moves hg hgl
-      have hglL := misereOutcome_of_isPFree_not_winsGoingFirst hgl_pfde.isPFree hgl_not_right
+      have hglL := PFree.misereOutcome_of_not_winsGoingFirst hgl_pfde.isPFree hgl_not_right
       have hsumL := misereOutcome_of_add_LL.aux hgl_pfde hh hglL hhL
       exact winsGoingFirst_of_moves
         ⟨gl + h, add_right_mem_moves_add hgl h, (misereOutcome_L_iff_winsGoingFirst.mp hsumL).right⟩
@@ -101,7 +88,7 @@ private theorem miserePlayerOutcome_of_add_LN.aux {g h : GameForm}
   · subst h
     simpa [add_zero] using (misereOutcome_L_iff_winsGoingFirst.mp hgL).left
   · have h_not_left_end : ¬IsEnd .left h :=
-      fun h_left_end => h_zero (eq_zero_of_misereOutcome hh.mem hhN h_left_end)
+      fun h_left_end => h_zero (DeadEnding.eq_zero_of_misereOutcome hh.mem hhN h_left_end)
     rcases (winsGoingFirst_iff h .left).mp (misereOutcome_N_iff_winsGoingFirst.mp hhN).left with
         h_left_end | ⟨hl, hhl, hhl_not_right⟩
     · exact absurd (isEndLike_iff_isEnd.mp h_left_end) h_not_left_end
@@ -109,7 +96,7 @@ private theorem miserePlayerOutcome_of_add_LN.aux {g h : GameForm}
       refine winsGoingFirst_of_moves ⟨g + hl, add_left_mem_moves_add hhl g, ?_⟩
       refine (misereOutcome_L_iff_winsGoingFirst.mp ?_).right
       apply misereOutcome_of_add_LL.aux hg hhl_pfde hgL
-      exact misereOutcome_of_isPFree_not_winsGoingFirst hhl_pfde.isPFree hhl_not_right
+      exact PFree.misereOutcome_of_not_winsGoingFirst hhl_pfde.isPFree hhl_not_right
 termination_by Form.birthday g + Form.birthday h
 decreasing_by gameform_birthday
 
@@ -689,8 +676,9 @@ private theorem downlinked_intCast_of_not_leftMoves_misereGE {g : GameForm} {n :
     · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
       exact Set.toFinite _
     · intro h_outcome_P
-      refine (misereOutcome_P_iff_winsGoingFirst.mp h_outcome_P).2
-        (winsGoingFirst_of_moves ⟨((-1 : ℤ) : GameForm), ?_, ?_⟩)
+      rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P
+      absurd h_outcome_P.right
+      refine (winsGoingFirst_of_moves ⟨((-1 : ℤ) : GameForm), ?_, ?_⟩)
       · rw [leftMoves_ofSets]; exact Set.mem_singleton _
       · refine (misereOutcome_L_iff_winsGoingFirst.mp ?_).right
         rw [misereOutcome_L_intCast_iff]
@@ -770,7 +758,8 @@ private lemma maintenance_of_misereGE_int_right
         simp only [rightMoves_ofSets, Form.intCast_ofNat, Nat.cast_one, Set.mem_singleton_iff]
       obtain ⟨k, hk⟩ :=
         isEnd_left_exists_intCast_misereEQ (Hereditary.of_mem_moves h_g h_gr_mem) hgr_left_end
-      have := (misereGE_rw_left (MisereEQ.symm hk) (PFreeDeadEnding.misereGE_of_int_le 1 (-(k : ℤ)) (by omega)))
+      have := PFreeDeadEnding.misereGE_of_int_le 1 (-(k : ℤ)) (by omega)
+      have := (misereGE_rw_left (MisereEQ.symm hk) this)
       exact hgr_not_ge this
     · intro gl hgl h_gl_ge
       have := (misereGE_rw_right (reduction_pred_one_int h_n) h_gl_ge)
@@ -803,40 +792,6 @@ theorem misereGE_iff_promain_not_isEnd_left_int {g : GameForm} {n : ℤ} (h_n : 
     have := MisereEQ.symm (reduction_pred_one_int h_n)
     apply misereGE_rw_right this
     refine Hereditary.misereGE_of_maintenance_proviso PFreeDeadEnding h1 h2 h3 h4
-
-private theorem exists_leftMove_misereGE_zero_of_misereOutcome_add_neg_one_L
-    {g : GameForm} (h_g : PFreeDeadEnding g) (h_g_not_isEnd : ¬ IsEnd .left g)
-    (h_pred_L : MisereOutcome (g + ((-1 : ℤ) : GameForm)) = .L) :
-    ∃ gl ∈ moves .left g, gl ≥m PFreeDeadEnding ((0 : ℤ) : GameForm) := by
-  have h_not_win_right : ¬ WinsGoingFirst .right (g + ((-1 : ℤ) : GameForm)) :=
-    (misereOutcome_L_iff_winsGoingFirst.mp h_pred_L).right
-  have h_zero_mem : ((0 : ℤ) : GameForm) ∈ moves .right ((-1 : ℤ) : GameForm) := by
-    rw [Form.intCast_neg]; simp
-  have h_win_left : WinsGoingFirst .left g := by
-    simpa using (not_winsGoingFirst_iff.mp h_not_win_right).right _ (add_left_mem_moves_add h_zero_mem g)
-  rw [winsGoingFirst_iff] at h_win_left
-  rcases h_win_left with h_g_isEnd | ⟨gl, h_gl_mem, h_not_win_gl⟩
-  · exact absurd (GameForm.isEndLike_iff_isEnd.mp h_g_isEnd) h_g_not_isEnd
-  · rw [Player.neg_left] at h_not_win_gl
-    refine ⟨gl, h_gl_mem, ?_⟩
-    exact OutcomeStable.misereGE_zero_of_misereOutcome_L (Hereditary.of_mem_moves h_g h_gl_mem)
-      (misereOutcome_of_isPFree_not_winsGoingFirst (Hereditary.of_mem_moves h_g h_gl_mem).isPFree h_not_win_gl)
-
-private theorem winsGoingFirst_left_add_of_misereGE_zero {g h : GameForm}
-    (h_h : PFreeDeadEnding h) (h_g_ge_zero : g ≥m PFreeDeadEnding ((0 : ℤ) : GameForm))
-    (h_h_left_win : WinsGoingFirst .left h) : WinsGoingFirst .left (g + h) := by
-  apply winsGoingFirst_left_of_ge_N
-  have h_ge : MisereOutcome (g + h) ≥ MisereOutcome h := by simpa using h_g_ge_zero h h_h
-  refine le_trans ?_ h_ge
-  cases h_out : MisereOutcome h with
-  | P =>
-    absurd (misereOutcome_P_iff_winsGoingFirst.mp h_out).right
-    simpa using h_h_left_win
-  | N => decide
-  | L => decide
-  | R =>
-    absurd h_h_left_win
-    simpa using (misereOutcome_R_iff_winsGoingFirst.mp h_out).right
 
 private theorem downlinked_of_witness {g h t : GameForm}
     (h_g_not_isEnd : ¬ IsEnd .left g) (h_h_not_isEnd : ¬ IsEnd .right h)
@@ -882,8 +837,8 @@ private theorem downlinked_of_witness {g h t : GameForm}
 private theorem downlined_of_misereOutcome_ne_L {g h : GameForm}
     (h_g : PFreeDeadEnding g) (h_h : PFreeDeadEnding h)
     (h_g_not_isEnd : ¬ IsEnd .left g) (h_h_not_isEnd : ¬ IsEnd .right h)
-    (h_moves_g : ∀ sl ∈ moves .left g, ¬ (sl ≥m PFreeDeadEnding h))
-    (h_moves_h : ∀ tr ∈ moves .right h, ¬ (g ≥m PFreeDeadEnding tr))
+    (h_moves_g : ∀ gl ∈ moves .left g, ¬ (gl ≥m PFreeDeadEnding h))
+    (h_moves_h : ∀ hr ∈ moves .right h, ¬ (g ≥m PFreeDeadEnding hr))
     (h_outcome_ne_L : MisereOutcome (g + ((-1 : ℤ) : GameForm)) ≠ .L) :
     Form.Downlinked PFreeDeadEnding g h := by
   choose x h_x_mem h_x_g_win h_x_h_win using fun gl (h_gl_mem : gl ∈ moves .left g) =>
@@ -914,12 +869,12 @@ private theorem downlined_of_misereOutcome_ne_L {g h : GameForm}
     · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
       exact Set.finite_range _
     · intro h_outcome_P
-      refine (misereOutcome_P_iff_winsGoingFirst.mp h_outcome_P).right
-        (winsGoingFirst_of_moves ⟨((-1 : ℤ) : GameForm), ?_, ?_⟩)
+      rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P
+      absurd h_outcome_P.right
+      refine winsGoingFirst_of_moves ⟨((-1 : ℤ) : GameForm), ?_, ?_⟩
       · rw [h_t_leftMoves]; exact Set.mem_union_left _ (Set.mem_singleton _)
-      · rw [Player.neg_left]
-        exact (misereOutcome_L_iff_winsGoingFirst.mp
-            ((misereOutcome_L_intCast_iff (-1)).mpr (by decide))).right
+      · rw [<-winsGoingFirst_neg_iff]
+        simp
   apply downlinked_of_witness h_g_not_isEnd h_h_not_isEnd h_t_pf x y h_x_g_win h_y_h_win
   · intro gl h_gl_mem; rw [h_t_rightMoves]; exact ⟨⟨gl, h_gl_mem⟩, rfl⟩
   · intro hr h_hr_mem; rw [h_t_leftMoves]; exact Set.mem_union_right _ ⟨⟨hr, h_hr_mem⟩, rfl⟩
@@ -944,12 +899,12 @@ private theorem downlined_of_misereOutcome_eq_L {g h : GameForm}
     (h_moves_h : ∀ hr ∈ moves .right h, ¬ (g ≥m PFreeDeadEnding hr))
     (h_outcome_eq_L : MisereOutcome (g + ((-1 : ℤ) : GameForm)) = .L) :
     Form.Downlinked PFreeDeadEnding g h := by
-  choose x h_x_mem h_x_g_win h_x_h_win using fun sl' (hsl' : sl' ∈ moves .left g) =>
+  choose x h_x_mem h_x_g_win h_x_h_win using fun gl (h_gl_mem : gl ∈ moves .left g) =>
     (Separating.separating_pair_of_not_misereGE
-      (Short.of_mem_moves h_g.isShort hsl') h_h.isShort (h_moves_g sl' hsl')).left
-  choose y h_y_mem h_y_g_win h_y_h_win using fun tr (htr : tr ∈ moves .right h) =>
+      (Short.of_mem_moves h_g.isShort h_gl_mem) h_h.isShort (h_moves_g gl h_gl_mem)).left
+  choose y h_y_mem h_y_g_win h_y_h_win using fun hr (h_hr_mem : hr ∈ moves .right h) =>
     (Separating.separating_pair_of_not_misereGE h_g.isShort
-      (Short.of_mem_moves h_h.isShort htr) (h_moves_h tr htr)).right
+      (Short.of_mem_moves h_h.isShort h_hr_mem) (h_moves_h hr h_hr_mem)).right
   set L : Set GameForm := Set.range (fun hr : moves .right h => y hr.val hr.prop) with hLset_def
   set R : Set GameForm := Set.range (fun gl : moves .left g => x gl.val gl.prop) with hRset_def
   set t : GameForm := !{L | R} with hw_def
@@ -958,8 +913,6 @@ private theorem downlined_of_misereOutcome_eq_L {g h : GameForm}
   have h_t_rightMoves : moves .right t = R := by
     rw [hw_def, rightMoves_ofSets]
   have h_t_pf : PFreeDeadEnding t := by
-    obtain ⟨gl, h_gl_mem, h_gl_ge_zero⟩ :=
-      exists_leftMove_misereGE_zero_of_misereOutcome_add_neg_one_L h_g h_g_not_isEnd h_outcome_eq_L
     apply pfreeDeadEnding_ofSets
     · rintro gl ⟨hr, rfl⟩
       exact h_y_mem _ _
@@ -969,17 +922,22 @@ private theorem downlined_of_misereOutcome_eq_L {g h : GameForm}
       exact ⟨_, ⟨⟨hr, h_hr_mem⟩, rfl⟩⟩
     · have : Finite (moves .right h) := Short.finite_moves' .right h_h.isShort
       exact Set.finite_range _
-    · exact ⟨_, ⟨⟨gl, h_gl_mem⟩, rfl⟩⟩
+    · obtain ⟨gl, h_gl_mem⟩ := not_isEnd_exists_move h_g_not_isEnd
+      exact ⟨_, ⟨⟨gl, h_gl_mem⟩, rfl⟩⟩
     · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
       exact Set.finite_range _
     · intro h_outcome_P
-      refine (misereOutcome_P_iff_winsGoingFirst.mp h_outcome_P).left
-        (winsGoingFirst_of_moves ⟨x gl h_gl_mem, ?_, ?_⟩)
+      rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P
+      absurd h_outcome_P.left
+      obtain ⟨gl, h_gl_mem, h_gl_ge_zero⟩ :=
+        OutcomeStable.exists_leftMove_misereGE_zero_of_misereOutcome_add_neg_one_L
+          h_g h_g_not_isEnd h_outcome_eq_L
+      refine winsGoingFirst_of_moves ⟨x gl h_gl_mem, ?_, ?_⟩
       · rw [h_t_rightMoves]; exact ⟨⟨gl, h_gl_mem⟩, rfl⟩
       · rw [Player.neg_right]
         intro h
-        apply h_x_g_win gl h_gl_mem
-        exact winsGoingFirst_left_add_of_misereGE_zero (h_x_mem gl h_gl_mem) h_gl_ge_zero h
+        have := winsGoingFirst_left_add_of_misereGE_zero (h_x_mem gl h_gl_mem) h_gl_ge_zero h
+        apply h_x_g_win gl h_gl_mem this
   apply downlinked_of_witness h_g_not_isEnd h_h_not_isEnd h_t_pf x y h_x_g_win h_y_h_win
   · intro gl h_gl_mem; rw [h_t_rightMoves]; exact ⟨⟨gl, h_gl_mem⟩, rfl⟩
   · intro hr h_hr_mem; rw [h_t_leftMoves]; exact ⟨⟨hr, h_hr_mem⟩, rfl⟩
