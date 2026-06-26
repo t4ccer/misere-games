@@ -671,4 +671,22 @@ theorem misereOutcome_P_natCast (n : ℕ) : ¬MisereOutcome (n : G) = .P := by
   rw [<-Form.intCast_nat]
   exact misereOutcome_P_intCast (G := G) _
 
+theorem misereOutcome_eq_winsGoingFirst_iff {p : Player} {g h : G}
+    (h_eq : MisereOutcome g = MisereOutcome h) :
+    WinsGoingFirst p g ↔ WinsGoingFirst p h := by
+  unfold MisereOutcome Outcome.ofPlayers MiserePlayerOutcome at h_eq
+  constructor <;> (intro h1; by_contra h2; cases p)
+  · by_cases h3 : WinsGoingFirst .right g
+      <;> by_cases h4 : WinsGoingFirst .right h
+      <;> simp [h1, h2, h3, h4] at h_eq
+  · by_cases h3 : WinsGoingFirst .left g
+      <;> by_cases h4 : WinsGoingFirst .left h
+      <;> simp [h1, h2, h3, h4] at h_eq
+  · by_cases h3 : WinsGoingFirst .right g
+      <;> by_cases h4 : WinsGoingFirst .right h
+      <;> simp [h1, h2, h3, h4] at h_eq
+  · by_cases h3 : WinsGoingFirst .left g
+      <;> by_cases h4 : WinsGoingFirst .left h
+      <;> simp [h1, h2, h3, h4] at h_eq
+
 end Form.Misere.Outcome

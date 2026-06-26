@@ -50,7 +50,7 @@ the sets were short universes.
   ∃ t, A t ∧ ¬WinsGoingFirst .left (g + t) ∧
     ¬WinsGoingFirst .right (h + t)
 
-private theorem downlinked_neg_of {A : GameForm → Prop} [ClosedUnderNeg A] {g h : GameForm}
+private theorem downlinked_neg_of {A : G → Prop} [ClosedUnderNeg A] {g h : G}
     (H : Downlinked A (-h) (-g)) : Downlinked A g h := by
   obtain ⟨t, h_t_mem, h_ht_win_left, h_gt_win_right⟩ := H
   refine ⟨-t, ClosedUnderNeg.neg_of h_t_mem, ?_, ?_⟩
@@ -65,13 +65,29 @@ private theorem downlinked_neg_of {A : GameForm → Prop} [ClosedUnderNeg A] {g 
     rw [heq, winsGoingFirst_neg_iff] at h_ht_win_right
     simpa using h_ht_win_right
 
-protected theorem Downlinked.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {g h : GameForm} :
+protected theorem Downlinked.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g h : G} :
     Downlinked A (-h) (-g) ↔ Downlinked A g h := by
   constructor
   · exact downlinked_neg_of
   · intro h1
     rw [←neg_neg g, ←neg_neg h] at h1
     exact downlinked_neg_of h1
+
+theorem downlined_of_downlinked_misereEQ_left {A : G → Prop}
+    {g h k : G} (h_eq : g =m A k) (h_down : Downlinked A g h) :
+    Downlinked A k h := by
+  unfold Downlinked at h_down ⊢
+  obtain ⟨t, h_t_mem, h_left, h_right⟩ := h_down
+  refine ⟨t, h_t_mem, ?_, h_right⟩
+  rwa [<-misereOutcome_eq_winsGoingFirst_iff (h_eq t h_t_mem)]
+
+theorem downlined_of_downlinked_misereEQ_right {A : G → Prop}
+    {g h k : G} (h_eq : h =m A k) (h_down : Downlinked A g h) :
+    Downlinked A g k := by
+  unfold Downlinked at h_down ⊢
+  obtain ⟨t, h_t_mem, h_left, h_right⟩ := h_down
+  refine ⟨t, h_t_mem, h_left, ?_⟩
+  rwa [<-misereOutcome_eq_winsGoingFirst_iff (h_eq t h_t_mem)]
 
 /--
 If there exists some $X\in\mathcal{A}$ whereby

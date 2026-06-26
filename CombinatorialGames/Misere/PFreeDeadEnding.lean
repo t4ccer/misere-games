@@ -1002,17 +1002,8 @@ theorem downlinked_of_not_isEnd_left
   · obtain ⟨n, hn⟩ := isEnd_right_exists_intCast_misereEQ h_h h_t_right
     have h_gl : ∀ gl ∈ gᴸ, ¬ (gl ≥m PFreeDeadEnding ((n : ℤ) : GameForm)) :=
       fun sl hsl h => h_moves_g sl hsl (misereGE_rw_right hn h)
-    obtain ⟨t, h_t_mem, h_gt_win_left, h_nt_win_right⟩ :=
-      downlinked_intCast_of_not_leftMoves_misereGE h_g h_g_not_isEnd (Int.natCast_nonneg n) h_gl
-    refine ⟨t, h_t_mem, h_gt_win_left, ?_⟩
-    have heq := hn t h_t_mem
-    intro h_ht_win_right
-    apply h_nt_win_right
-    cases h_outcome : MisereOutcome (h + t) <;> rw [h_outcome] at heq
-    · exact absurd h_ht_win_right (misereOutcome_L_iff_winsGoingFirst.mp h_outcome).right
-    · exact (misereOutcome_N_iff_winsGoingFirst.mp heq.symm).right
-    · exact absurd h_outcome (misereOutcome_ne_P_of_pfree (ClosedUnderAdd.has_add _ _ h_h h_t_mem))
-    · exact (misereOutcome_R_iff_winsGoingFirst.mp heq.symm).left
+    apply downlined_of_downlinked_misereEQ_right hn.symm
+    exact downlinked_intCast_of_not_leftMoves_misereGE h_g h_g_not_isEnd (Int.natCast_nonneg n) h_gl
   · by_cases hL : MisereOutcome (g + ((-1 : ℤ) : GameForm)) = .L
     · exact downlined_of_misereOutcome_eq_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
     · exact downlined_of_misereOutcome_ne_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
