@@ -78,6 +78,7 @@ def AugmentedForm : Type (u + 1) :=
 namespace AugmentedForm
 
 open Form
+open Form.Misere.Outcome
 
 private def moves' (p : Player) (x : AugmentedForm.{u}) : Set AugmentedForm.{u} :=
   x.dest.1.1 p
@@ -730,5 +731,62 @@ theorem mem_ofGameForm_exists_mem {g : GameForm} {gp : AugmentedForm} {p : Playe
   rw [<-h4] at h2
   have h5 := AugmentedForm.ofGameForm_moves_mem_iff.mp h2
   use gp'
+
+@[simp] theorem winsGoingFirst_ofGameForm (p : Player) (g : GameForm) :
+    WinsGoingFirst p (ofGameForm g) ↔ WinsGoingFirst p g := by
+  induction g using GameForm.moveRecOn generalizing p with
+  | mk g ih =>
+    rw [winsGoingFirst_iff (ofGameForm g) p, winsGoingFirst_iff g p]
+    apply or_congr
+    · rw [isEndLike_ofGameForm_iff_isEnd, GameForm.isEndLike_iff_isEnd]
+    · constructor
+      · rintro ⟨m, hm, hm2⟩
+        obtain ⟨gp, hgp, rfl⟩ := mem_moves_ofGameForm hm
+        exact ⟨gp, hgp, fun h => hm2 ((ih p gp hgp (-p)).mpr h)⟩
+      · rintro ⟨gp, hgp, hgp2⟩
+        exact ⟨ofGameForm gp, ofGameForm_moves_mem_iff.mpr hgp,
+          fun h => hgp2 ((ih p gp hgp (-p)).mp h)⟩
+
+theorem ofGameForm_neg (g : GameForm) :
+    ofGameForm (-g) = -(ofGameForm g) := by
+  induction g using GameForm.moveRecOn with
+  | mk g ih =>
+    apply AugmentedForm.ext
+    · intro p
+      ext y
+      rw [moves_neg]
+      constructor
+      · intro hy
+        obtain ⟨gp, hgp, rfl⟩ := mem_moves_ofGameForm hy
+        rw [moves_neg, Set.mem_neg] at hgp
+        rw [Set.mem_neg]
+        have key : -(ofGameForm gp) = ofGameForm (-gp) := by
+          have hh := ih (-p) (-gp) hgp
+          rw [neg_neg] at hh
+          rw [hh, neg_neg]
+        rw [key]
+        exact ofGameForm_moves_mem_iff.mpr hgp
+      · intro hy
+        rw [Set.mem_neg] at hy
+        obtain ⟨gp', hgp', hgpy⟩ := mem_moves_ofGameForm hy
+        have hy_eq : y = ofGameForm (-gp') := by
+          rw [ih (-p) gp' hgp', hgpy, neg_neg]
+        rw [hy_eq]
+        apply ofGameForm_moves_mem_iff.mpr
+        rw [moves_neg, Set.mem_neg, neg_neg]
+        exact hgp'
+    · intro p
+      simp [AugmentedForm.hasTombstone_neg_iff]
+
+@[simp] theorem miserePlayerOutcome_ofGameForm (g : GameForm.{u}) (p : Player) :
+    MiserePlayerOutcome (ofGameForm g) p = MiserePlayerOutcome g p := by
+  unfold MiserePlayerOutcome
+  by_cases h : WinsGoingFirst p g <;>
+    simp [(winsGoingFirst_ofGameForm p g), h]
+
+@[simp] theorem misereOutcome_ofGameForm (g : GameForm.{u}) :
+    MisereOutcome (ofGameForm g) = MisereOutcome g := by
+  unfold MisereOutcome
+  rw [miserePlayerOutcome_ofGameForm, miserePlayerOutcome_ofGameForm]
 
 end AugmentedForm

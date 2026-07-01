@@ -109,4 +109,28 @@ instance smallSetOfIsShort : Small.{u} {x : AugmentedForm.{u} | IsShort x} := by
   obtain ⟨t, ht⟩ := ShortTree.isShort_mem_range_toForm hx
   exact ⟨t, ht⟩
 
+open AugmentedForm in
+@[simp] theorem isShort_ofGameForm_iff {g : GameForm.{u}} : IsShort (ofGameForm g) ↔ IsShort g := by
+  induction g using GameForm.moveRecOn
+  rename_i g ih
+  rw [ short_def, short_def ]
+  constructor <;> intro h p
+  · refine' ⟨ _, _ ⟩
+    · convert h p |>.1.preimage _
+      rotate_left
+      exact fun x => ofGameForm x
+      · exact fun x hx y hy hxy => ofGameForm_Injective hxy
+      · ext; simp [ofGameForm_moves_mem_iff]
+    · intro y hy
+      exact (ih p y hy).mp ((h p).2 (ofGameForm y) (ofGameForm_moves_mem_iff.mpr hy))
+  · refine' ⟨ _, _ ⟩
+    · convert Set.Finite.image ( ofGameForm ) ( h p |>.1 ) using 1
+      ext; simp
+      exact ⟨fun hx => by
+          obtain ⟨y, hy, rfl⟩ := mem_moves_ofGameForm hx; exact ⟨y, hy, rfl⟩,
+        fun ⟨y, hy, hy'⟩ => hy'.symm ▸ ofGameForm_moves_mem_iff.mpr hy⟩
+    · intro y hy
+      obtain ⟨gp, hgp, rfl⟩ := mem_moves_ofGameForm hy
+      exact ih p gp hgp |>.2 (h p |>.2 gp hgp)
+
 end
