@@ -16,6 +16,7 @@ public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.GameGraph
 public import CombinatorialGames.Literature.OnSumsOfPFreeFormsUnderMiserePlay
+public import CombinatorialGames.Literature.OnTheGeneralDeadEndingUniverseOfPartizanGames
 public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.SimpleGraph
 public import CombinatorialGames.Mathlib.Small
