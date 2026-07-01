@@ -71,11 +71,16 @@ protected theorem Maintenance.neg_iff
 def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
   ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
 
+theorem strong_of_isEndLike {A : G → Prop} {g : G} {p : Player} (h : IsEndLike p g) :
+    Form.Strong A g p := by
+  intro x _ hx
+  exact winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr ⟨h, hx⟩)
+
 theorem strong_of_isEnd {A : GameForm → Prop} {p : Player} {g : GameForm}
     (he : IsEnd p g) : Strong A g p :=
   fun _x _ hx => winsGoingFirst_add_of_isEnd he (GameForm.isEndLike_iff_isEnd.mp hx)
 
-private theorem strong_neg_imp {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm}
+private theorem strong_neg_imp {A : G → Prop} [ClosedUnderNeg A] {p : Player} {g : G}
     (h_strong : Strong A (-g) p) :
     Strong A g (-p) := by
   intro x hx h_endLike
@@ -83,7 +88,7 @@ private theorem strong_neg_imp {A : GameForm → Prop} [ClosedUnderNeg A] {p : P
   have := h_strong (-x) (ClosedUnderNeg.neg_of hx) ((isEndLike_neg_iff_neg' p x).mpr h_endLike)
   rwa [add_comm]
 
-protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm} :
+protected theorem Strong.neg_iff {A : G → Prop} [ClosedUnderNeg A] {p : Player} {g : G} :
     Strong A (-g) p ↔ Strong A g (-p) := by
   constructor
   · exact strong_neg_imp

@@ -3,6 +3,7 @@ module
 public import CombinatorialGames.AugmentedForm
 public import CombinatorialGames.AugmentedForm.Lift
 public import CombinatorialGames.AugmentedForm.Short
+public import CombinatorialGames.AugmentedForm.TreeSize
 public import CombinatorialGames.Form
 public import CombinatorialGames.Form.Adjoint
 public import CombinatorialGames.Form.Birthday
@@ -36,6 +37,7 @@ public import CombinatorialGames.Misere.Preservation
 public import CombinatorialGames.Misere.Quotients
 public import CombinatorialGames.Misere.Separation
 public import CombinatorialGames.Misere.ShortIncomparable
+public import CombinatorialGames.Misere.SimplestForm
 public import CombinatorialGames.Misere.Stride
 public import CombinatorialGames.Misere.TippingPoints
 public import CombinatorialGames.Misere.Universe
