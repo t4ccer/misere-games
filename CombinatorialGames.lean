@@ -25,6 +25,7 @@ public import CombinatorialGames.Misere.Ambient
 public import CombinatorialGames.Misere.Blocking
 public import CombinatorialGames.Misere.Closures
 public import CombinatorialGames.Misere.Comparison
+public import CombinatorialGames.Misere.ConjugateProperty
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Expansion
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
