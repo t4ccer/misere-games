@@ -71,11 +71,16 @@ protected theorem Maintenance.neg_iff
 def Strong (A : G → Prop) (g : G) (p : Player) : Prop :=
   ∀ x, A x → IsEndLike p x → WinsGoingFirst p (g + x)
 
+theorem strong_of_isEndLike {A : G → Prop} {g : G} {p : Player} (h : IsEndLike p g) :
+    Form.Strong A g p := by
+  intro x _ hx
+  exact winsGoingFirst_of_isEndLike (IsEndLike.add_iff.mpr ⟨h, hx⟩)
+
 theorem strong_of_isEnd {A : GameForm → Prop} {p : Player} {g : GameForm}
     (he : IsEnd p g) : Strong A g p :=
   fun _x _ hx => winsGoingFirst_add_of_isEnd he (GameForm.isEndLike_iff_isEnd.mp hx)
 
-private theorem strong_neg_imp {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm}
+private theorem strong_neg_imp {A : G → Prop} [ClosedUnderNeg A] {p : Player} {g : G}
     (h_strong : Strong A (-g) p) :
     Strong A g (-p) := by
   intro x hx h_endLike
@@ -83,7 +88,7 @@ private theorem strong_neg_imp {A : GameForm → Prop} [ClosedUnderNeg A] {p : P
   have := h_strong (-x) (ClosedUnderNeg.neg_of hx) ((isEndLike_neg_iff_neg' p x).mpr h_endLike)
   rwa [add_comm]
 
-protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p : Player} {g : GameForm} :
+protected theorem Strong.neg_iff {A : G → Prop} [ClosedUnderNeg A] {p : Player} {g : G} :
     Strong A (-g) p ↔ Strong A g (-p) := by
   constructor
   · exact strong_neg_imp
@@ -91,6 +96,40 @@ protected theorem Strong.neg_iff {A : GameForm → Prop} [ClosedUnderNeg A] {p :
     rw [<-neg_neg g] at h_strong
     have := strong_neg_imp h_strong
     rwa [neg_neg p] at this
+
+theorem strong_congr_misereEQ {A : G → Prop} {g h : G} {p : Player}
+    (h_eq : g =m A h) : Strong A g p ↔ Strong A h p := by
+  have aux : ∀ {a b : G}, a =m A b → Strong A a p → Strong A b p :=
+    fun h_eq h_strong x hx h_x_end =>
+      (misereOutcome_eq_winsGoingFirst_iff (h_eq x hx)).mp (h_strong x hx h_x_end)
+  exact ⟨aux h_eq, aux h_eq.symm⟩
+
+theorem strong_mono_right {A : G → Prop} {g h : G}
+    (hge : g ≥m A h) (hs : Strong A g .right) : Strong A h .right := by
+  intro x hx h_end
+  rw [← miserePlayerOutcome_eq_iff_winsGoingFirst]
+  have h_ge_r := misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) Player.right
+  have h_g : MiserePlayerOutcome (g + x) Player.right = Player.right :=
+    miserePlayerOutcome_eq_iff_winsGoingFirst.mpr (hs x hx h_end)
+  rw [h_g] at h_ge_r
+  cases h_out : MiserePlayerOutcome (h + x) Player.right
+  · rw [h_out] at h_ge_r
+    exact absurd h_ge_r (by decide)
+  · rfl
+
+theorem strong_mono_left {A : G → Prop} {g h : G}
+    (hge : g ≥m A h) (hs : Strong A h .left) : Strong A g .left := by
+  intro x hx hx_end
+  have hle : MiserePlayerOutcome (g + x) Player.left ≥ MiserePlayerOutcome (h + x) Player.left :=
+    misereOutcome_ge_iff_miserePlayerOutcome_ge.mp (hge x hx) Player.left
+  have hh : MiserePlayerOutcome (h + x) Player.left = .left :=
+    miserePlayerOutcome_eq_iff_winsGoingFirst.mpr (hs x hx hx_end)
+  rw [← miserePlayerOutcome_eq_iff_winsGoingFirst]
+  rw [hh] at hle
+  cases h_out : MiserePlayerOutcome (g + x) Player.left
+  · rfl
+  · rw [h_out] at hle
+    exact absurd hle (by decide)
 
 /--
 This is the test given by [Davies, Milley (Theorem 3.1 on p.
