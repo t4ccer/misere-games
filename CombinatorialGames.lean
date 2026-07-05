@@ -1,6 +1,7 @@
 module
 
 public import CombinatorialGames.AugmentedForm
+public import CombinatorialGames.AugmentedForm.AugmentedSet
 public import CombinatorialGames.AugmentedForm.Lift
 public import CombinatorialGames.AugmentedForm.Short
 public import CombinatorialGames.AugmentedForm.TreeSize
