@@ -236,21 +236,21 @@ instance : DeadEnding (ShortDeadEnding (G := G)) where
 
 instance : Hereditary (ShortDeadEnding (G := G)) where
   has_option h1 h2 :=
-  { short := Short.isOption h1.short h2
+  { short := IsShort.isOption h1.short h2
   , dead_ending := isDeadEnding_of_isOption h1.dead_ending h2
   }
 
 instance : ShortUniverse (ShortDeadEnding (G := G)) where
   zero_mem :=
   { short := by
-      rw [short_def]
+      rw [isShort_def]
       intro p
       simp
   , dead_ending := isDeadEnding_zero
   }
   isAmbient_of_mem h := h.short
   has_add _ _ h_g h_h :=
-    { short := Short.add h_g.short h_h.short
+    { short := IsShort.add h_g.short h_h.short
     , dead_ending := IsDeadEnding.add h_g.dead_ending h_h.dead_ending
     }
   has_option := Hereditary.has_option
@@ -273,15 +273,18 @@ instance : ShortUniverse (ShortDeadEnding (G := G)) where
 
 instance : HasNat (ShortDeadEnding (G := G)) where
   has_nat n :=
-    { short := Short.natCast n
+    { short := IsShort.natCast n
     , dead_ending := isDeadEnding_natCast n
     }
 
 instance : HasInt (ShortDeadEnding (G := G)) where
   has_int k :=
-    { short := Short.intCast k
+    { short := IsShort.intCast k
     , dead_ending := isDeadEnding_intCast k
     }
+
+instance : Short (ShortDeadEnding (G := G)) where
+  isShort h := h.short
 
 end DeadEnding
 

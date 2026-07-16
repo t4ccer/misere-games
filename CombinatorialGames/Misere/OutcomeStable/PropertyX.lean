@@ -142,13 +142,13 @@ private theorem lemma317_hr_ge_N {g h : GameForm}
   · exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAg hAhr hLg (Or.inr hcase)
   · exact misereOutcome_add_ge_N_of_misereOutcome_L_left hAg hAhr hLg (Or.inl hcase)
   · exact absurd hcase (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hpfhr)
-  · have hle : NTippingPoint (Short.of_mem_moves hsh hr_mem) ≤ LTippingPoint hsh :=
+  · have hle : NTippingPoint (IsShort.of_mem_moves hsh hr_mem) ≤ LTippingPoint hsh :=
       NTippingPoint_le_LTippingPoint_of_mem_moves_right hAh hsh hr_mem
         (by rw [hcase]; decide)
-    by_cases hlt : NTippingPoint (Short.of_mem_moves hsh hr_mem) < NTippingPoint hsg
+    by_cases hlt : NTippingPoint (IsShort.of_mem_moves hsh hr_mem) < NTippingPoint hsg
     · exact pf_misereOutcome_add_ge_N_of_LR hAg hAhr hsg
-        (Short.of_mem_moves hsh hr_mem) hLg hcase (Or.inl hlt)
-    · have hN := (IH g hr hsg (Short.of_mem_moves hsh hr_mem) hAg hAhr
+        (IsShort.of_mem_moves hsh hr_mem) hLg hcase (Or.inl hlt)
+    · have hN := (IH g hr hsg (IsShort.of_mem_moves hsh hr_mem) hAg hAhr
         (birthday_add_lt_right (birthday_lt_of_mem_moves hr_mem))).p4b hLg hcase
         (Or.inl (le_antisymm (le_of_not_gt hlt) (by rw [heq]; exact hle)))
       exact hN.ge
@@ -164,13 +164,13 @@ private theorem lemma317_p1a_gr {g h : GameForm}
   by_cases hgrL : MisereOutcome gr = .L <;> simp_all +decide
   · exact misereOutcome_add_ge_N_of_misereOutcome_L_left ( Hereditary.has_option hAg ( isOption_iff_mem_union.2 ( Or.inr hgr ) ) ) hAh hgrL ( Or.inl hNh )
   · by_cases hgrN : MisereOutcome gr = .N
-    · have hr' : NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) := by
+    · have hr' : NTippingPoint hsg ≤ RTippingPoint (IsShort.of_mem_moves hsg hgr) := by
         apply RTippingPoint_ge_NTippingPoint_of_mem_moves_right hAg hsg hLg hgr
-      by_cases hlt : LTippingPoint hsh < RTippingPoint (Short.of_mem_moves hsg hgr)
+      by_cases hlt : LTippingPoint hsh < RTippingPoint (IsShort.of_mem_moves hsg hgr)
       · exact pf_misereOutcome_add_ge_N_of_NN
           (Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inr hgr))) hAh
-          (Short.of_mem_moves hsg hgr) hsh hgrN hNh (Or.inl hlt) |> le_trans (by decide)
-      · have hN := (IH gr h (Short.of_mem_moves hsg hgr) hsh
+          (IsShort.of_mem_moves hsg hgr) hsh hgrN hNh (Or.inl hlt) |> le_trans (by decide)
+      · have hN := (IH gr h (IsShort.of_mem_moves hsg hgr) hsh
           (Hereditary.has_option hAg (isOption_iff_mem_union.2 (Or.inr hgr))) hAh
           (birthday_add_lt_left (birthday_lt_of_mem_moves hgr))).p3 hgrN hNh
           (Or.inl (le_antisymm ( le_of_not_gt hlt ) ( heq ▸ hr' )))
@@ -221,7 +221,7 @@ private theorem lemma317_p1b {g h : GameForm}
     omega
   obtain ⟨hr, hr_mem, hRhr, hnhr⟩ :
       ∃ hr, ∃ (hr_mem : hr ∈ moves .right h), MisereOutcome hr = .R ∧
-        NTippingPoint (Short.of_mem_moves hsh hr_mem) = LTippingPoint hsh := by
+        NTippingPoint (IsShort.of_mem_moves hsh hr_mem) = LTippingPoint hsh := by
     rcases isEnd_right_or_exists_NTippingPoint_eq_LTippingPoint_of_N
       hAh hsh hNh with ⟨hend, _⟩ | h
     · exact absurd hend hnotend
@@ -230,7 +230,7 @@ private theorem lemma317_p1b {g h : GameForm}
   have hbd : birthday g + birthday hr < birthday g + birthday h :=
     birthday_add_lt_right (birthday_lt_of_mem_moves hr_mem)
   have hghrR : MisereOutcome (g + hr) = .R :=
-    (IH g hr hsg (Short.of_mem_moves hsh hr_mem) hAg hAhr hbd).p4c hLg hRhr
+    (IH g hr hsg (IsShort.of_mem_moves hsh hr_mem) hAg hAhr hbd).p4c hLg hRhr
       (by rw [heq]; exact hnhr.symm)
   have hwin : WinsGoingFirst .right (g + h) :=
     (winsGoingFirst_iff (g + h) .right).2 (Or.inr ⟨g + hr, add_left_mem_moves_add hr_mem g,
@@ -258,7 +258,7 @@ private theorem lemma317_p3_left {g h : GameForm}
       exact (misereOutcome_N_iff_winsGoingFirst.mp hN).1
   · have hAgl := Hereditary.has_option hAg (isOption_iff_mem_union.2 (Or.inl gl_mem))
     have hglh : MisereOutcome (gl + h) = .L :=
-      (IH gl h (Short.of_mem_moves hsg gl_mem) hsh hAgl hAh
+      (IH gl h (IsShort.of_mem_moves hsg gl_mem) hsh hAgl hAh
         (birthday_add_lt_left (birthday_lt_of_mem_moves gl_mem))).p1a hglL hNh (hgln.trans heq)
     exact (winsGoingFirst_iff (g + h) .left).2 (Or.inr ⟨gl + h,
       add_right_mem_moves_add gl_mem h,
@@ -289,12 +289,12 @@ private theorem lemma317_p3 {g h : GameForm}
       rwa [add_comm] at hw
   have hR : WinsGoingFirst .right (g + h) := by
     rcases heq with h1 | h2
-    · have hw := lemma317_p3_left hAnh hAng (Short.neg hsh) (Short.neg hsg) IHnhng
+    · have hw := lemma317_p3_left hAnh hAng (IsShort.neg hsh) (IsShort.neg hsg) IHnhng
         hNnh hNng (by rw [RTippingPoint_neg, LTippingPoint_neg]; exact h1.symm)
       have heqn : (-h) + (-g) = -(g + h) := by rw [neg_add]; exact add_comm _ _
       rw [heqn] at hw
       exact (winsGoingFirst_neg_iff (g + h) .left).mp hw
-    · have hw := lemma317_p3_left hAng hAnh (Short.neg hsg) (Short.neg hsh) IHngnh
+    · have hw := lemma317_p3_left hAng hAnh (IsShort.neg hsg) (IsShort.neg hsh) IHngnh
         hNng hNnh (by rw [RTippingPoint_neg, LTippingPoint_neg]; exact h2)
       have heqn : (-g) + (-h) = -(g + h) := (neg_add g h).symm
       rw [heqn] at hw
@@ -310,25 +310,25 @@ private theorem lemma317_p4a_gr {g h : GameForm}
     ∀ gr ∈ moves .right g, MisereOutcome (gr + h) ≥ .N := by
   intro gr hgr
   have hAgr := Hereditary.has_option hAg (isOption_iff_mem_union.2 (Or.inr hgr))
-  have hr' : NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) :=
+  have hr' : NTippingPoint hsg ≤ RTippingPoint (IsShort.of_mem_moves hsg hgr) :=
     RTippingPoint_ge_NTippingPoint_of_mem_moves_right hAg hsg hLg hgr
-  have hle : LTippingPoint hsh ≤ RTippingPoint (Short.of_mem_moves hsg hgr) := heq ▸ hr'
+  have hle : LTippingPoint hsh ≤ RTippingPoint (IsShort.of_mem_moves hsg hgr) := heq ▸ hr'
   rcases misereOutcome_right_option_of_L_cases hAg hsg hLg hgr with hgrL | hgrN
   · rcases lt_or_eq_of_le hle with hlt | he
-    · exact pf_misereOutcome_add_ge_N_of_LR hAgr hAh (Short.of_mem_moves hsg hgr) hsh
+    · exact pf_misereOutcome_add_ge_N_of_LR hAgr hAh (IsShort.of_mem_moves hsg hgr) hsh
         hgrL hRh (Or.inr hlt)
-    · have hN := (IH gr h (Short.of_mem_moves hsg hgr) hsh hAgr hAh
+    · have hN := (IH gr h (IsShort.of_mem_moves hsg hgr) hsh hAgr hAh
         (birthday_add_lt_left (birthday_lt_of_mem_moves hgr))).p4b hgrL hRh (Or.inr he.symm)
       exact hN.ge
   · rcases lt_or_eq_of_le hle with hlt | he
     · have hN := pf_misereOutcome_add_N_of_LTippingPoint_lt_RTippingPoint hAh hAgr hsh
-        (Short.of_mem_moves hsg hgr) hRh hgrN hlt
+        (IsShort.of_mem_moves hsg hgr) hRh hgrN hlt
       rw [add_comm] at hN; exact hN.ge
     · have hbd : birthday h + birthday gr < birthday g + birthday h := by
         have hlt' := birthday_lt_of_mem_moves hgr
         calc birthday h + birthday gr < birthday h + birthday g := by gcongr
           _ = birthday g + birthday h := add_comm _ _
-      have hN := (IH h gr hsh (Short.of_mem_moves hsg hgr) hAh hAgr hbd).p2b
+      have hN := (IH h gr hsh (IsShort.of_mem_moves hsg hgr) hAh hAgr hbd).p2b
         hRh hgrN he
       rw [add_comm] at hN; exact hN.ge
 
@@ -341,7 +341,7 @@ private theorem lemma317_p4a {g h : GameForm}
   have hge : MisereOutcome (g + h) ≥ .N := by
     have hlt : NTippingPoint hsh < NTippingPoint hsg := by
       have := NTippingPoint_lt_RTippingPoint_of_misereOutcome_L
-        (ClosedUnderNeg.neg_of hAh) (Short.neg hsh)
+        (ClosedUnderNeg.neg_of hAh) (IsShort.neg hsh)
         (by rw [misereOutcome_neg_L_iff_misereOutcome]; exact hRh)
       rw [NTippingPoint.neg hsh, RTippingPoint_neg hsh] at this
       omega
@@ -366,20 +366,20 @@ private theorem lemma317_add_left_option_R_eq_L {g h hl : GameForm}
     (hAg : (PFreeSubset A) g) (hAh : (PFreeSubset A) h)
     (hsg : IsShort g) (hsh : IsShort h) (IH : Lemma317IH (A := A) g h)
     (hLg : MisereOutcome g = .L) (hl_mem : hl ∈ moves .left h)
-    (hle : LTippingPoint (Short.of_mem_moves hsh hl_mem) ≤ NTippingPoint hsg) :
+    (hle : LTippingPoint (IsShort.of_mem_moves hsh hl_mem) ≤ NTippingPoint hsg) :
     MisereOutcome (g + hl) = .L := by
   have hAhl := Hereditary.has_option hAh (isOption_iff_mem_union.2 (Or.inl hl_mem))
   rcases lt_or_eq_of_le hle with hlt | he
   · exact pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint hAg hAhl hsg
-      (Short.of_mem_moves hsh hl_mem) hLg hlt
+      (IsShort.of_mem_moves hsh hl_mem) hLg hlt
   · have hbd : birthday g + birthday hl < birthday g + birthday h :=
       birthday_add_lt_right (birthday_lt_of_mem_moves hl_mem)
     rcases hcase : MisereOutcome hl with _ | _ | _ | _
     · exact OutcomeStable.misereOutcome_of_add_LL hAg hAhl hLg hcase
-    · exact (IH g hl hsg (Short.of_mem_moves hsh hl_mem) hAg hAhl hbd).p1a hLg hcase
+    · exact (IH g hl hsg (IsShort.of_mem_moves hsh hl_mem) hAg hAhl hbd).p1a hLg hcase
         he.symm
     · exact absurd hcase (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAhl.isPFree)
-    · exact (IH g hl hsg (Short.of_mem_moves hsh hl_mem) hAg hAhl hbd).p4a hLg hcase
+    · exact (IH g hl hsg (IsShort.of_mem_moves hsh hl_mem) hAg hAhl hbd).p4a hLg hcase
         he.symm
 
 omit [PropertyX A] in
@@ -392,7 +392,7 @@ private theorem lemma317_p4b_left {g h : GameForm}
   have hnl : NTippingPoint hsh < LTippingPoint hsh :=
     NTippingPoint_lt_LTippingPoint_of_misereOutcome_R hAh hsh hRh
   have left_via_hl : ∀ (hl : GameForm) (hl_mem : hl ∈ moves .left h),
-      LTippingPoint (Short.of_mem_moves hsh hl_mem) ≤ NTippingPoint hsg →
+      LTippingPoint (IsShort.of_mem_moves hsh hl_mem) ≤ NTippingPoint hsg →
       WinsGoingFirst .left (g + h) := by
     intro hl hl_mem hle
     have hL := lemma317_add_left_option_R_eq_L hAg hAh hsg hsh IH hLg hl_mem hle
@@ -414,7 +414,7 @@ private theorem lemma317_p4b_left {g h : GameForm}
           hLg hcase
       have hAgl := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl gl_mem))
       have hglh : MisereOutcome (gl + h) = .L :=
-        (IH gl h (Short.of_mem_moves hsg gl_mem) hsh hAgl hAh
+        (IH gl h (IsShort.of_mem_moves hsg gl_mem) hsh hAgl hAh
           (birthday_add_lt_left (birthday_lt_of_mem_moves gl_mem))).p4a hglL hRh (hgln.trans hrl)
       exact (winsGoingFirst_iff (g + h) .left).2 (Or.inr ⟨gl + h,
         add_right_mem_moves_add gl_mem h,
@@ -432,14 +432,14 @@ private theorem lemma317_p4b {g h : GameForm}
   have IHnhng : Lemma317IH (A := A) (-h) (-g) := fun a b ha hb hAa hpa hlt =>
     IH a b ha hb hAa hpa
       (by rw [birthday_neg, birthday_neg, add_comm (birthday h) (birthday g)] at hlt; exact hlt)
-  have hcond : NTippingPoint (Short.neg hsh) = NTippingPoint (Short.neg hsg)
-      ∨ RTippingPoint (Short.neg hsh) = LTippingPoint (Short.neg hsg) := by
+  have hcond : NTippingPoint (IsShort.neg hsh) = NTippingPoint (IsShort.neg hsg)
+      ∨ RTippingPoint (IsShort.neg hsh) = LTippingPoint (IsShort.neg hsg) := by
     rcases heq with h1 | h2
     · exact Or.inl (by rw [NTippingPoint.neg, NTippingPoint.neg]; exact h1.symm)
     · exact Or.inr (by rw [RTippingPoint_neg, LTippingPoint_neg]; exact h2.symm)
   have hw := lemma317_p4b_left
     (ClosedUnderNeg.neg_of hAh) (ClosedUnderNeg.neg_of hAg)
-    (Short.neg hsh) (Short.neg hsg) IHnhng (misereOutcome_neg_L_iff_misereOutcome.mpr hRh)
+    (IsShort.neg hsh) (IsShort.neg hsg) IHnhng (misereOutcome_neg_L_iff_misereOutcome.mpr hRh)
     (misereOutcome_neg_R_iff_misereOutcome.mpr hLg) hcond
   have heqn : (-h) + (-g) = -(g + h) := by rw [neg_add]; exact add_comm _ _
   rw [heqn] at hw
@@ -454,11 +454,11 @@ private theorem lemma317_p2a {g h : GameForm}
     (heq : NTippingPoint hsg = RTippingPoint hsh) : MisereOutcome (g + h) = .R := by
   have IHn : Lemma317IH (A := A) (-g) (-h) := fun g' h' hsg' hsh' hAg' hpfg' hlt =>
     IH g' h' hsg' hsh' hAg' hpfg' (by rwa [birthday_neg, birthday_neg] at hlt)
-  have heqn : NTippingPoint (Short.neg hsg) = LTippingPoint (Short.neg hsh) := by
+  have heqn : NTippingPoint (IsShort.neg hsg) = LTippingPoint (IsShort.neg hsh) := by
     rw [NTippingPoint.neg, LTippingPoint_neg]; exact heq
   have key := lemma317_p1a
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh) IHn
+    (IsShort.neg hsg) (IsShort.neg hsh) IHn
     (misereOutcome_neg_L_iff_misereOutcome.mpr hRg)
     (misereOutcome_neg_N_iff_misereOutcome.mpr hNh) heqn
   rw [show g + h = -((-g) + (-h)) by rw [neg_add, neg_neg, neg_neg],
@@ -473,11 +473,11 @@ private theorem lemma317_p2b {g h : GameForm}
     (heq : LTippingPoint hsg = RTippingPoint hsh) : MisereOutcome (g + h) = .N := by
   have IHn : Lemma317IH (A := A) (-g) (-h) := fun g' h' hsg' hsh' hAg' hAh' hlt =>
     IH g' h' hsg' hsh' hAg' hAh' (by rwa [birthday_neg, birthday_neg] at hlt)
-  have heqn : RTippingPoint (Short.neg hsg) = LTippingPoint (Short.neg hsh) := by
+  have heqn : RTippingPoint (IsShort.neg hsg) = LTippingPoint (IsShort.neg hsh) := by
     rw [RTippingPoint_neg, LTippingPoint_neg]; exact heq
   have key := lemma317_p1b
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh) IHn (misereOutcome_neg_L_iff_misereOutcome.mpr hRg)
+    (IsShort.neg hsg) (IsShort.neg hsh) IHn (misereOutcome_neg_L_iff_misereOutcome.mpr hRg)
     (misereOutcome_neg_N_iff_misereOutcome.mpr hNh) heqn
   rw [show g + h = -((-g) + (-h)) by rw [neg_add, neg_neg, neg_neg],
     misereOutcome_neg_N_iff_misereOutcome]
@@ -492,11 +492,11 @@ private theorem lemma317_p4c {g h : GameForm}
   have IHn : Lemma317IH (A := A) (-h) (-g) := fun g' h' hsg' hsh' hAg' hAh' hlt =>
     IH g' h' hsg' hsh' hAg' hAh'
       (by rw [birthday_neg, birthday_neg, add_comm (birthday h) (birthday g)] at hlt; exact hlt)
-  have heqn : NTippingPoint (Short.neg hsh) = LTippingPoint (Short.neg hsg) := by
+  have heqn : NTippingPoint (IsShort.neg hsh) = LTippingPoint (IsShort.neg hsg) := by
     rw [NTippingPoint.neg, LTippingPoint_neg]; exact heq.symm
   have key := lemma317_p4a
     (ClosedUnderNeg.neg_of hAh) (ClosedUnderNeg.neg_of hAg)
-    (Short.neg hsh) (Short.neg hsg) IHn
+    (IsShort.neg hsh) (IsShort.neg hsg) IHn
     (misereOutcome_neg_L_iff_misereOutcome.mpr hRh)
     (misereOutcome_neg_R_iff_misereOutcome.mpr hLg) heqn
   rw [show g + h = -((-h) + (-g)) by rw [neg_add, neg_neg, neg_neg, add_comm],
@@ -597,9 +597,9 @@ theorem isPFree_of_propertyX {g h : GameForm}
   rw [moves_add, Set.mem_union] at hx
   rcases hx with ⟨g', hg', rfl⟩ | ⟨h', hh', rfl⟩
   · exact isPFree_of_propertyX (Hereditary.has_option hAg (IsOption.of_mem_moves hg'))
-       hAh (Short.of_mem_moves hsg hg') hsh
+       hAh (IsShort.of_mem_moves hsg hg') hsh
   · exact isPFree_of_propertyX hAg (Hereditary.has_option hAh (IsOption.of_mem_moves hh'))
-       hsg (Short.of_mem_moves hsh hh')
+       hsg (IsShort.of_mem_moves hsh hh')
 termination_by birthday g + birthday h
 decreasing_by
   · have := birthday_lt_of_mem_moves hg'

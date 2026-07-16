@@ -500,7 +500,7 @@ theorem NTippingPoint_le_RTippingPoint_of_mem_moves_left
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g gl : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g)
     (hgl : gl ∈ moves .left g) (hglR : MisereOutcome gl ≠ .R) :
-    NTippingPoint (Short.of_mem_moves hsg hgl) ≤ RTippingPoint hsg := by
+    NTippingPoint (IsShort.of_mem_moves hsg hgl) ≤ RTippingPoint hsg := by
   by_contra h_contra
   have h_misereOutcome_g_R : MisereOutcome (g + (RTippingPoint hsg : GameForm)) = .R :=
     misereOutcome_add_RTippingPoint_R hsg
@@ -522,12 +522,12 @@ theorem NTippingPoint_le_RTippingPoint_of_mem_moves_left
   have h_misereOutcome_gl_L : MisereOutcome gl = .L := by
     cases h : MisereOutcome gl <;> simp_all +decide only
     apply h_contra
-    rw [NTippingPoint_eq_zero_of_N (Short.of_mem_moves hsg hgl) h]
+    rw [NTippingPoint_eq_zero_of_N (IsShort.of_mem_moves hsg hgl) h]
     exact Nat.zero_le _
   apply h_misereOutcome_gl_r
   exact misereOutcome_add_nat_L_of_lt_NTippingPoint
           (Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl)))
-          (Short.of_mem_moves hsg hgl)
+          (IsShort.of_mem_moves hsg hgl)
           h_misereOutcome_gl_L
           (Nat.not_le.mp h_contra)
 
@@ -544,12 +544,12 @@ theorem NTippingPoint_le_LTippingPoint_of_mem_moves_right
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g gr : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g)
     (hgr : gr ∈ moves .right g) (hgrL : MisereOutcome gr ≠ .L) :
-    NTippingPoint (Short.of_mem_moves hsg hgr) ≤ LTippingPoint hsg := by
+    NTippingPoint (IsShort.of_mem_moves hsg hgr) ≤ LTippingPoint hsg := by
   have := NTippingPoint_le_RTippingPoint_of_mem_moves_left
             (ClosedUnderNeg.neg_of hAg) (gl := -gr)
             (ClosedUnderNeg.neg_of hsg) (by simp [hgr]) (by simp [hgrL])
   convert this using 1
-  · exact (NTippingPoint.neg (Short.of_mem_moves hsg hgr)).symm
+  · exact (NTippingPoint.neg (IsShort.of_mem_moves hsg hgr)).symm
   · exact (RTippingPoint_neg hsg).symm
 
 -- TODO: Move to TippingPoints
@@ -603,7 +603,7 @@ theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
     (IsEnd .left g ∧ RTippingPoint hsg = 1) ∨
       (∃ gl, ∃ (hgl : gl ∈ moves .left g), MisereOutcome gl = .L ∧
-        NTippingPoint (Short.of_mem_moves hsg hgl) = RTippingPoint hsg) := by
+        NTippingPoint (IsShort.of_mem_moves hsg hgl) = RTippingPoint hsg) := by
   by_cases h : IsEndLike .left ( g + ( RTippingPoint hsg - 1 : ℕ ) )
   · simp only [IsEndLike.add_iff, isEndLike_iff_isEnd, natCast_isEndLike_iff, isEnd_left_natCast_iff] at h
     obtain ⟨h1, h2⟩ := h
@@ -659,15 +659,15 @@ theorem isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N
               simp only [moves_add, Set.mem_union, Set.mem_image] at hg'
               exact PFree.misereOutcome_ne_P_of_pfree this h
             · exact False.elim (hglR h)
-      have hglN : NTippingPoint (Short.of_mem_moves hsg hgl) ≥ RTippingPoint hsg := by
+      have hglN : NTippingPoint (IsShort.of_mem_moves hsg hgl) ≥ RTippingPoint hsg := by
         contrapose! hglL
         have h_mem := (Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl)))
-        have h_le : (NTippingPoint (Short.of_mem_moves hsg hgl) : ℤ) ≤ ((RTippingPoint hsg - 1) : ℤ) :=
+        have h_le : (NTippingPoint (IsShort.of_mem_moves hsg hgl) : ℤ) ≤ ((RTippingPoint hsg - 1) : ℤ) :=
           le_tsub_of_add_le_right (mod_cast hglL)
         have h_outcome_le := misereOutcome_add_int_antitone h_mem h_le
         have h_outcome_N := misereOutcome_add_NTippingPoint_N_of_misereOutcome_L
                               (Hereditary.has_option hAg (isOption_iff_mem_union.2 ( Or.inl hgl)))
-                              (Short.of_mem_moves hsg hgl)
+                              (IsShort.of_mem_moves hsg hgl)
                               hglL'
         simp only [Form.intCast_nat, h_outcome_N] at h_outcome_le
         cases h' : RTippingPoint hsg
@@ -706,8 +706,8 @@ theorem isEnd_right_or_exists_NTippingPoint_eq_LTippingPoint_of_N
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hN : MisereOutcome g = .N) :
     (IsEnd .right g ∧ LTippingPoint hsg = 1) ∨
       (∃ gr, ∃ (hgr : gr ∈ moves .right g), MisereOutcome gr = .R ∧
-        NTippingPoint (Short.of_mem_moves hsg hgr) = LTippingPoint hsg) := by
-  convert isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N ( ClosedUnderNeg.neg_of hAg ) ( Short.neg hsg ) _ using 1
+        NTippingPoint (IsShort.of_mem_moves hsg hgr) = LTippingPoint hsg) := by
+  convert isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N (ClosedUnderNeg.neg_of hAg) (IsShort.neg hsg) _ using 1
   · rw [ show IsEnd Player.right g = IsEnd Player.left ( -g ) from ?_ ]
     · rw [ RTippingPoint_neg ]
     · rw [ show IsEnd Player.right g = ( moves Player.right g = ∅ ) from ?_, show IsEnd Player.left ( -g ) = ( moves Player.left ( -g ) = ∅ ) from ?_ ]
@@ -749,14 +749,14 @@ theorem RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
     omega
   · have hAgN := ClosedUnderAddNat.has_add hAg (NTippingPoint hsg)
     have hsgN : IsShort (g + (NTippingPoint hsg : GameForm)) :=
-      Short.add hsg (Short.natCast (NTippingPoint hsg))
+      IsShort.add hsg (IsShort.natCast (NTippingPoint hsg))
     have hNN : MisereOutcome (g + (NTippingPoint hsg : GameForm)) = .N :=
       misereOutcome_add_NTippingPoint_N_of_misereOutcome_L hAg hsg hgL
     have hn1 : 1 ≤ NTippingPoint hsg := one_le_NTippingPoint_of_misereOutcome_L hsg hgL
     obtain ⟨HL, hHL₁, hHL₂, hHL₃⟩ :
         ∃ HL, ∃ (hHL : HL ∈ moves .left (g + (NTippingPoint hsg : GameForm))),
           MisereOutcome HL = .L ∧
-            NTippingPoint (Short.of_mem_moves hsgN hHL) = RTippingPoint hsgN := by
+            NTippingPoint (IsShort.of_mem_moves hsgN hHL) = RTippingPoint hsgN := by
       rcases isEnd_left_or_exists_NTippingPoint_eq_RTippingPoint_of_N hAgN hsgN hNN with
         ⟨hEnd, _⟩ | hex
       · exfalso
@@ -781,10 +781,10 @@ theorem RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
     subst hHL_form
     have hr : RTippingPoint hsgN = RTippingPoint hsg - NTippingPoint hsg :=
       RTippingPoint_add_natCast hAg hsg (NTippingPoint hsg) hsgN
-    have hnsub : NTippingPoint (Short.of_mem_moves hsgN hHL₁)
+    have hnsub : NTippingPoint (IsShort.of_mem_moves hsgN hHL₁)
         = NTippingPoint hsg - (NTippingPoint hsg - 1) :=
       NTippingPoint_add_natCast_of_L hAg hsg hgL (NTippingPoint hsg - 1) (by omega)
-        (Short.of_mem_moves hsgN hHL₁)
+        (IsShort.of_mem_moves hsgN hHL₁)
     omega
 
 /--
@@ -800,7 +800,7 @@ theorem LTippingPoint_eq_NTippingPoint_add_one_of_isEnd_right
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hend : IsEnd .right g) :
     LTippingPoint hsg = NTippingPoint hsg + 1 := by
   have := RTippingPoint_eq_NTippingPoint_add_one_of_isEnd_left
-            (ClosedUnderNeg.neg_of hAg) (Short.neg hsg) (IsEnd.neg_iff_neg.mpr hend)
+            (ClosedUnderNeg.neg_of hAg) (IsShort.neg hsg) (IsEnd.neg_iff_neg.mpr hend)
   rw [<-RTippingPoint_neg hsg]
   rwa [NTippingPoint.neg] at this
 
@@ -814,7 +814,7 @@ theorem RTippingPoint_ge_NTippingPoint_of_mem_moves_right
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g gr : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     (hgr : gr ∈ moves .right g) :
-    NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) := by
+    NTippingPoint hsg ≤ RTippingPoint (IsShort.of_mem_moves hsg hgr) := by
   have h_RTippingPoint : ∀ r < NTippingPoint hsg, MisereOutcome (gr + (r : GameForm)) ≠ .R := by
     intros r hr_lt
     have h_not_winsGoingFirst : ¬WinsGoingFirst .right (g + (r : GameForm)) := by
@@ -839,16 +839,16 @@ theorem LTippingPoint_ge_NTippingPoint_of_mem_moves_left
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g gl : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
     (hgl : gl ∈ moves .left g) :
-    NTippingPoint hsg ≤ LTippingPoint (Short.of_mem_moves hsg hgl) := by
+    NTippingPoint hsg ≤ LTippingPoint (IsShort.of_mem_moves hsg hgl) := by
   obtain ⟨hAng, hsng⟩ : (PFreeSubset A) (-g) ∧ IsShort (-g) := by
-    exact ⟨ ClosedUnderNeg.neg_of hAg, Short.neg hsg ⟩
+    exact ⟨ ClosedUnderNeg.neg_of hAg, IsShort.neg hsg ⟩
   have h_neg_gl : -gl ∈ moves .right (-g) := by
     convert moves_neg .right g ▸ Set.mem_neg.mpr ?_ using 1 ; aesop
   have h_neg_g : MisereOutcome (-g) = .L := by
     rw [ ← misereOutcome_conjugate_neg ] ; aesop
   convert RTippingPoint_ge_NTippingPoint_of_mem_moves_right hAng hsng h_neg_g h_neg_gl using 1
   · exact (NTippingPoint.neg hsg).symm
-  · exact (RTippingPoint_neg (Short.of_mem_moves hsg hgl)).symm
+  · exact (RTippingPoint_neg (IsShort.of_mem_moves hsg hgl)).symm
 
 /--
 If $\mathcal{A}$ is outcome-stable, hereditary, integer-invertible monoid, and
@@ -860,7 +860,7 @@ theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L) :
       ∃ gr, ∃ (hgr : gr ∈ moves .right g),
-      RTippingPoint (Short.of_mem_moves hsg hgr) = NTippingPoint hsg := by
+      RTippingPoint (IsShort.of_mem_moves hsg hgr) = NTippingPoint hsg := by
   obtain ⟨gr, h_gr_mem, h_gr⟩ : ∃ gr ∈ moves .right g, ¬WinsGoingFirst .left (gr + (NTippingPoint hsg : GameForm)) := by
     have h_right_move : WinsGoingFirst .right (g + (NTippingPoint hsg : GameForm)) := by
       have := misereOutcome_add_NTippingPoint_N_of_misereOutcome_L hAg hsg hL
@@ -885,8 +885,8 @@ theorem exists_mem_moves_right_RTippingPoint_eq_NTippingPoint
       have h_gr_mem := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inr h_gr_mem))
       exact PFree.misereOutcome_ne_P_of_pfree (isPFree_add_natCast (PFree.pfree h_gr_mem) _)
     · rfl
-  have h_r_le_n : RTippingPoint (Short.of_mem_moves hsg h_gr_mem) ≤ NTippingPoint hsg := by
-    exact ((RTippingPoint_iff (Short.of_mem_moves hsg h_gr_mem) _).mp rfl).2 _ h_outcome_R
+  have h_r_le_n : RTippingPoint (IsShort.of_mem_moves hsg h_gr_mem) ≤ NTippingPoint hsg := by
+    exact ((RTippingPoint_iff (IsShort.of_mem_moves hsg h_gr_mem) _).mp rfl).2 _ h_outcome_R
   use gr, h_gr_mem
   exact le_antisymm h_r_le_n (RTippingPoint_ge_NTippingPoint_of_mem_moves_right hAg hsg hL h_gr_mem)
 
@@ -900,8 +900,8 @@ theorem exists_mem_moves_left_LTippingPoint_eq_NTippingPoint
     [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A] [Hereditary A]
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R) :
     ∃ gl, ∃ (hgl : gl ∈ moves .left g),
-      LTippingPoint (Short.of_mem_moves hsg hgl) = NTippingPoint hsg := by
-  have := exists_mem_moves_right_RTippingPoint_eq_NTippingPoint (ClosedUnderNeg.neg_of hAg) (Short.neg hsg) ?_
+      LTippingPoint (IsShort.of_mem_moves hsg hgl) = NTippingPoint hsg := by
+  have := exists_mem_moves_right_RTippingPoint_eq_NTippingPoint (ClosedUnderNeg.neg_of hAg) (IsShort.neg hsg) ?_
   · obtain ⟨ gr, hgr, h ⟩ := this
     -- By definition of `moves`, we know that `gr ∈ (-g)ᴿ` implies there exists
     -- `gl ∈ gᴸ` such that `gr = -gl`.
@@ -948,7 +948,7 @@ theorem exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hL : MisereOutcome g = .L)
     (hne : NTippingPoint hsg ≠ RTippingPoint hsg - 1) :
     ∃ gl, ∃ (hgl : gl ∈ moves .left g), MisereOutcome gl = .L ∧
-      NTippingPoint (Short.of_mem_moves hsg hgl) = RTippingPoint hsg := by
+      NTippingPoint (IsShort.of_mem_moves hsg hgl) = RTippingPoint hsg := by
   obtain ⟨w, hw⟩ :
       ∃ w : GameForm,
         w ∈ moves .left (g + ((RTippingPoint hsg - 1 : ℕ))) ∧ ¬WinsGoingFirst .right w := by
@@ -1029,12 +1029,12 @@ theorem exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint
   · apply le_of_not_gt
     intro h
     have hA := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl.left))
-    have h_ntip : (NTippingPoint (Short.of_mem_moves hsg hgl.left) : ℤ) ≤ RTippingPoint hsg - 1 := by
+    have h_ntip : (NTippingPoint (IsShort.of_mem_moves hsg hgl.left) : ℤ) ≤ RTippingPoint hsg - 1 := by
       omega
     have := misereOutcome_add_int_antitone hA h_ntip
     simp_all only [ne_eq, moves_add, Set.mem_union, Set.mem_image, Form.intCast_nat]
     have hA := Hereditary.has_option hAg (isOption_iff_mem_union.mpr (Or.inl hgl.left))
-    have h_short := Short.of_mem_moves hsg hgl.left
+    have h_short := IsShort.of_mem_moves hsg hgl.left
     have := misereOutcome_add_NTippingPoint_N_of_misereOutcome_L hA h_short hglL'
     simp_all +decide
     match h : RTippingPoint hsg with
@@ -1060,9 +1060,9 @@ theorem exists_mem_moves_right_R_NTippingPoint_eq_LTippingPoint
     {g : GameForm} (hAg : (PFreeSubset A) g) (hsg : IsShort g) (hR : MisereOutcome g = .R)
     (hne : NTippingPoint hsg ≠ LTippingPoint hsg - 1) :
     ∃ gr, ∃ (hgr : gr ∈ moves .right g), MisereOutcome gr = .R ∧
-      NTippingPoint (Short.of_mem_moves hsg hgr) = LTippingPoint hsg := by
+      NTippingPoint (IsShort.of_mem_moves hsg hgr) = LTippingPoint hsg := by
   -- Apply the L-side lemma to -g.
-  have := exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint (ClosedUnderNeg.neg_of hAg) (Short.neg hsg) (by
+  have := exists_mem_moves_left_L_NTippingPoint_eq_RTippingPoint (ClosedUnderNeg.neg_of hAg) (IsShort.neg hsg) (by
   rw [ ← misereOutcome_conjugate_neg ] ; aesop) (by
   grind only [NTippingPoint.neg, RTippingPoint_neg, LTippingPoint_neg])
   obtain ⟨ gl, hgl₁, hgl₂, hgl₃ ⟩ := this
@@ -1080,11 +1080,11 @@ theorem misereOutcome_ne_R_of_mem_moves_right_of_L
     {g gr : GameForm} (hAg : (PFreeSubset A) g)
     (hpfg : IsPFree g) (hsg : IsShort g) (hLg : MisereOutcome g = .L)
     (hgr : gr ∈ moves .right g) : MisereOutcome gr ≠ .R := by
-  have h1 : NTippingPoint hsg ≤ RTippingPoint (Short.of_mem_moves hsg hgr) :=
+  have h1 : NTippingPoint hsg ≤ RTippingPoint (IsShort.of_mem_moves hsg hgr) :=
     RTippingPoint_ge_NTippingPoint_of_mem_moves_right (A := PFreeSubset A) (.mk hAg hpfg) hsg hLg hgr
   have h2 : 1 ≤ NTippingPoint hsg := one_le_NTippingPoint_of_misereOutcome_L hsg hLg
-  have h3 : (0 : ℕ) < RTippingPoint (Short.of_mem_moves hsg hgr) := by omega
-  have h4 := misereOutcome_add_nat_ne_R_of_lt_RTippingPoint (Short.of_mem_moves hsg hgr) h3
+  have h3 : (0 : ℕ) < RTippingPoint (IsShort.of_mem_moves hsg hgr) := by omega
+  have h4 := misereOutcome_add_nat_ne_R_of_lt_RTippingPoint (IsShort.of_mem_moves hsg hgr) h3
   simpa using h4
 
 theorem misereOutcome_right_option_of_L_cases
@@ -1104,7 +1104,7 @@ theorem NTippingPoint_lt_LTippingPoint_of_misereOutcome_R
     (hsg : IsShort g) (hRg : MisereOutcome g = .R) :
     NTippingPoint hsg < LTippingPoint hsg := by
   have := NTippingPoint_lt_RTippingPoint_of_misereOutcome_L
-    (ClosedUnderNeg.neg_of hAg) (Short.neg hsg)
+    (ClosedUnderNeg.neg_of hAg) (IsShort.neg hsg)
     (by rw [misereOutcome_neg_L_iff_misereOutcome]; exact hRg)
   rwa [NTippingPoint.neg hsg, RTippingPoint_neg hsg] at this
 

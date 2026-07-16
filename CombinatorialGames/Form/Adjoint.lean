@@ -211,7 +211,7 @@ theorem short_rootedAdjoint {r : G} (h_root_short : IsShort r) {g : G} (h1 : IsS
   by_cases hleft : IsEnd .left g
   · by_cases hright : IsEnd .right g
     · simp only [hleft, hright, and_self, ↓reduceIte]
-      apply Short.ofSets
+      apply IsShort.ofSets
       · exact Set.finite_singleton r
       · intro y hy
         simp only [Set.mem_singleton_iff] at hy
@@ -223,13 +223,13 @@ theorem short_rootedAdjoint {r : G} (h_root_short : IsShort r) {g : G} (h1 : IsS
         subst y
         exact h_root_short
     · simp only [hleft, hright, and_false, ↓reduceIte]
-      apply Short.ofSets
-      · have : Finite (moves .right g) := Short.finite_moves .right h1
+      apply IsShort.ofSets
+      · have : Finite (moves .right g) := IsShort.finite_moves .right h1
         exact Set.finite_range (fun gr : moves .right g => rootedAdjoint r (gr : G))
       · intro gr hgr
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgr
         obtain ⟨gr', hgr', rfl⟩ := hgr
-        exact short_rootedAdjoint h_root_short (Short.of_mem_moves h1 hgr')
+        exact short_rootedAdjoint h_root_short (IsShort.of_mem_moves h1 hgr')
       · exact Set.finite_singleton r
       · intro gr hgr
         simp only [Set.mem_singleton_iff] at hgr
@@ -237,32 +237,32 @@ theorem short_rootedAdjoint {r : G} (h_root_short : IsShort r) {g : G} (h1 : IsS
         exact h_root_short
   · by_cases hright : IsEnd .right g
     · simp only [hleft, hright, and_true, ↓reduceIte]
-      apply Short.ofSets
+      apply IsShort.ofSets
       · exact Set.finite_singleton r
       · intro gl hgl
         simp only [Set.mem_singleton_iff] at hgl
         subst gl
         exact h_root_short
-      · have : Finite (moves .left g) := Short.finite_moves .left h1
+      · have : Finite (moves .left g) := IsShort.finite_moves .left h1
         exact Set.finite_range (fun gl : moves .left g => rootedAdjoint r (gl : G))
       · intro gl hgl
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgl
         obtain ⟨gl', hgl', rfl⟩ := hgl
-        exact short_rootedAdjoint h_root_short (Short.of_mem_moves h1 hgl')
+        exact short_rootedAdjoint h_root_short (IsShort.of_mem_moves h1 hgl')
     · simp only [hleft, hright, and_self, ↓reduceIte]
-      apply Short.ofSets
-      · have : Finite (moves .right g) := Short.finite_moves .right h1
+      apply IsShort.ofSets
+      · have : Finite (moves .right g) := IsShort.finite_moves .right h1
         exact Set.finite_range (fun gr : moves .right g => rootedAdjoint r (gr : G))
       · intro gr hgr
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgr
         obtain ⟨gr', hgr', rfl⟩ := hgr
-        exact short_rootedAdjoint h_root_short (Short.of_mem_moves h1 hgr')
-      · have : Finite (moves .left g) := Short.finite_moves .left h1
+        exact short_rootedAdjoint h_root_short (IsShort.of_mem_moves h1 hgr')
+      · have : Finite (moves .left g) := IsShort.finite_moves .left h1
         exact Set.finite_range (fun gl : moves .left g => rootedAdjoint r (gl : G))
       · intro gl hgl
         simp only [Set.mem_range, Subtype.exists, exists_prop] at hgl
         obtain ⟨gl', hgl', rfl⟩ := hgl
-        exact short_rootedAdjoint h_root_short (Short.of_mem_moves h1 hgl')
+        exact short_rootedAdjoint h_root_short (IsShort.of_mem_moves h1 hgl')
 termination_by g
 decreasing_by all_goals form_wf
 
@@ -270,7 +270,7 @@ decreasing_by all_goals form_wf
 The adjoint of a short game is also short.
 -/
 theorem short_adjoint {g : G} (h1 : IsShort g) : IsShort (g°) :=
-  short_rootedAdjoint Short.zero h1
+  short_rootedAdjoint IsShort.zero h1
 
 open Classical in
 theorem rootedAdjoint_moves (r : G) (p : Player) (g : G) :

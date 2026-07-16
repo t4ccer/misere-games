@@ -28,10 +28,10 @@ abbrev ClosedUnderShortDicotic (A : G → Prop) :=
   ClosedUnderDicotic IsShort A
 
 instance : ClosedUnderAdd (IsShort (G := G)) where
-  has_add _ _ := Short.add
+  has_add _ _ := IsShort.add
 
 instance : Hereditary (IsShort (G := G)) where
-  has_option := Short.isOption
+  has_option := IsShort.isOption
 
 instance : ClosedUnderDicotic (IsShort (G := G)) (IsShort (G := G)) where
   closed_dicotic _ _ _ _ _ _ _ _ hShort := hShort

@@ -139,7 +139,7 @@ theorem NTippingPoint.aux {g : GameForm} (h1 : IsShort g) :
     ∃ (n : ℕ), MisereOutcome (g + n) = .N ∨ MisereOutcome (g + (-n)) = .N := by
   by_cases h2 : MisereOutcome g = .R
   · have h3 : MisereOutcome (-g) = .L := by simp [h2]
-    obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R (Short.neg h1) (by simp [h3])
+    obtain ⟨n, hn⟩ := exists_add_nat_N_of_not_R (IsShort.neg h1) (by simp [h3])
     refine ⟨n, Or.inr ?_⟩
     have h4 : (MisereOutcome (-g + n)).Conjugate = .N := by
       rw [hn]
@@ -174,7 +174,7 @@ theorem NTippingPoint_min {g : GameForm} (h1 : IsShort g) {k : ℕ} (hk : k < NT
 $\operatorname{n}(-G) = \operatorname{n}(G)$
 -/
 @[simp]
-theorem NTippingPoint.neg {g : GameForm} (h1 : IsShort g) : NTippingPoint (Short.neg h1) = NTippingPoint h1 := by
+theorem NTippingPoint.neg {g : GameForm} (h1 : IsShort g) : NTippingPoint (IsShort.neg h1) = NTippingPoint h1 := by
   unfold NTippingPoint
   apply Nat.find_congr'
   intro n
@@ -230,8 +230,8 @@ Negation sends the $\mathscr{R}$-tipping point to the $\mathscr{L}$-tipping
 point: $\operatorname{r}(-G) = \operatorname{l}(G)$.
 -/
 theorem RTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
-    RTippingPoint (Short.neg hsg) = LTippingPoint hsg := by
-  apply (RTippingPoint_iff (Short.neg hsg) (LTippingPoint hsg)).mpr
+    RTippingPoint (IsShort.neg hsg) = LTippingPoint hsg := by
+  apply (RTippingPoint_iff (IsShort.neg hsg) (LTippingPoint hsg)).mpr
   constructor
   · have : -g + ↑ (LTippingPoint hsg) = -( g + -↑ (LTippingPoint hsg)) := by rw [neg_add, neg_neg]
     have h_neg :
@@ -255,7 +255,7 @@ Negation sends the $\mathscr{L}$-tipping point to the $\mathscr{R}$-tipping
 point: $\operatorname{l}(-G) = \operatorname{r}(G)$.
 -/
 theorem LTippingPoint_neg {g : GameForm} (hsg : IsShort g) :
-    LTippingPoint (Short.neg hsg) = RTippingPoint hsg := by
+    LTippingPoint (IsShort.neg hsg) = RTippingPoint hsg := by
   have : RTippingPoint hsg = RTippingPoint (ClosedUnderNeg.neg_of (ClosedUnderNeg.neg_of hsg)) := by
     simp only [neg_neg]
   rw [this, RTippingPoint_neg]

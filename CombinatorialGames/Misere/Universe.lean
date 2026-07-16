@@ -37,7 +37,7 @@ instance : LongUniverse (IsLong : G → Prop) where
   isAmbient_of_mem _ := isLong _
 
 instance : ShortUniverse (IsShort (G := G)) where
-  zero_mem := Short.zero
+  zero_mem := IsShort.zero
   isAmbient_of_mem := id
 
 namespace Universe
@@ -316,9 +316,9 @@ theorem iUnion_of_directed {ι : Sort*} [Nonempty ι] (A : ι → G → Prop)
     Universe.iUnion_of_directed_of_fixed_ambient IsShort A h_directed
       (fun B C _ _ hB hC _ _ hShort => by
         have hBfin : B.Finite := by
-          simpa [Form.moves_ofSets] using Short.finite_moves Player.left hShort
+          simpa [Form.moves_ofSets] using IsShort.finite_moves Player.left hShort
         have hCfin : C.Finite := by
-          simpa [Form.moves_ofSets] using Short.finite_moves Player.right hShort
+          simpa [Form.moves_ofSets] using IsShort.finite_moves Player.right hShort
         obtain ⟨i, hi⟩ := Universe.exists_directed_upper_of_finite A h_directed hBfin hB
         obtain ⟨j, hj⟩ := Universe.exists_directed_upper_of_finite A h_directed hCfin hC
         obtain ⟨k, hik, hjk⟩ := h_directed i j

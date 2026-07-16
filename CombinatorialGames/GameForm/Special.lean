@@ -40,7 +40,7 @@ recommended_spelling "star" for "⋆" in [«term⋆»]
 @[simp] theorem neg_star : -⋆ = ⋆ := by simp [star]
 
 @[simp] theorem short_star : IsShort ⋆ := by
-  rw [star, Form.short_def]; simp
+  rw [star, isShort_def]; simp
 
 /-! ### Half -/
 
@@ -55,7 +55,7 @@ recommended_spelling "half" for "½" in [«term½»]
 @[simp] theorem rightMoves_half : ½ᴿ = {1} := rightMoves_ofSets ..
 
 theorem short_half : IsShort ½ := by
-  rw [half, Form.short_def]; simp
+  rw [half, isShort_def]; simp
 
 /-! ### Up and down -/
 
@@ -70,7 +70,7 @@ recommended_spelling "up" for "↑" in [«term↑»]
 @[simp] theorem rightMoves_up : ↑ᴿ = {⋆} := rightMoves_ofSets ..
 
 theorem short_up : IsShort ↑ := by
-  rw [up, Form.short_def]; simp
+  rw [up, isShort_def]; simp
 
 /-- The game `↓ = {⋆ | 0}`. -/
 def down : GameForm :=
@@ -86,7 +86,7 @@ recommended_spelling "down" for "↓" in [«term↓»]
 @[simp] theorem neg_up : -↑ = ↓ := by simp [up, down]
 
 theorem short_down : IsShort ↓ := by
-  rw [down, Form.short_def]; simp
+  rw [down, isShort_def]; simp
 
 /-! ### Tiny and miny -/
 
@@ -107,8 +107,8 @@ theorem rightMoves_tiny (x : GameForm) : (⧾x)ᴿ = {!{{0} | {-x}}} :=
   rightMoves_ofSets ..
 
 theorem short_tiny {x : GameForm} (h1 : IsShort x) : IsShort (⧾x) := by
-  have : IsShort (!{{0} | {-x}}) := by rw [Form.short_def]; simpa
-  rw [tiny, Form.short_def]; simp [this]
+  have : IsShort (!{{0} | {-x}}) := by rw [isShort_def]; simpa
+  rw [tiny, isShort_def]; simp [this]
 
 /-- A miny game `⧿x` is defined as `{{x | 0} | 0}`. -/
 def miny (x : GameForm) : GameForm :=
@@ -134,7 +134,7 @@ theorem neg_miny (x : GameForm) : -(⧿x) = ⧾x := by
   simp [miny, tiny]
 
 theorem short_miny {x : GameForm} (h1 : IsShort x) : IsShort (⧿x) := by
-  rw [← neg_tiny, Form.Short.neg_iff]
+  rw [← neg_tiny, IsShort.neg_iff]
   exact short_tiny h1
 
 /-! ### Switches -/

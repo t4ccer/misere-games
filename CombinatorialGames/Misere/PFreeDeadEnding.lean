@@ -138,8 +138,8 @@ def PFreeDeadEnding.isDeadEnding {g : GameForm} (h_g : PFreeDeadEnding g) : IsDe
 instance : DeadEnding PFreeDeadEnding where
   isDeadEnding h := h.isDeadEnding
 
-def PFreeDeadEnding.isShort {g : GameForm} (h_g : PFreeDeadEnding g) : IsShort g :=
-  h_g.mem.short
+instance : Short PFreeDeadEnding where
+  isShort h := h.mem.short
 
 instance : OutcomeStable (DeadEnding.ShortDeadEnding (G := GameForm)) where
   misereOutcome_of_add_LL hg hh hgL hhL := misereOutcome_of_add_LL.aux
@@ -154,20 +154,20 @@ instance : OutcomeStable (DeadEnding.ShortDeadEnding (G := GameForm)) where
 instance : ClosedUnderAddNat (DeadEnding.ShortDeadEnding (G := GameForm)) where
   has_add h_g n :=
     { dead_ending := DeadEnding.IsDeadEnding.add h_g.dead_ending (DeadEnding.isDeadEnding_natCast n)
-    , short := Short.add (h_g.short) (Short.natCast n)
+    , short := IsShort.add (h_g.short) (IsShort.natCast n)
     }
 
 instance : ClosedUnderAdd (DeadEnding.ShortDeadEnding (G := GameForm)) where
   has_add _ _  h_g h_h :=
     { dead_ending := DeadEnding.IsDeadEnding.add h_g.dead_ending h_h.dead_ending
-    , short := Short.add h_g.short h_h.short
+    , short := IsShort.add h_g.short h_h.short
     }
 
 instance : ClosedUnderAdd PFreeDeadEnding where
   has_add g h h_g h_h := by
     apply PFreeSubset.mk
     · exact ClosedUnderAdd.has_add g h h_g.mem h_h.mem
-    · exact IntegerInvertible.isPFree_of_propertyX h_g h_h h_g.isShort h_h.isShort
+    · exact IntegerInvertible.isPFree_of_propertyX h_g h_h (Short.isShort h_g) (Short.isShort h_h)
 
 namespace PFreeDeadEnding
 
@@ -199,7 +199,7 @@ theorem a_one_pfreeDeadEnding {a : ℤ} (h0 : 0 ≤ a) : PFreeDeadEnding (!{{(a 
         · simp
         · simp
       short := by
-        rw [short_def]
+        rw [isShort_def]
         intro p; cases p
         · simp
         · simp
@@ -533,35 +533,31 @@ theorem reduction_pred_one_int {n : ℤ} (h_n : 0 ≤ n) :
     subst h0
     simp [IntegerInvertible.zero_misereEQ_minusOne_one.symm]
 
-theorem pfreeDeadEnding_ofSets {L R : Set GameForm} [Small.{u} L] [Small.{u} R]
-    (h_L_mem : ∀ gl ∈ L, PFreeDeadEnding gl) (h_R_mem : ∀ gr ∈ R, PFreeDeadEnding gr)
+-- TODO: Move somewhere
+theorem pfreeSubset_short_ofSets {L R : Set GameForm} [Small.{u} L] [Small.{u} R]
+    {A : GameForm → Prop} [ClosedUnderDicotic IsShort A] [Short A]
+    (h_L_mem : ∀ gl ∈ L, (PFreeSubset A) gl) (h_R_mem : ∀ gr ∈ R, (PFreeSubset A) gr)
     (h_L_nonempty : L.Nonempty) (h_L_finite : L.Finite)
     (h_R_nonempty : R.Nonempty) (h_R_finite : R.Finite)
     (h_outcome_ne_P : MisereOutcome (!{L | R}) ≠ .P) :
-    PFreeDeadEnding (!{L | R}) := by
-  have h_moves : ∀ p x, x ∈ moves p (!{L | R}) → PFreeDeadEnding x := by
+    (PFreeSubset A) (!{L | R}) := by
+  have h_moves : ∀ p x, x ∈ moves p (!{L | R}) → (PFreeSubset A) x := by
     intro p x h_x_mem
     cases p
     · rw [leftMoves_ofSets] at h_x_mem; exact h_L_mem x h_x_mem
     · rw [rightMoves_ofSets] at h_x_mem; exact h_R_mem x h_x_mem
   apply PFreeSubset.mk
-  · refine ⟨?_, ?_⟩
-    · refine Short.ofSets h_L_finite ?_ h_R_finite ?_
-      · intro gl h_gl
-        exact (h_L_mem gl h_gl).isShort
-      · intro gr h_gr
-        exact (h_R_mem gr h_gr).isShort
-    · unfold IsDeadEnding
-      refine ⟨?_, ?_⟩
-      · intro p h_isEnd
-        exfalso
-        cases p
-        · rw [isEnd_def, leftMoves_ofSets] at h_isEnd
-          exact h_L_nonempty.ne_empty h_isEnd
-        · rw [isEnd_def, rightMoves_ofSets] at h_isEnd
-          exact h_R_nonempty.ne_empty h_isEnd
-      · intro p gp hgp
-        exact (h_moves p gp hgp).isDeadEnding
+  · refine ClosedUnderDicotic.closed_dicotic (IsAmbient := IsShort)
+             L R ?_ ?_ h_L_nonempty h_R_nonempty ?_
+    · intro gl h_gl_mem
+      exact (h_L_mem gl h_gl_mem).mem
+    · intro gr h_gr_mem
+      exact (h_R_mem gr h_gr_mem).mem
+    · refine IsShort.ofSets h_L_finite ?_ h_R_finite ?_
+      · intro gl h_gl_mem
+        exact Short.isShort (h_L_mem gl h_gl_mem).mem
+      · intro gr h_gr_mem
+        exact Short.isShort (h_R_mem gr h_gr_mem).mem
   · unfold IsPFree
     refine ⟨h_outcome_ne_P, ?_⟩
     intro p gp h_gp_mem
@@ -581,7 +577,7 @@ private theorem rightSeparating_of_leftSeparating {g h : GameForm}
   have h_not_wins_right : ¬ WinsGoingFirst .right (((-1 : ℤ) : GameForm)) :=
     (misereOutcome_L_iff_winsGoingFirst.mp this).2
   refine ⟨!{L | {x}}, ?_, ?_, ?_⟩
-  · apply pfreeDeadEnding_ofSets
+  · apply pfreeSubset_short_ofSets
     · intro a h_a_mem
       rw [h_L_def] at h_a_mem
       rcases h_a_mem with ⟨r, rfl⟩ | rfl
@@ -593,7 +589,7 @@ private theorem rightSeparating_of_leftSeparating {g h : GameForm}
       exact h_x_pf
     · exact ⟨_, h_conj_one_mem⟩
     · rw [h_L_def]
-      have := Short.finite_moves' .right h_h
+      have := IsShort.finite_moves' .right h_h
       simp [Set.finite_range]
     · exact ⟨x, Set.mem_singleton x⟩
     · exact Set.finite_singleton x
@@ -659,7 +655,7 @@ private theorem downlinked_intCast_of_not_leftMoves_misereGE {g : GameForm} {n :
       ¬ WinsGoingFirst .left (gl + y) ∧ WinsGoingFirst .left (((n : ℤ) : GameForm) + y) := by
     intro gl h_gl_mem
     exact (Separating.separating_pair_of_not_misereGE
-      (Short.of_mem_moves h_g.isShort h_gl_mem) (Short.intCast n) (h _ h_gl_mem)).1
+      (IsShort.of_mem_moves (Short.isShort h_g) h_gl_mem) (IsShort.intCast n) (h _ h_gl_mem)).1
   choose x h_x_mem h_glx_win_left h_ngl_win_left using h_sep
   set R : Set GameForm := Set.range (fun gl : (moves .left g) => x gl.1 gl.2) with hR_def
   set t : GameForm := !{{((-1 : ℤ) : GameForm)} | R} with ht_def
@@ -667,13 +663,13 @@ private theorem downlinked_intCast_of_not_leftMoves_misereGE {g : GameForm} {n :
   have h_t_rightMoves : moves .right t = R := by rw [ht_def, rightMoves_ofSets]
   have h_t_mem : PFreeDeadEnding t := by
     rw [ht_def]
-    refine pfreeDeadEnding_ofSets ?_ ?_
+    refine pfreeSubset_short_ofSets ?_ ?_
       (Set.singleton_nonempty _) (Set.finite_singleton _) ?_ ?_ ?_
     · intro a ha; rw [Set.mem_singleton_iff] at ha; subst ha; exact HasInt.has_int (-1 : ℤ)
     · rintro a ⟨⟨gl, hgl⟩, rfl⟩; exact h_x_mem gl hgl
     · obtain ⟨gl, h_gl_mem⟩ := not_isEnd_exists_move h_not_left_end
       exact ⟨x gl h_gl_mem, ⟨gl, h_gl_mem⟩, rfl⟩
-    · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
+    · have : Finite (moves .left g) := IsShort.finite_moves' .left (Short.isShort h_g)
       exact Set.toFinite _
     · intro h_outcome_P
       rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P
@@ -698,7 +694,7 @@ private theorem downlinked_intCast_of_not_leftMoves_misereGE {g : GameForm} {n :
         exact ⟨⟨gl, hgl⟩, rfl⟩
       · rw [h_t_leftMoves, Set.mem_singleton_iff] at htl; subst htl
         exact OutcomeStable.winsGoingFirst_right_sub_one_of_not_leftMoves_misereGE
-            h_g h_g.isShort h_not_left_end h_n h
+            h_g (Short.isShort h_g) h_not_left_end h_n h
   · rw [not_winsGoingFirst_iff]
     constructor
     · rw [GameForm.isEndLike_iff_isEnd]
@@ -761,9 +757,9 @@ private lemma maintenance_of_misereGE_int_right
       have := PFreeDeadEnding.misereGE_of_int_le 1 (-(k : ℤ)) (by omega)
       have := (misereGE_rw_left (MisereEQ.symm hk) this)
       exact hgr_not_ge this
-    · intro gl hgl h_gl_ge
+    · intro grl hgrl h_gl_ge
       have := (misereGE_rw_right (reduction_pred_one_int h_n) h_gl_ge)
-      exact h_contra.right gl hgl this
+      exact h_contra.right grl hgrl this
   absurd this
   exact Form.not_downlinked_right_option_of_misereGE h_ge h_gr_mem
 
@@ -843,10 +839,10 @@ private theorem downlinked_of_misereOutcome_ne_L {g h : GameForm}
     Form.Downlinked PFreeDeadEnding g h := by
   choose x h_x_mem h_x_g_win h_x_h_win using fun gl (h_gl_mem : gl ∈ moves .left g) =>
     (Separating.separating_pair_of_not_misereGE
-      (Short.of_mem_moves h_g.isShort h_gl_mem) h_h.isShort (h_moves_g gl h_gl_mem)).left
+      (IsShort.of_mem_moves (Short.isShort h_g) h_gl_mem) (Short.isShort h_h) (h_moves_g gl h_gl_mem)).left
   choose y h_y_mem h_y_g_win h_y_h_win using fun hr (h_hr_mem : hr ∈ moves .right h) =>
-    (Separating.separating_pair_of_not_misereGE h_g.isShort
-      (Short.of_mem_moves h_h.isShort h_hr_mem) (h_moves_h hr h_hr_mem)).right
+    (Separating.separating_pair_of_not_misereGE (Short.isShort h_g)
+      (IsShort.of_mem_moves (Short.isShort h_h) h_hr_mem) (h_moves_h hr h_hr_mem)).right
   set L : Set GameForm := Set.range (fun hr : moves .right h => y hr.val hr.prop) with hLset_def
   set R : Set GameForm := Set.range (fun gl : moves .left g => x gl.val gl.prop) with hRset_def
   set t : GameForm := !{{((-1 : ℤ) : GameForm)} ∪ L | R} with hw_def
@@ -855,18 +851,18 @@ private theorem downlinked_of_misereOutcome_ne_L {g h : GameForm}
   have h_t_rightMoves : moves .right t = R := by
     rw [hw_def, rightMoves_ofSets]
   have h_t_pf : PFreeDeadEnding t := by
-    apply pfreeDeadEnding_ofSets
+    apply pfreeSubset_short_ofSets
     · rintro gl (rfl | ⟨hr, rfl⟩)
       · exact HasInt.has_int (-1 : ℤ)
       · exact h_y_mem _ _
     · rintro gr ⟨gl, rfl⟩
       exact h_x_mem _ _
     · exact ⟨_, Set.mem_union_left _ (Set.mem_singleton _)⟩
-    · have : Finite (moves .right h) := Short.finite_moves' .right h_h.isShort
+    · have : Finite (moves .right h) := IsShort.finite_moves' .right (Short.isShort h_h)
       exact (Set.finite_singleton _).union (Set.finite_range _)
     · obtain ⟨gl, h_gl_mem⟩ := not_isEnd_exists_move h_g_not_isEnd
       exact ⟨_, ⟨⟨gl, h_gl_mem⟩, rfl⟩⟩
-    · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
+    · have : Finite (moves .left g) := IsShort.finite_moves' .left (Short.isShort h_g)
       exact Set.finite_range _
     · intro h_outcome_P
       rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P
@@ -901,10 +897,10 @@ private theorem downlinked_of_misereOutcome_eq_L {g h : GameForm}
     Form.Downlinked PFreeDeadEnding g h := by
   choose x h_x_mem h_x_g_win h_x_h_win using fun gl (h_gl_mem : gl ∈ moves .left g) =>
     (Separating.separating_pair_of_not_misereGE
-      (Short.of_mem_moves h_g.isShort h_gl_mem) h_h.isShort (h_moves_g gl h_gl_mem)).left
+      (IsShort.of_mem_moves (Short.isShort h_g) h_gl_mem) (Short.isShort h_h) (h_moves_g gl h_gl_mem)).left
   choose y h_y_mem h_y_g_win h_y_h_win using fun hr (h_hr_mem : hr ∈ moves .right h) =>
-    (Separating.separating_pair_of_not_misereGE h_g.isShort
-      (Short.of_mem_moves h_h.isShort h_hr_mem) (h_moves_h hr h_hr_mem)).right
+    (Separating.separating_pair_of_not_misereGE (Short.isShort h_g)
+      (IsShort.of_mem_moves (Short.isShort h_h) h_hr_mem) (h_moves_h hr h_hr_mem)).right
   set L : Set GameForm := Set.range (fun hr : moves .right h => y hr.val hr.prop) with hLset_def
   set R : Set GameForm := Set.range (fun gl : moves .left g => x gl.val gl.prop) with hRset_def
   set t : GameForm := !{L | R} with hw_def
@@ -913,18 +909,18 @@ private theorem downlinked_of_misereOutcome_eq_L {g h : GameForm}
   have h_t_rightMoves : moves .right t = R := by
     rw [hw_def, rightMoves_ofSets]
   have h_t_pf : PFreeDeadEnding t := by
-    apply pfreeDeadEnding_ofSets
+    apply pfreeSubset_short_ofSets
     · rintro gl ⟨hr, rfl⟩
       exact h_y_mem _ _
     · rintro gr ⟨gl, rfl⟩
       exact h_x_mem _ _
     · obtain ⟨hr, h_hr_mem⟩ := not_isEnd_exists_move h_h_not_isEnd
       exact ⟨_, ⟨⟨hr, h_hr_mem⟩, rfl⟩⟩
-    · have : Finite (moves .right h) := Short.finite_moves' .right h_h.isShort
+    · have : Finite (moves .right h) := IsShort.finite_moves' .right (Short.isShort h_h)
       exact Set.finite_range _
     · obtain ⟨gl, h_gl_mem⟩ := not_isEnd_exists_move h_g_not_isEnd
       exact ⟨_, ⟨⟨gl, h_gl_mem⟩, rfl⟩⟩
-    · have : Finite (moves .left g) := Short.finite_moves' .left h_g.isShort
+    · have : Finite (moves .left g) := IsShort.finite_moves' .left (Short.isShort h_g)
       exact Set.finite_range _
     · intro h_outcome_P
       rw [misereOutcome_P_iff_winsGoingFirst] at h_outcome_P

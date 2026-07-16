@@ -213,7 +213,7 @@ structure ShortBlocking (g : G) : Prop where
 
 instance : Hereditary (ShortBlocking (G := G)) where
   has_option h1 h2 :=
-  { short := Short.isOption h1.short h2
+  { short := IsShort.isOption h1.short h2
   , blocking := isBlocking_of_isOption h1.blocking h2 }
 
 instance : ClosedUnderNeg (ShortBlocking (G := G)) where
@@ -224,7 +224,7 @@ instance : ClosedUnderNeg (ShortBlocking (G := G)) where
 
 instance : ClosedUnderAdd (ShortBlocking (G := G)) where
   has_add _ _ h_g h_h :=
-    { short := Short.add h_g.short h_h.short
+    { short := IsShort.add h_g.short h_h.short
     , blocking := IsBlocking.add h_g.blocking h_h.blocking
     }
 
@@ -244,7 +244,7 @@ instance : ClosedUnderDicotic IsShort (ShortBlocking (G := G)) where
 
 instance : ShortUniverse (ShortBlocking (G := G)) where
   zero_mem :=
-  { short := Short.zero
+  { short := IsShort.zero
   , blocking := isBlocking_zero
   }
   isAmbient_of_mem h := h.short
@@ -252,7 +252,7 @@ instance : ShortUniverse (ShortBlocking (G := G)) where
 
 instance : HasNat (ShortBlocking (G := G)) where
   has_nat n :=
-    { short := Short.natCast n
+    { short := IsShort.natCast n
     , blocking := isBlocking_natCast n }
 
 instance : ClosedUnderAddNat (ShortBlocking (G := G)) where
@@ -260,7 +260,7 @@ instance : ClosedUnderAddNat (ShortBlocking (G := G)) where
 
 instance : HasInt (ShortBlocking (G := G)) where
   has_int k :=
-    { short := Short.intCast k
+    { short := IsShort.intCast k
     , blocking := isBlocking_intCast k }
 
 end Form

@@ -78,8 +78,8 @@ theorem bigG_not_isEndLike (p : Player) : ¬ IsEndLike p g := by
   rw [AugmentedForm.IsEndLike_iff]
   cases p <;> simp +decide [isEnd_def, moves_g]
   · exact ⟨by unfold g; simp +decide [hasTombstone_ofSets],
-      Set.Nonempty.ne_empty ⟨_, adjoint_mem_adjointsOfShort Short.zero⟩⟩
-  · refine ⟨?_, Set.Nonempty.ne_empty ⟨_, adjoint_mem_adjointsOfShort Short.zero⟩⟩
+      Set.Nonempty.ne_empty ⟨_, adjoint_mem_adjointsOfShort IsShort.zero⟩⟩
+  · refine ⟨?_, Set.Nonempty.ne_empty ⟨_, adjoint_mem_adjointsOfShort IsShort.zero⟩⟩
     unfold g; simp +decide [AugmentedForm.hasTombstone_ofSets]
 
 theorem bigH_not_isEndLike (p : Player) : ¬ IsEndLike p h := by
@@ -125,7 +125,7 @@ theorem g_not_isEndLike (p : Player) : ¬ IsEndLike p g := by
   · cases p <;> simp only [g, adjointsOfShort, Set.coe_setOf, Set.mem_setOf_eq,
                            isEnd_def, leftMoves_ofSets, rightMoves_ofSets, Set.range_eq_empty_iff,
                            nonempty_subtype, not_isEmpty_of_nonempty, not_false_eq_true,
-                           Exists.intro 0 Short.zero, ]
+                           Exists.intro 0 IsShort.zero, ]
 
 private theorem not_winsGoingFirst_g_add_g {p : Player} :
     ¬WinsGoingFirst p (g + g) := by
@@ -195,7 +195,7 @@ theorem g_mem_longUniverse (U : AugmentedForm.{u} → Prop) [LongUniverse U] :
     rintro b ⟨⟨J, h_j⟩, rfl⟩
     exact Form.rootedAdjoint_mem_of_isAmbient (r := 0)
       (Universe.zero_mem IsLong) (fun _ _ => isLong _) (isLong _)
-  have h_notempty : (adjointsOfShort.{u}).Nonempty := ⟨_,  adjoint_mem_adjointsOfShort Short.zero⟩
+  have h_notempty : (adjointsOfShort.{u}).Nonempty := ⟨_,  adjoint_mem_adjointsOfShort IsShort.zero⟩
   exact ClosedUnderDicotic.closed_dicotic (IsAmbient := IsLong)
     adjointsOfShort adjointsOfShort h_mem h_mem h_notempty h_notempty (isLong _)
 

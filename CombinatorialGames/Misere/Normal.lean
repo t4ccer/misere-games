@@ -280,25 +280,25 @@ noncomputable def mkShort (g : AugmentedForm.{u}) (hg : IsShort g) : ShortQuotie
 
 @[simp]
 theorem mkShort_add (g h : AugmentedForm.{u}) (hg : IsShort g) (hh : IsShort h) :
-    mkShort (g + h) (Short.add hg hh) = mkShort g hg + mkShort h hh :=
+    mkShort (g + h) (IsShort.add hg hh) = mkShort g hg + mkShort h hh :=
   (mk_add_mk ⟨g, hg⟩ ⟨h, hh⟩).symm
 
 @[simp]
-theorem mkShort_zero : mkShort (0 : AugmentedForm.{u}) Short.zero = 0 :=
+theorem mkShort_zero : mkShort (0 : AugmentedForm.{u}) IsShort.zero = 0 :=
   mk_zero
 
 theorem mkShort_add_neg {g : AugmentedForm.{u}} (hgs : IsShort g)
-    (hg : Normal g) : mkShort g hgs + mkShort (-g) (Short.neg hgs) = 0 :=
+    (hg : Normal g) : mkShort g hgs + mkShort (-g) (IsShort.neg hgs) = 0 :=
   sound fun x _ => hg.add_neg_misereEQ_zero x (isLong _)
 
 theorem mkShort_neg_add {g : AugmentedForm.{u}} (hgs : IsShort g)
-    (hg : Normal g) : mkShort (-g) (Short.neg hgs) + mkShort g hgs = 0 :=
+    (hg : Normal g) : mkShort (-g) (IsShort.neg hgs) + mkShort g hgs = 0 :=
   sound fun x _ => hg.neg_add_misereEQ_zero x (isLong _)
 
 theorem isAddUnit_mkShort_of_normal {g : AugmentedForm.{u}} (hgs : IsShort g)
     (hg : Normal g) : IsAddUnit (mkShort g hgs) :=
   isAddUnit_iff_exists.mpr
-    ⟨mkShort (-g) (Short.neg hgs), mkShort_add_neg hgs hg, mkShort_neg_add hgs hg⟩
+    ⟨mkShort (-g) (IsShort.neg hgs), mkShort_add_neg hgs hg, mkShort_neg_add hgs hg⟩
 
 /--
 The short normal augmented forms form a subgroup of the invertible subgroup of
@@ -308,15 +308,15 @@ noncomputable def normalShort : AddSubgroup (AddUnits ShortQuotient.{u}) where
   carrier := {a | ∃ (g : AugmentedForm.{u}) (hgs : IsShort g),
     Normal g ∧ (↑a : ShortQuotient.{u}) = mkShort g hgs}
   zero_mem' :=
-    ⟨0, Short.zero, Normal.zero, by rw [AddUnits.val_zero, mkShort_zero]⟩
+    ⟨0, IsShort.zero, Normal.zero, by rw [AddUnits.val_zero, mkShort_zero]⟩
   add_mem' := by
     rintro a b ⟨g, hgs, hg, hga⟩ ⟨h, hhs, hh, hhb⟩
-    exact ⟨g + h, Short.add hgs hhs, hg.add hh, by
+    exact ⟨g + h, IsShort.add hgs hhs, hg.add hh, by
       rw [AddUnits.val_add, hga, hhb, mkShort_add]⟩
   neg_mem' := by
     rintro a ⟨g, hgs, hg, hga⟩
-    refine ⟨-g, Short.neg hgs, hg.neg, ?_⟩
-    rw [← zero_add (mkShort (-g) (Short.neg hgs)), ← AddUnits.neg_add a, add_assoc, hga,
+    refine ⟨-g, IsShort.neg hgs, hg.neg, ?_⟩
+    rw [← zero_add (mkShort (-g) (IsShort.neg hgs)), ← AddUnits.neg_add a, add_assoc, hga,
       mkShort_add_neg hgs hg, add_zero]
 
 end Augmented

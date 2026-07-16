@@ -301,7 +301,7 @@ theorem pf_misereOutcome_add_le_N_of_LR {g h : GameForm}
     MisereOutcome (g + h) ≤ .N := by
   have key := pf_misereOutcome_add_ge_N_of_LR
     (ClosedUnderNeg.neg_of hAh) (ClosedUnderNeg.neg_of hAg)
-    (Short.neg hsh) (Short.neg hsg)
+    (IsShort.neg hsh) (IsShort.neg hsg)
     (misereOutcome_neg_L_iff_misereOutcome.mpr hRh)
     (misereOutcome_neg_R_iff_misereOutcome.mpr hLg)
     (by rw [NTippingPoint.neg, NTippingPoint.neg, LTippingPoint_neg, RTippingPoint_neg]; exact hcond)
@@ -325,11 +325,11 @@ theorem pf_misereOutcome_add_R_of_RTippingPoint_lt_NTippingPoint {g h : GameForm
     (hRg : MisereOutcome g = .R) (hgt : RTippingPoint hsh < NTippingPoint hsg) :
     MisereOutcome (g + h) = .R := by
   have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
-  have hgt' : LTippingPoint (Short.neg hsh) < NTippingPoint (Short.neg hsg) := by
+  have hgt' : LTippingPoint (IsShort.neg hsh) < NTippingPoint (IsShort.neg hsg) := by
     rw [LTippingPoint_neg, NTippingPoint.neg]; exact hgt
   have hL := pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh) hng hgt'
+    (IsShort.neg hsg) (IsShort.neg hsh) hng hgt'
   rw [← neg_neg (g + h), neg_add, ← misereOutcome_conjugate_neg, hL]; rfl
 
 /--
@@ -349,11 +349,11 @@ theorem pf_misereOutcome_add_N_of_LTippingPoint_lt_RTippingPoint {g h : GameForm
     MisereOutcome (g + h) = .N := by
   have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
   have hnh : MisereOutcome (-h) = .N := by rw [← misereOutcome_conjugate_neg, hNh]; rfl
-  have hlt' : RTippingPoint (Short.neg hsg) < LTippingPoint (Short.neg hsh) := by
+  have hlt' : RTippingPoint (IsShort.neg hsg) < LTippingPoint (IsShort.neg hsh) := by
     rw [RTippingPoint_neg, LTippingPoint_neg]; exact hlt
   have hN := pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh) hng hnh hlt'
+    (IsShort.neg hsg) (IsShort.neg hsh) hng hnh hlt'
   rw [show g + h = -((-g) + (-h)) by rw [neg_add, neg_neg, neg_neg],
     ← misereOutcome_conjugate_neg, hN]; rfl
 
@@ -375,13 +375,13 @@ theorem pf_misereOutcome_add_le_N_of_NN {g h : GameForm}
     MisereOutcome (g + h) ≤ .N := by
   have hng : MisereOutcome (-g) = .N := by rw [← misereOutcome_conjugate_neg, hNg]; rfl
   have hnh : MisereOutcome (-h) = .N := by rw [← misereOutcome_conjugate_neg, hNh]; rfl
-  have hcond' : LTippingPoint (Short.neg hsh) < RTippingPoint (Short.neg hsg)
-      ∨ LTippingPoint (Short.neg hsg) < RTippingPoint (Short.neg hsh) := by
+  have hcond' : LTippingPoint (IsShort.neg hsh) < RTippingPoint (IsShort.neg hsg)
+      ∨ LTippingPoint (IsShort.neg hsg) < RTippingPoint (IsShort.neg hsh) := by
     rw [LTippingPoint_neg, RTippingPoint_neg, LTippingPoint_neg, RTippingPoint_neg]
     exact hcond
   have hge := pf_misereOutcome_add_ge_N_of_NN
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh) hng hnh hcond'
+    (IsShort.neg hsg) (IsShort.neg hsh) hng hnh hcond'
   have h_conj : MisereOutcome (g + h) = (MisereOutcome ((-g) + (-h))).Conjugate := by
     rw [show (-g) + (-h) = -(g + h) by rw [neg_add], misereOutcome_conjugate_neg, neg_neg]
   rw [h_conj]
@@ -422,13 +422,13 @@ theorem pf_misereOutcome_add_le_N_of_RL {g h : GameForm}
     MisereOutcome (g + h) ≤ .N := by
   have hng : MisereOutcome (-g) = .L := by rw [← misereOutcome_conjugate_neg, hRg]; rfl
   have hnh : MisereOutcome (-h) = .R := by rw [← misereOutcome_conjugate_neg, hLh]; rfl
-  have hcond' : NTippingPoint (Short.neg hsh) < NTippingPoint (Short.neg hsg)
-      ∨ LTippingPoint (Short.neg hsh) < RTippingPoint (Short.neg hsg) := by
+  have hcond' : NTippingPoint (IsShort.neg hsh) < NTippingPoint (IsShort.neg hsg)
+      ∨ LTippingPoint (IsShort.neg hsh) < RTippingPoint (IsShort.neg hsg) := by
     rw [NTippingPoint.neg, NTippingPoint.neg, LTippingPoint_neg, RTippingPoint_neg]
     exact hcond
   have hge := pf_misereOutcome_add_ge_N_of_LR
     (ClosedUnderNeg.neg_of hAg) (ClosedUnderNeg.neg_of hAh)
-    (Short.neg hsg) (Short.neg hsh)
+    (IsShort.neg hsg) (IsShort.neg hsh)
     hng hnh hcond'
   have h_conj : MisereOutcome (g + h) = (MisereOutcome ((-g) + (-h))).Conjugate := by
     rw [show (-g) + (-h) = -(g + h) by rw [neg_add], misereOutcome_conjugate_neg, neg_neg]

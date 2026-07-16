@@ -85,10 +85,10 @@ theorem isShort_mem_range_toForm {x : AugmentedForm.{u}} (h_isShort : IsShort x)
   induction x using AugmentedForm.moveRecOn with
   | mk x ih =>
     classical
-    obtain ⟨L, hL⟩ := exists_list_image (moves .left x) (Short.finite_moves .left h_isShort)
-      (fun y hy => ih .left y hy (Short.of_mem_moves h_isShort hy))
-    obtain ⟨R, hR⟩ := exists_list_image (moves .right x) (Short.finite_moves .right h_isShort)
-      (fun y hy => ih .right y hy (Short.of_mem_moves h_isShort hy))
+    obtain ⟨L, hL⟩ := exists_list_image (moves .left x) (IsShort.finite_moves .left h_isShort)
+      (fun y hy => ih .left y hy (IsShort.of_mem_moves h_isShort hy))
+    obtain ⟨R, hR⟩ := exists_list_image (moves .right x) (IsShort.finite_moves .right h_isShort)
+      (fun y hy => ih .right y hy (IsShort.of_mem_moves h_isShort hy))
     refine ⟨.mk L R (decide (x.hasTombstone .left)) (decide (x.hasTombstone .right)), ?_⟩
     refine AugmentedForm.ext (fun p => ?_) (fun p => ?_)
     · rw [moves_toForm]
