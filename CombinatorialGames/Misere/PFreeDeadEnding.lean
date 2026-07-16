@@ -730,11 +730,11 @@ private lemma maintenance_of_misereGE_int_left
   · apply Or.inl
     by_contra h_contra
     push_neg at h_contra
-    have h_downlined :=
+    have h_downlinked :=
       downlinked_intCast_of_not_leftMoves_misereGE (n := n - 1) h_g g_not_end (by omega) h_contra
     have h_mem : ((n - 1 : ℤ) : GameForm) ∈ moves .left ((n : ℤ) : GameForm) :=
       leftMoves_intCast_zero_lt h_zero_lt
-    absurd h_downlined
+    absurd h_downlinked
     exact Form.not_downlinked_left_option_of_misereGE h_ge h_mem
   · subst h_zero_eq_n
     apply Or.inr
@@ -834,7 +834,7 @@ private theorem downlinked_of_witness {g h t : GameForm}
           exact h_y_h hr h_hr_mem
       · exact h_t_right_win tr h_tr_mem
 
-private theorem downlined_of_misereOutcome_ne_L {g h : GameForm}
+private theorem downlinked_of_misereOutcome_ne_L {g h : GameForm}
     (h_g : PFreeDeadEnding g) (h_h : PFreeDeadEnding h)
     (h_g_not_isEnd : ¬ IsEnd .left g) (h_h_not_isEnd : ¬ IsEnd .right h)
     (h_moves_g : ∀ gl ∈ moves .left g, ¬ (gl ≥m PFreeDeadEnding h))
@@ -892,7 +892,7 @@ private theorem downlined_of_misereOutcome_ne_L {g h : GameForm}
     obtain ⟨⟨gl, h_gl_mem⟩, rfl⟩ := h_tr_mem
     exact h_x_h_win gl h_gl_mem
 
-private theorem downlined_of_misereOutcome_eq_L {g h : GameForm}
+private theorem downlinked_of_misereOutcome_eq_L {g h : GameForm}
     (h_g : PFreeDeadEnding g) (h_h : PFreeDeadEnding h)
     (h_g_not_isEnd : ¬ IsEnd .left g) (h_h_not_isEnd : ¬ IsEnd .right h)
     (h_moves_g : ∀ gl ∈ moves .left g, ¬ (gl ≥m PFreeDeadEnding h))
@@ -960,11 +960,11 @@ theorem downlinked_of_not_isEnd_left
   · obtain ⟨n, hn⟩ := isEnd_right_exists_intCast_misereEQ h_h h_t_right
     have h_gl : ∀ gl ∈ gᴸ, ¬ (gl ≥m PFreeDeadEnding ((n : ℤ) : GameForm)) :=
       fun sl hsl h => h_moves_g sl hsl (misereGE_rw_right hn h)
-    apply downlined_of_downlinked_misereEQ_right hn.symm
+    apply downlinked_of_downlinked_misereEQ_right hn.symm
     exact downlinked_intCast_of_not_leftMoves_misereGE h_g h_g_not_isEnd (Int.natCast_nonneg n) h_gl
   · by_cases hL : MisereOutcome (g + ((-1 : ℤ) : GameForm)) = .L
-    · exact downlined_of_misereOutcome_eq_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
-    · exact downlined_of_misereOutcome_ne_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
+    · exact downlinked_of_misereOutcome_eq_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
+    · exact downlinked_of_misereOutcome_ne_L h_g h_h h_g_not_isEnd h_t_right h_moves_g h_moves_h hL
 
 theorem downlinked_of_not_isEnd_right
     {g h : GameForm} (h_g : PFreeDeadEnding g) (h_h : PFreeDeadEnding h)

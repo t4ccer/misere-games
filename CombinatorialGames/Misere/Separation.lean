@@ -73,7 +73,7 @@ protected theorem Downlinked.neg_iff {A : G → Prop} [ClosedUnderNeg A] {g h : 
     rw [←neg_neg g, ←neg_neg h] at h1
     exact downlinked_neg_of h1
 
-theorem downlined_of_downlinked_misereEQ_left {A : G → Prop}
+theorem downlinked_of_downlinked_misereEQ_left {A : G → Prop}
     {g h k : G} (h_eq : g =m A k) (h_down : Downlinked A g h) :
     Downlinked A k h := by
   unfold Downlinked at h_down ⊢
@@ -81,7 +81,7 @@ theorem downlined_of_downlinked_misereEQ_left {A : G → Prop}
   refine ⟨t, h_t_mem, ?_, h_right⟩
   rwa [<-misereOutcome_eq_winsGoingFirst_iff (h_eq t h_t_mem)]
 
-theorem downlined_of_downlinked_misereEQ_right {A : G → Prop}
+theorem downlinked_of_downlinked_misereEQ_right {A : G → Prop}
     {g h k : G} (h_eq : h =m A k) (h_down : Downlinked A g h) :
     Downlinked A g k := by
   unfold Downlinked at h_down ⊢
