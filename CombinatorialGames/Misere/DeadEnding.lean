@@ -531,98 +531,65 @@ theorem misereGE_iff_isEndLike_of_isDeadEnd_left
 
 mutual
 
-theorem isDeadEnd_left_strongTest_winsGoingFirst {x g : GameForm}
-    (hxd : IsDeadEnd .left x)(h_test : IsStrongTest .left g) :
-    WinsGoingFirst .left (g + x) := by
-  have hxe : IsEnd .left x := isEnd_of_isDeadEnd hxd
+theorem isDeadEnd_strongTest_winsGoingFirst {p : Player} {x g : GameForm}
+    (hxd : IsDeadEnd p x)(h_test : IsStrongTest p g) :
+    WinsGoingFirst p (g + x) := by
+  have hxe : IsEnd p x := isEnd_of_isDeadEnd hxd
   rw [isStrongTest_def] at h_test
   rcases h_test with h_isEnd | ⟨gl, hgl, houtcome, htestgl, hglr⟩
   · exact winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨h_isEnd, hxe⟩)
   · apply winsGoingFirst_of_moves
     refine ⟨gl + x, add_right_mem_moves_add hgl x, ?_⟩
-    rw [Player.neg_left]
-    have hglr' : ∀ gr ∈ moves .right gl, IsStrongTest .left gr := by
-      intro gr hgr; exact hglr gr (by rw [Player.neg_left]; exact hgr)
-    exact isDeadEnd_left_strongTest_not_winsGoingFirst hxd houtcome htestgl hglr'
+    have hglr' : ∀ gr ∈ moves (-p) gl, IsStrongTest p gr := by
+      intro gr hgr; exact hglr gr hgr
+    exact isDeadEnd_strongTest_not_winsGoingFirst hxd houtcome htestgl hglr'
 termination_by (x, g)
 decreasing_by form_wf
 
-theorem isDeadEnd_left_strongTest_not_winsGoingFirst {x g : GameForm}
-    (h_isDeadEnd : IsDeadEnd .left x) (h_outcome : MisereOutcome g = .L)
-    (h_test : IsStrongTest .left g) (h_gr : ∀ gr ∈ moves .right g, IsStrongTest .left gr) :
-    ¬ WinsGoingFirst .right (g + x) := by
+theorem isDeadEnd_strongTest_not_winsGoingFirst {p : Player} {x g : GameForm}
+    (h_isDeadEnd : IsDeadEnd p x) (h_outcome : MisereOutcome g = Outcome.ofPlayer p)
+    (h_test : IsStrongTest p g) (h_gr : ∀ gr ∈ moves (-p) g, IsStrongTest p gr) :
+    ¬ WinsGoingFirst (-p) (g + x) := by
   rw [not_winsGoingFirst_iff]
   refine ⟨?_, ?_⟩
   · rw [GameForm.isEndLike_iff_isEnd, IsEnd.add_iff]
     rintro ⟨hgend, _⟩
-    exact (misereOutcome_L_iff_winsGoingFirst.mp h_outcome).2 (winsGoingFirst_of_isEnd hgend)
+    exact ((misereOutcome_eq_player_iff _ _).mp h_outcome).2 (winsGoingFirst_of_isEnd hgend)
   · intro g' hg'
-    rw [Player.neg_right]
     rw [moves_add] at hg'
+    rw [neg_neg]
     rcases hg' with ⟨gr, hgr', rfl⟩ | ⟨xr, hxr, rfl⟩
-    · exact (isDeadEnd_left_strongTest_winsGoingFirst h_isDeadEnd) (h_gr gr hgr')
-    · have hxr' : xr ∈ moves (-Player.left) x := by rw [Player.neg_left]; exact hxr
-      have h_isDeadEnd_xr := isDeadEnd_of_mem_moves h_isDeadEnd hxr'
-      exact isDeadEnd_left_strongTest_winsGoingFirst h_isDeadEnd_xr h_test
+    · exact (isDeadEnd_strongTest_winsGoingFirst h_isDeadEnd) (h_gr gr hgr')
+    · have h_isDeadEnd_xr := isDeadEnd_of_mem_moves h_isDeadEnd hxr
+      exact isDeadEnd_strongTest_winsGoingFirst h_isDeadEnd_xr h_test
 termination_by (x, g)
 decreasing_by form_wf
 
 end
 
-theorem isDeadEnd_right_strongTest_winsGoingFirst {x g : GameForm}
-    (hxd : IsDeadEnd .right x)(h_test : IsStrongTest .right g) :
-    WinsGoingFirst .right (g + x) := by
-  rw [<-neg_neg x, IsDeadEnd.neg_iff, Player.neg_right] at hxd
-  rw [<-neg_neg g, IsStrongTest.neg_iff, Player.neg_right] at h_test
-  rw [<-Player.neg_left, <-winsGoingFirst_neg_iff, neg_add_rev, add_comm]
-  exact isDeadEnd_left_strongTest_winsGoingFirst hxd h_test
-
 /--
 This is one direction specialized to dead-ending of
 [Davies, Milley (Theorem 3.1 on p. 7)][davies:OrderInversesMonoid:2026]
 -/
-theorem IsStrongTest.left_strong {A : GameForm → Prop} [DeadEnding A] {g : GameForm}
-    (h_test : IsStrongTest .left g) :
-    Strong A g .left := by
+theorem IsStrongTest.deadEnding_strong {p : Player} {A : GameForm → Prop} [DeadEnding A] {g : GameForm}
+    (h_test : IsStrongTest p g) :
+    Strong A g p := by
   intro x hx h_isEnd
   rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
   have h_deadEnd := isDeadEnd_of_isDeadEnding (DeadEnding.isDeadEnding hx) h_isEnd
-  exact isDeadEnd_left_strongTest_winsGoingFirst h_deadEnd h_test
+  exact isDeadEnd_strongTest_winsGoingFirst h_deadEnd h_test
 
-/--
-This is mirror of one direction specialized to dead-ending of
-[Davies, Milley (Theorem 3.1 on p. 7)][davies:OrderInversesMonoid:2026]
--/
-theorem IsStrongTest.right_strong {A : GameForm → Prop} [DeadEnding A] {g : GameForm}
-    (h_test : IsStrongTest .right g) :
-    Strong A g .right := by
-  intro x hx h_isEnd
-  rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
-  have h_deadEnd := isDeadEnd_of_isDeadEnding (DeadEnding.isDeadEnding hx) h_isEnd
-  exact isDeadEnd_right_strongTest_winsGoingFirst h_deadEnd h_test
-
-theorem PFree.strong_right_iff_misereOutcome_L {A : GameForm → Prop} [DeadEnding A] [HasZero A]
+theorem PFree.strong_iff_misereOutcome {p : Player}
+    {A : GameForm → Prop} [DeadEnding A] [HasZero A]
     {g : GameForm} (h_isPFree : IsPFree g) :
-    Strong A g .right ↔ MisereOutcome g ≠ .L := by
+    Strong A g p ↔ MisereOutcome g ≠ Outcome.ofPlayer (-p) := by
   constructor
   · intro h_strong h_outcome
-    rw [misereOutcome_L_iff_winsGoingFirst] at h_outcome
+    rw [misereOutcome_eq_player_iff, neg_neg] at h_outcome
     have h_wins := h_strong 0 HasZero.has_zero (isEndLike_of_isEnd isEnd_zero)
     rw [add_zero] at h_wins
     exact h_outcome.right h_wins
   · intro h_outcome
-    exact IsStrongTest.right_strong (PFree.isStrongTest_right h_isPFree h_outcome)
-
-theorem PFree.strong_left_iff_misereOutcome_R {A : GameForm → Prop} [DeadEnding A] [HasZero A]
-    {g : GameForm} (h_isPFree : IsPFree g) :
-    Strong A g .left ↔ MisereOutcome g ≠ .R := by
-  constructor
-  · intro h_strong h_outcome
-    rw [misereOutcome_R_iff_winsGoingFirst] at h_outcome
-    have h_wins := h_strong 0 HasZero.has_zero (isEndLike_of_isEnd isEnd_zero)
-    rw [add_zero] at h_wins
-    exact h_outcome.right h_wins
-  · intro h_outcome
-    exact IsStrongTest.left_strong (PFree.isStrongTest_left h_isPFree h_outcome)
+    exact IsStrongTest.deadEnding_strong (PFree.isStrongTest h_isPFree h_outcome)
 
 end Form

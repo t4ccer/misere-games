@@ -426,4 +426,68 @@ theorem misereEQ_of_moves {A : GameForm → Prop} [Hereditary A] {g h : GameForm
   · exact misereEQ_of_moves.aux hl1 hl2 hr1 hr2
   · exact misereEQ_of_moves.aux hl2 hl1 hr2 hr1
 
+theorem misereEQ_of_left_subset_dominated {A : GameForm → Prop} [Hereditary A] {g g' : GameForm}
+    (h_right : moves .right g' = moves .right g)
+    (h_subset : moves .left g' ⊆ moves .left g)
+    (h_dom : ∀ gl ∈ moves .left g, ∃ gl' ∈ moves .left g', gl' ≥m A gl) :
+    g =m A g' := by
+  apply MisereEq.of_antisymm
+  · apply misereGE_of_moves
+    · intro gl h_gl
+      obtain ⟨gl', h_gl'_mem, _⟩ := h_dom gl h_gl
+      exact ⟨gl', h_gl'_mem⟩
+    · intro gl' h_gl'
+      exact ⟨gl', h_subset h_gl', MisereGE.refl gl'⟩
+    · intro gr h_gr
+      exact ⟨gr, h_right ▸ h_gr, MisereGE.refl gr⟩
+    · intro gr' h_gr'
+      exact ⟨gr', h_right ▸ h_gr'⟩
+  · apply misereGE_of_moves
+    · intro gl' h_gl'
+      exact ⟨gl', h_subset h_gl'⟩
+    · exact h_dom
+    · intro gr' h_gr'
+      exact ⟨gr', h_right ▸ h_gr', MisereGE.refl gr'⟩
+    · intro gr h_gr
+      exact ⟨gr, h_right ▸ h_gr⟩
+
+theorem misereEQ_of_right_subset_dominated {A : GameForm → Prop} [Hereditary A] {g g' : GameForm}
+    (h_left : moves .left g' = moves .left g)
+    (h_subset : moves .right g' ⊆ moves .right g)
+    (h_dom : ∀ gr ∈ moves .right g, ∃ gr' ∈ moves .right g', gr ≥m A gr') :
+    g =m A g' := by
+  apply MisereEq.of_antisymm
+  · apply misereGE_of_moves
+    · intro gl h_gl
+      exact ⟨gl, h_left ▸ h_gl⟩
+    · intro gl' h_gl'
+      exact ⟨gl', h_left ▸ h_gl', MisereGE.refl gl'⟩
+    · exact h_dom
+    · intro gr' h_gr'
+      exact ⟨gr', h_subset h_gr'⟩
+  · apply misereGE_of_moves
+    · intro gl' h_gl'
+      exact ⟨gl', h_left ▸ h_gl'⟩
+    · intro gl h_gl
+      exact ⟨gl, h_left ▸ h_gl, MisereGE.refl gl⟩
+    · intro gr' h_gr'
+      exact ⟨gr', h_subset h_gr', MisereGE.refl gr'⟩
+    · intro gr h_gr
+      obtain ⟨gr', h_gr'_mem, _⟩ := h_dom gr h_gr
+      exact ⟨gr', h_gr'_mem⟩
+
+theorem misereEQ_removeLeft_of_dominated {A : GameForm → Prop} [Hereditary A]
+    {L R : Set GameForm} [Small.{u} L] [Small.{u} R] {gl1 gl2 : GameForm}
+    (h_gl2 : gl2 ∈ L) (h_ne : gl2 ≠ gl1) (h_dom : gl2 ≥m A gl1) :
+    (!{L | R} : GameForm) =m A !{L \ {gl1} | R} := by
+  apply misereEQ_of_left_subset_dominated
+  · rw [rightMoves_ofSets, rightMoves_ofSets]
+  · rw [leftMoves_ofSets, leftMoves_ofSets]
+    exact Set.diff_subset
+  · rw [leftMoves_ofSets, leftMoves_ofSets]
+    intro gl h_gl
+    by_cases h_eq : gl = gl1
+    · exact ⟨gl2, ⟨h_gl2, by simpa using h_ne⟩, h_eq ▸ h_dom⟩
+    · exact ⟨gl, ⟨h_gl, by simpa using h_eq⟩, MisereGE.refl gl⟩
+
 end Hereditary

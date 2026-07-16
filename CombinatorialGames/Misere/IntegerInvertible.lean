@@ -447,4 +447,22 @@ theorem zero_misereEQ_minusOne_one {A : GameForm → Prop} [IntegerInvertible A]
   ext p x
   cases p <;> simp
 
+/--
+Combination of `OutcomeStable.intSlashOne_eq_succ` with
+`IntegerInvertible.zero_misereEQ_minusOne_one`.
+-/
+theorem reduction_pred_intCast_slash_one
+    {A : GameForm → Prop} [Hereditary A] [OutcomeStable A] [ClosedUnderDicotic IsShort A] [HasInt A]
+    [ClosedUnderNeg A] [ClosedUnderAddNat A] [IntegerInvertible A]
+    {n : ℤ} (h_n : 0 ≤ n) :
+    (!{{((n - 1 : ℤ) : GameForm)} | {1}}) =m (PFreeSubset A) ((n : ℤ) : GameForm) := by
+  rcases h_n.lt_or_eq with h1 | h0
+  · -- `1 ≤ n`
+    have h := intSlashOne_eq_succ (A := A) (a := n - 1) (by omega)
+    have he : (n - 1 + 1 : ℤ) = n := by omega
+    rwa [he] at h
+  · -- `n = 0`
+    subst h0
+    simp [IntegerInvertible.zero_misereEQ_minusOne_one.symm]
+
 end IntegerInvertible

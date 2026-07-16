@@ -148,4 +148,9 @@ theorem ofPlayer_left : ofPlayer .left = .L := by rfl
 @[simp]
 theorem ofPlayer_right : ofPlayer .right = .R := by rfl
 
+@[simp]
+theorem ofPlayer_eq_ofPlayer {p q : Player} : ofPlayer p = ofPlayer q ↔ p = q := by
+  unfold ofPlayer
+  cases p <;> cases q <;> simp +decide only
+
 end Outcome

@@ -31,6 +31,7 @@ public import CombinatorialGames.Misere.Normal
 public import CombinatorialGames.Misere.OutcomeStable
 public import CombinatorialGames.Misere.OutcomeStable.PropertyX
 public import CombinatorialGames.Misere.PFree
+public import CombinatorialGames.Misere.PFreeBlocking
 public import CombinatorialGames.Misere.PFreeDeadEnding
 public import CombinatorialGames.Misere.Preservation
 public import CombinatorialGames.Misere.Quotients

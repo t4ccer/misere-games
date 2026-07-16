@@ -1242,3 +1242,96 @@ theorem exists_leftMove_misereGE_zero_of_misereOutcome_add_neg_one_L
     apply OutcomeStable.misereGE_zero_of_misereOutcome_L (Hereditary.of_mem_moves h_g h_gl_mem)
     apply PFree.misereOutcome_of_not_winsGoingFirst (Hereditary.of_mem_moves h_g h_gl_mem).isPFree
     exact h_not_win_gl
+
+private theorem intSlashOne_misereOutcome_R {a : ℤ} (h0 : 0 ≤ a) :
+    MisereOutcome (!{{(a : GameForm)} | {1}}) = .R := by
+  rw [misereOutcome_R_iff_winsGoingFirst]
+  apply And.intro
+  · refine winsGoingFirst_of_moves ⟨1, ?_⟩
+    simp only [moves_ofSets, Set.mem_singleton_iff, Player.le_left, Player.neg_right,
+      Player.le_left_eq, true_and]
+    rw [not_winsGoingFirst_iff]
+    apply And.intro (by simp)
+    simp
+  · rw [not_winsGoingFirst_iff]
+    simp [isEnd_def, h0]
+
+theorem intSlashOne_mem
+    {A : GameForm → Prop} [ClosedUnderDicotic IsShort A] [HasInt A]
+    {n : ℤ} (h0 : -1 ≤ n) :
+    (PFreeSubset A) (!{{(n : GameForm)} | {1}}) := by
+  apply PFreeSubset.mk
+  · apply ClosedUnderDicotic.closed_dicotic (IsAmbient := IsShort) {(n : GameForm)} {1}
+    · simp only [Set.mem_singleton_iff, forall_eq, HasInt.has_int _]
+    · simp only [Set.mem_singleton_iff, forall_eq]
+      rw [<-Form.intCast_one]
+      exact HasInt.has_int _
+    · exact Set.singleton_nonempty _
+    · exact Set.singleton_nonempty _
+    · rw [isShort_def]
+      intro p; cases p
+      · simp
+      · simp
+  · unfold IsPFree
+    apply And.intro
+    · obtain ⟨rfl | h_lt⟩ := h0.eq_or_lt
+      · rw [misereOutcome_ne_P_iff_winsGoingFirst]
+        apply Or.inl
+        apply winsGoingFirst_of_moves
+        simp
+      · simp [intSlashOne_misereOutcome_R (a := n) (by omega)]
+    · intro p; cases p <;> simp
+
+theorem intSlashOne_eq_succ
+    {A : GameForm → Prop} [Hereditary A] [OutcomeStable A] [ClosedUnderDicotic IsShort A] [HasInt A]
+    [ClosedUnderNeg A] [ClosedUnderAddNat A]
+    {a : ℤ} (h0 : 0 ≤ a) :
+    (!{{(a : GameForm)} | {1}}) =m (PFreeSubset A) ((a + 1) : ℤ) := by
+  have h0' : 0 ≤ a + 1 := Int.le_add_one h0
+  have h0'' : 0 < a + 1 := Int.le_iff_lt_add_one.mp h0
+  refine MisereEq.of_antisymm ?_ ?_
+  · apply Hereditary.misereGE_of_maintenance_proviso (PFreeSubset A)
+    · simpa [Maintenance, h0'] using OutcomeStable.misereGE_of_int_le A 0 (a + 1) h0'
+    · simp only [Maintenance, moves_ofSets, Set.mem_singleton_iff, exists_eq_left]
+      intro hl h_hl
+      apply Or.inl
+      have h_hl := eq_sub_one_of_mem_leftMoves_intCast h_hl
+      rw [Int.add_sub_cancel a 1] at h_hl
+      simp [h_hl]
+    · simp [Proviso, isEnd_def]
+    · simp [Proviso, isEnd_def, h0]
+  · apply Hereditary.misereGE_of_maintenance_proviso (PFreeSubset A)
+    · simp [Maintenance, h0']
+    · simp [Maintenance, h0'']
+    · simp [Proviso, Strong]
+      intro _ x h2 h3
+      have h4 : WinsGoingFirst .right x := winsGoingFirst_of_isEnd h3
+      have h6 : MisereOutcome x ≤ .N := misereOutcome_le_N_of_winsGoingFirst_right h4
+      apply Or.elim (Outcome.le_N_eq_N_or_R h6) <;> intro h7
+      · rw [<-miserePlayerOutcome_eq_iff_winsGoingFirst]
+        exact OutcomeStable.miserePlayerOutcome_of_add_RN (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
+      · apply winsGoingFirst_right_of_misereOutcome_R
+        exact OutcomeStable.misereOutcome_of_add_RR (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
+    · simp [Proviso, isEnd_def]
+
+theorem misereGE_zero_of_misereOutcome_R
+    {U : GameForm → Prop} [OutcomeStable U]
+    {h : GameForm} (h_h : (PFreeSubset U) h) (h_out : MisereOutcome h = .R) :
+    (0 : GameForm) ≥m (PFreeSubset U) h := by
+  intro x h_x
+  rw [zero_add]
+  cases h_x_out : MisereOutcome x
+  · exact Outcome.L_ge (MisereOutcome (h + x))
+  · have := OutcomeStable.miserePlayerOutcome_of_add_RN h_h h_x h_out h_x_out
+    unfold MisereOutcome Outcome.ofPlayers
+    cases MiserePlayerOutcome (h + x) Player.left <;> simp [this]
+  · exact absurd h_x_out (misereOutcome_ne_P_of_pfree h_x)
+  · rw [OutcomeStable.misereOutcome_of_add_RR h_h h_x h_out h_x_out]
+
+theorem misereGE_of_isEnd_left_isEnd_right_int
+    {U : GameForm → Prop} [OutcomeStable U] [ClosedUnderAddNat U] [HasInt U] [ClosedUnderNeg U]
+    {g : GameForm} {n : ℤ}
+    (h_g_left : IsEnd .left g) (h_g_right : IsEnd .right g) (h_n : 0 ≤ n) :
+    g ≥m (PFreeSubset U) ((n : ℤ) : GameForm) := by
+  rw [misereGE_iff_zero_of_isEnd_left_isEnd_right h_g_left h_g_right]
+  simpa using OutcomeStable.misereGE_of_int_le U 0 n h_n

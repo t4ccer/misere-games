@@ -121,13 +121,9 @@ doc_alias lemma_4_1_mirror := misereOutcome_R_add_isEnd_right
 
 doc_alias lemma_4_2 := instOutcomeStableShortBlocking
 
-/-!
-TODO: Theorem 4.3
--/
+doc_alias lemma_4_3 := IsBlocking.strong_of_isStrongTest
 
-/-!
-TODO: Lemma 4.4
--/
+doc_alias lemma_4_4 := IsBlocking.strong_of_misereOutcome_ne_R
 
 doc_alias lemma_4_5 := instIntegerInvertibleShortBlocking
 
@@ -141,9 +137,7 @@ doc_alias lemma_4_8 := instPropertyXShortBlocking
 
 doc_alias lemma_4_9 := instClosedUnderAddPFreeBlocking
 
-/-!
-TODO: Lemma 4.10
--/
+doc_alias lemma_4_10 := IsBlocking.add_neg_self_strong_left
 
 /-!
 TODO: Proposition 4.11

@@ -257,6 +257,11 @@ theorem misereOutcome_N_iff_winsGoingFirst {g : G} :
   <;> cases h_right : MiserePlayerOutcome g .right
   <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
 
+theorem misereOutcome_ne_P_iff_winsGoingFirst {g : G} :
+    (MisereOutcome g ≠ .P) ↔ (WinsGoingFirst .right g ∨ WinsGoingFirst .left g) := by
+  have := (misereOutcome_P_iff_winsGoingFirst (g := g)).not
+  tauto
+
 /--
 If `o(x) ≥ N` then Left wins going first on `x`.
 -/
@@ -704,5 +709,20 @@ theorem winsGoingFirst_left_add_of_misereGE_zero {A : G → Prop} {g h : G}
   | R =>
     absurd h_h_left_win
     simpa using (misereOutcome_R_iff_winsGoingFirst.mp h_out).right
+
+theorem add_neg_self_misereOutcome (g : G)
+    : MisereOutcome (g + -g) = .N ∨ MisereOutcome (g + -g) = .P := by
+  by_contra! h_contra
+  have h_symm : MisereOutcome (g + -g) = Outcome.L ∨ MisereOutcome (g + -g) = Outcome.R := by
+    cases _ : MisereOutcome (g + -g) <;> tauto
+  apply Or.elim h_symm <;> intro h1
+  · have h_neg : MisereOutcome (-(g + -g)) = .R := by rwa [misereOutcome_neg_R_iff_misereOutcome]
+    rw [neg_add_rev, neg_neg, h1] at h_neg
+    absurd h_neg
+    decide
+  · have h_neg : MisereOutcome (-(g + -g)) = .L := by rwa [misereOutcome_neg_L_iff_misereOutcome]
+    rw [neg_add_rev, neg_neg, h1] at h_neg
+    absurd h_neg
+    decide
 
 end Form.Misere.Outcome

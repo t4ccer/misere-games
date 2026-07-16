@@ -6,8 +6,9 @@ Authors: Alfie Davies, Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Form.Misere.Outcome
+public import CombinatorialGames.Form.Short
 public import CombinatorialGames.GameForm
-public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
+public import CombinatorialGames.Misere.Universe
 
 open Form
 open Form.Misere.Outcome
@@ -388,6 +389,9 @@ instance [Hereditary A] : Hereditary (PFreeSubset A) where
 instance {A : GameForm → Prop} [ClosedUnderAddNat A] : ClosedUnderAddNat (PFreeSubset A) where
   has_add h1 n := ⟨ClosedUnderAddNat.has_add h1.1 n, isPFree_add_natCast h1.2 n⟩
 
+instance [Short A] : Short (PFreeSubset A) where
+  isShort h := Short.isShort h.mem
+
 end Subset
 
 namespace PFree
@@ -561,46 +565,37 @@ theorem not_isEndLike_right_add_of_L {g h : GameForm} (hAg : A g)
   rcases PFree.misereOutcome_of_isEnd_right hAg hg with h | h <;>
     simp [hLg] at h
 
-theorem isStrongTest_left {g : GameForm} (hp : IsPFree g)
-    (ho : MisereOutcome g ≠ .R) : IsStrongTest .left g := by
+protected theorem isStrongTest {p : Player} {g : GameForm} (hp : IsPFree g)
+    (ho : MisereOutcome g ≠ Outcome.ofPlayer (-p)) : IsStrongTest p g := by
   rw [isStrongTest_def]
-  by_cases hend : IsEnd .left g
+  by_cases hend : IsEnd p g
   · exact Or.inl hend
-  · have hwin : WinsGoingFirst .left g := by
+  · have hwin : WinsGoingFirst p g := by
       by_contra hnl
-      by_cases hnr : WinsGoingFirst .right g
-      · exact ho (misereOutcome_R_iff_winsGoingFirst.mpr ⟨hnr, hnl⟩)
+      by_cases hnr : WinsGoingFirst (-p) g
+      · exact ho ((misereOutcome_eq_player_iff _ (-p)).mpr ⟨hnr, by rwa [neg_neg]⟩)
       · exact (PFree.misereOutcome_ne_P_of_pfree hp)
-          ((misereOutcome_P_iff_winsGoingFirst' (p := .left)).mpr ⟨hnl, hnr⟩)
+          ((misereOutcome_P_iff_winsGoingFirst' (p := p)).mpr ⟨hnl, hnr⟩)
     rw [winsGoingFirst_iff] at hwin
     obtain ⟨gl, hgl, hglnr⟩ := hwin.resolve_left (by simpa [isEndLike_iff_isEnd] using hend)
-    rw [Player.neg_left] at hglnr
     have hglp : IsPFree gl := isPFree_of_mem_moves hp hgl
-    have hglL : MisereOutcome gl = .L := by
-      rw [misereOutcome_L_iff_winsGoingFirst]
+    have hglL : MisereOutcome gl = Outcome.ofPlayer p := by
+      rw [misereOutcome_eq_player_iff]
       refine ⟨?_, hglnr⟩
       by_contra hnl2
       exact (PFree.misereOutcome_ne_P_of_pfree hglp)
-        ((misereOutcome_P_iff_winsGoingFirst' (p := .left)).mpr ⟨hnl2, hglnr⟩)
+        ((misereOutcome_P_iff_winsGoingFirst' (p := p)).mpr ⟨hnl2, hglnr⟩)
     refine Or.inr ⟨gl, hgl, hglL, ?_, ?_⟩
-    · exact isStrongTest_left hglp (by rw [hglL]; decide)
+    · exact PFree.isStrongTest hglp (by simp [hglL])
     · intro glr hglr
-      rw [Player.neg_left] at hglr
-      have hglrwin : WinsGoingFirst .left glr := (not_winsGoingFirst_iff.mp hglnr).2 glr hglr
+      have hglrwin : WinsGoingFirst (- - p) glr := (not_winsGoingFirst_iff.mp hglnr).2 glr hglr
       have hglrp : IsPFree glr := isPFree_of_mem_moves hglp hglr
-      have hglrR : MisereOutcome glr ≠ .R := fun hR =>
-        (misereOutcome_R_iff_winsGoingFirst.mp hR).2 hglrwin
-      exact isStrongTest_left hglrp hglrR
+      have hglrR : MisereOutcome glr ≠ Outcome.ofPlayer (-p) := by
+        intro hR
+        exact ((misereOutcome_eq_player_iff glr (-p)).mp hR).2 hglrwin
+      exact PFree.isStrongTest hglrp hglrR
 termination_by g
 decreasing_by form_wf
-
-theorem isStrongTest_right {g : GameForm} (h_isPFree : IsPFree g)
-    (h_outcome : MisereOutcome g ≠ .L) : IsStrongTest .right g := by
-  apply (IsStrongTest.neg_iff (p := .left) (g := g)).mp
-  apply isStrongTest_left
-  · exact ClosedUnderNeg.neg_of h_isPFree
-  · rw [Ne, misereOutcome_neg_R_iff_misereOutcome]
-    exact h_outcome
 
 theorem misereOutcome_of_not_winsGoingFirst {g : GameForm}
     (h_pfree : IsPFree g) (h_not_right : ¬WinsGoingFirst .right g) : MisereOutcome g = .L := by
@@ -608,5 +603,67 @@ theorem misereOutcome_of_not_winsGoingFirst {g : GameForm}
   refine ⟨?_, h_not_right⟩
   by_contra h_not_left
   exact misereOutcome_ne_P_of_pfree h_pfree (misereOutcome_P_iff_winsGoingFirst.mpr ⟨h_not_right, h_not_left⟩)
+
+theorem pfreeSubset_short_ofSets {L R : Set GameForm} [Small.{u} L] [Small.{u} R]
+    {A : GameForm → Prop} [ClosedUnderDicotic IsShort A] [Short A]
+    (h_L_mem : ∀ gl ∈ L, (PFreeSubset A) gl) (h_R_mem : ∀ gr ∈ R, (PFreeSubset A) gr)
+    (h_L_nonempty : L.Nonempty) (h_L_finite : L.Finite)
+    (h_R_nonempty : R.Nonempty) (h_R_finite : R.Finite)
+    (h_outcome_ne_P : MisereOutcome (!{L | R}) ≠ .P) :
+    (PFreeSubset A) (!{L | R}) := by
+  have h_moves : ∀ p x, x ∈ moves p (!{L | R}) → (PFreeSubset A) x := by
+    intro p x h_x_mem
+    cases p
+    · rw [leftMoves_ofSets] at h_x_mem; exact h_L_mem x h_x_mem
+    · rw [rightMoves_ofSets] at h_x_mem; exact h_R_mem x h_x_mem
+  apply PFreeSubset.mk
+  · refine ClosedUnderDicotic.closed_dicotic (IsAmbient := IsShort)
+             L R ?_ ?_ h_L_nonempty h_R_nonempty ?_
+    · intro gl h_gl_mem
+      exact (h_L_mem gl h_gl_mem).mem
+    · intro gr h_gr_mem
+      exact (h_R_mem gr h_gr_mem).mem
+    · refine IsShort.ofSets h_L_finite ?_ h_R_finite ?_
+      · intro gl h_gl_mem
+        exact Short.isShort (h_L_mem gl h_gl_mem).mem
+      · intro gr h_gr_mem
+        exact Short.isShort (h_R_mem gr h_gr_mem).mem
+  · unfold IsPFree
+    refine ⟨h_outcome_ne_P, ?_⟩
+    intro p gp h_gp_mem
+    exact (h_moves p gp h_gp_mem).isPFree
+
+/--
+If `MisereOutcome H = L` then `0 ≥m H` *fails*, immediately from testing at `x = 0`
+(`MisereOutcome 0 = N` is not `≥ L`, since `L` is the top of the outcome order). -/
+theorem not_misereGE_zero_of_misereOutcome_L
+    {U : GameForm → Prop} [HasInt U]
+    {h : GameForm} (h_out : MisereOutcome h = .L) :
+    ¬ (0 : GameForm) ≥m (PFreeSubset U) h := by
+  intro hge
+  have h_zero_mem : (PFreeSubset U) (0 : GameForm) := by
+    have := HasInt.has_int (A := PFreeSubset U) 0
+    rwa [Form.intCast_zero] at this
+  have := hge 0 h_zero_mem
+  rw [zero_add, add_zero, misereOutcome_zero_N, h_out] at this
+  exact absurd this (by decide)
+
+/--
+If `g` is both a Left and a Right end then `g = 0` literally (`both_ends_eq_zero`), so comparing
+against `g` is just comparing against `0`. -/
+theorem misereGE_iff_zero_of_isEnd_left_isEnd_right
+    {U : GameForm → Prop} {g h : GameForm}
+    (h_g_left : IsEnd .left g) (h_g_right : IsEnd .right g) :
+    g ≥m (PFreeSubset U) h ↔ (0 : GameForm) ≥m (PFreeSubset U) h := by
+  rw [both_ends_eq_zero h_g_left h_g_right]
+
+/-- If `H` is both a Left and a Right end then `H = 0`, so `0 ≥m H` is `0 ≥m 0`, true by
+reflexivity. -/
+theorem misereGE_zero_of_isEnd_left_isEnd_right
+    {U : GameForm → Prop} {h : GameForm}
+    (h_h_left : IsEnd .left h) (h_h_right : IsEnd .right h) :
+    (0 : GameForm) ≥m (PFreeSubset U) h := by
+  rw [both_ends_eq_zero h_h_left h_h_right]
+  exact MisereGE.refl 0
 
 end PFree
