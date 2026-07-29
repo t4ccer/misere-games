@@ -150,9 +150,11 @@ instance instLE : LE (MisereQuotient A) where
       apply propext
       constructor
       · intro hge
-        exact misereGE_rw_left hh (misereGE_rw_right (MisereEQ.symm hg) hge)
+        dsimp only at hge ⊢
+        rwa [misereGE_rw_left_iff hh, misereGE_rw_right_iff hg] at hge
       · intro hge
-        exact misereGE_rw_left (MisereEQ.symm hh) (misereGE_rw_right hg hge)
+        dsimp only at hge ⊢
+        rwa [misereGE_rw_left_iff hh, misereGE_rw_right_iff hg]
 
 theorem mk_le_mk (g h : {g : G // A g}) : mk g ≤ mk h ↔ (h : G) ≥m A (g : G) :=
   Iff.rfl

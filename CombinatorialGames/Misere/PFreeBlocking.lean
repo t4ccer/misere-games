@@ -1040,8 +1040,8 @@ private lemma maintenance_of_misereGE_int_right
         exact h_not_ge_one
     · refine downlinked_intCast_of_not_leftMoves_misereGE (n := n) h_gr_pf h_end h_n ?_
       intro grl hgrl h_gl_ge
-      have := (misereGE_rw_right (IntegerInvertible.reduction_pred_intCast_slash_one h_n) h_gl_ge)
-      exact h_contra.right grl hgrl this
+      rw [<-misereGE_rw_right_iff (IntegerInvertible.reduction_pred_intCast_slash_one h_n)] at h_gl_ge
+      exact h_contra.right grl hgrl h_gl_ge
   exact (Form.not_downlinked_right_option_of_misereGE h_ge h_gr_mem) h_downlinked
 
 theorem misereGE_iff_promain_not_isEnd_left_int
@@ -1054,7 +1054,7 @@ theorem misereGE_iff_promain_not_isEnd_left_int
   constructor
   · intro h_ge
     unfold Promain.Test
-    have := misereGE_rw_right (IntegerInvertible.reduction_pred_intCast_slash_one h_n) h_ge
+    have := (misereGE_rw_right_iff (IntegerInvertible.reduction_pred_intCast_slash_one h_n)).mpr h_ge
     exact ⟨ maintenance_of_misereGE_int_right h_n h_g h_ge
           , maintenance_of_misereGE_int_left h_n h_g h_g_not_isEnd h_ge
           , proviso_right_of_misereGE this
@@ -1062,7 +1062,7 @@ theorem misereGE_iff_promain_not_isEnd_left_int
           ⟩
   · intro ⟨h1, h2, h3, h4⟩
     have := MisereEQ.symm (IntegerInvertible.reduction_pred_intCast_slash_one (A := U) h_n)
-    apply misereGE_rw_right this
+    rw [misereGE_rw_right_iff this]
     refine Hereditary.misereGE_of_maintenance_proviso (PFreeSubset U) h1 h2 h3 h4
 
 private lemma maintenance_of_misereGE_not_isEnd_left_left
@@ -1089,7 +1089,7 @@ theorem misereGE_iff_promain_not_isEnd_left_left
   have h_h_eq_plugged := Blocking.reduction_plug_end_not_isEnd_left h_h h_h_isEnd h_h_not_isEnd
   constructor
   · intro hge
-    have hge' := misereGE_rw_right h_h_eq_plugged.symm hge
+    have hge' := (misereGE_rw_right_iff h_h_eq_plugged.symm).mpr hge
     refine ⟨?_, ?_, proviso_right_of_misereGE hge', proviso_left_of_misereGE hge'⟩
     · intro gr h_gr_mem
       by_contra h_not
@@ -1115,7 +1115,8 @@ theorem misereGE_iff_promain_not_isEnd_left_left
         h_g_not_isEnd h_no_gl h_no_hlr
       exact not_downlinked_left_option_of_misereGE hge h_hl_mem h_dl
   · intro ⟨h1, h2, h3, h4⟩
-    exact misereGE_rw_right h_h_eq_plugged (Hereditary.misereGE_of_maintenance_proviso (PFreeSubset U) h1 h2 h3 h4)
+    rw [misereGE_rw_right_iff h_h_eq_plugged]
+    exact (Hereditary.misereGE_of_maintenance_proviso (PFreeSubset U) h1 h2 h3 h4)
 
 theorem misereGE_iff_promain_not_isEnd_right_right
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
@@ -1132,12 +1133,11 @@ theorem misereGE_iff_promain_not_isEnd_right_right
     simp [isEnd_def]
   constructor
   · intro hge
-    exact (misereGE_iff_promain_not_isEnd_left_right h_g_plugged_mem h_h h_g_plugged_not_left
-      h_h_not_isEnd).mp (misereGE_rw_left h_g_eq_plugged hge)
+    rwa [<-misereGE_iff_promain_not_isEnd_left_right h_g_plugged_mem h_h h_g_plugged_not_left h_h_not_isEnd,
+         <-misereGE_rw_left_iff h_g_eq_plugged]
   · intro htest
-    exact misereGE_rw_left h_g_eq_plugged.symm
-      ((misereGE_iff_promain_not_isEnd_left_right h_g_plugged_mem h_h h_g_plugged_not_left
-        h_h_not_isEnd).mpr htest)
+    rwa [misereGE_rw_left_iff h_g_eq_plugged,
+         misereGE_iff_promain_not_isEnd_left_right h_g_plugged_mem h_h h_g_plugged_not_left h_h_not_isEnd]
 
 theorem misereGE_iff_promain_not_isEnd_right_int
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
@@ -1155,11 +1155,11 @@ theorem misereGE_iff_promain_not_isEnd_right_int
     simp [isEnd_def]
   constructor
   · intro hge
-    exact (misereGE_iff_promain_not_isEnd_left_int h_n h_g_plugged_mem h_g_plugged_not_left).mp
-      (misereGE_rw_left h_g_eq_plugged hge)
+    rwa [<-misereGE_iff_promain_not_isEnd_left_int h_n h_g_plugged_mem h_g_plugged_not_left,
+        <-misereGE_rw_left_iff h_g_eq_plugged]
   · intro htest
-    exact misereGE_rw_left h_g_eq_plugged.symm
-      ((misereGE_iff_promain_not_isEnd_left_int h_n h_g_plugged_mem h_g_plugged_not_left).mpr htest)
+    rwa [misereGE_rw_left_iff h_g_eq_plugged,
+         misereGE_iff_promain_not_isEnd_left_int h_n h_g_plugged_mem h_g_plugged_not_left]
 
 theorem misereGE_iff_promain_not_isEnd_right_left
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
@@ -1177,12 +1177,11 @@ theorem misereGE_iff_promain_not_isEnd_right_left
     simp [isEnd_def]
   constructor
   · intro hge
-    exact (misereGE_iff_promain_not_isEnd_left_left h_g_plugged_mem h_h h_g_plugged_not_left
-      h_h_not_isEnd h_h_isEnd).mp (misereGE_rw_left h_g_eq_plugged hge)
+    rwa [<-misereGE_iff_promain_not_isEnd_left_left h_g_plugged_mem h_h h_g_plugged_not_left h_h_not_isEnd h_h_isEnd,
+         <-misereGE_rw_left_iff h_g_eq_plugged]
   · intro htest
-    exact misereGE_rw_left h_g_eq_plugged.symm
-      ((misereGE_iff_promain_not_isEnd_left_left h_g_plugged_mem h_h h_g_plugged_not_left
-        h_h_not_isEnd h_h_isEnd).mpr htest)
+    rwa [misereGE_rw_left_iff h_g_eq_plugged,
+         misereGE_iff_promain_not_isEnd_left_left h_g_plugged_mem h_h h_g_plugged_not_left h_h_not_isEnd h_h_isEnd]
 
 theorem misereGE_iff_promain_zero_left
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
@@ -1237,24 +1236,6 @@ theorem misereEQ_dropEnds_of_dominated
           rw [Form.intCast_zero] at h2
           exact MisereGE.trans h2 h1
     · exact ⟨hl, Set.mem_sep h_hl_mem h_hl_end_right, MisereGE.refl hl⟩
-
--- TODO: Move
-theorem misereGE_rw_right_iff
-    {A : GameForm → Prop} {a b c : GameForm} (h_eq : b =m A c) : (a ≥m A b) ↔ (a ≥m A c) := by
-  constructor
-  · intro h_ge
-    exact misereGE_rw_right h_eq.symm h_ge
-  · intro h_ge
-    exact misereGE_rw_right h_eq h_ge
-
--- TODO: Move
-theorem misereGE_rw_left_iff
-    {A : GameForm → Prop} {a b c : GameForm} (h_eq : b =m A c) : (b ≥m A a) ↔ (c ≥m A a) := by
-  constructor
-  · intro h_ge
-    exact misereGE_rw_left h_eq h_ge
-  · intro h_ge
-    exact misereGE_rw_left h_eq.symm h_ge
 
 theorem misereGE_zero_iff_promain_of_misereOutcome_N
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]

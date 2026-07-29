@@ -290,8 +290,8 @@ private theorem exists_intCast_of_options_misereEQ {g : GameForm.{u}}
     intro gr h_gr_mem
     obtain ⟨a, ha⟩ := h_mem_right gr h_gr_mem
     have h_M_le_a : M ≤ a := h_M_le a ⟨gr, h_gr_mem, ha⟩
-    exact misereGE_rw_left (MisereEQ.symm ha)
-      (PFreeDeadEnding.misereGE_of_int_le (-M : ℤ) (-a : ℤ) (by omega))
+    rw [misereGE_rw_left_iff ha]
+    exact PFreeDeadEnding.misereGE_of_int_le (-M : ℤ) (-a : ℤ) (by omega)
   exact ⟨M + 1, by simpa [neg_add_eq_sub] using h_misereEQ⟩
 
 /--

@@ -416,19 +416,35 @@ theorem MisereGE.trans {A : G → Prop} {g h k : G} (h1 : g ≥m A h) (h2 : h �
   intro x h3
   exact le_trans (h2 x h3) (h1 x h3)
 
-theorem misereGE_rw_left {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : b ≥m A a) : c ≥m A a := by
+private theorem misereGE_rw_left.aux {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : b ≥m A a) : c ≥m A a := by
   unfold MisereGE at h1 ⊢
   unfold MisereEQ at h2
   intro x hx
   rw [<-h2 x hx]
   exact h1 x hx
 
-theorem misereGE_rw_right {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : a ≥m A c) : a ≥m A b := by
+theorem misereGE_rw_left_iff
+    {A : G → Prop} {a b c : G} (h_eq : b =m A c) : (b ≥m A a) ↔ (c ≥m A a) := by
+  constructor
+  · intro h_ge
+    exact misereGE_rw_left.aux h_eq h_ge
+  · intro h_ge
+    exact misereGE_rw_left.aux h_eq.symm h_ge
+
+private theorem misereGE_rw_right.aux {A : G → Prop} {a b c : G} (h2 : b =m A c) (h1 : a ≥m A c) : a ≥m A b := by
   unfold MisereGE at h1 ⊢
   unfold MisereEQ at h2
   intro x hx
   rw [h2 x hx]
   exact h1 x hx
+
+theorem misereGE_rw_right_iff
+    {A : G → Prop} {a b c : G} (h_eq : b =m A c) : (a ≥m A b) ↔ (a ≥m A c) := by
+  constructor
+  · intro h_ge
+    exact misereGE_rw_right.aux h_eq.symm h_ge
+  · intro h_ge
+    exact misereGE_rw_right.aux h_eq h_ge
 
 theorem misereGE_of_misereEQ {A : G → Prop} {g h : G} (h1 : g =m A h) : g ≥m A h := by
   intro x hx
