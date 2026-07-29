@@ -403,65 +403,57 @@ instance : IntegerInvertible ShortBlocking where
 
 mutual
 
-private theorem isBlockedEnd_left_strongTest_winsGoingFirst {x g : GameForm}
-    (hx : IsBlockedEnd .left x) (ht : IsStrongTest .left g) :
-    WinsGoingFirst .left (g + x) := by
-  have hxe : IsEnd .left x := isEnd_of_isBlockedEnd hx
+private theorem isBlockedEnd_strongTest_winsGoingFirst {p : Player} {x g : GameForm}
+    (hx : IsBlockedEnd p x) (ht : IsStrongTest p g) :
+    WinsGoingFirst p (g + x) := by
+  have hxe : IsEnd p x := isEnd_of_isBlockedEnd hx
   rw [isStrongTest_def] at ht
   rcases ht with hge | ⟨gl, hgl, hout, htgl, hgr⟩
   · exact winsGoingFirst_of_isEnd (IsEnd.add_iff.mpr ⟨hge, hxe⟩)
   · apply winsGoingFirst_of_moves
     refine ⟨gl + x, add_right_mem_moves_add hgl x, ?_⟩
-    rw [Player.neg_left]
-    apply isBlockedEnd_left_strongTest_not_winsGoingFirst hx hout htgl
+    apply isBlockedEnd_strongTest_not_winsGoingFirst hx hout htgl
     intro gr hgr'
-    exact hgr gr (by rw [Player.neg_left]; exact hgr')
+    exact hgr gr hgr'
 termination_by (x, g)
 decreasing_by form_wf
 
-private theorem isBlockedEnd_left_strongTest_not_winsGoingFirst {x g : GameForm}
-    (hx : IsBlockedEnd .left x) (hout : MisereOutcome g = .L)
-    (ht : IsStrongTest .left g)
-    (hr : ∀ gr ∈ moves .right g, IsStrongTest .left gr) :
-    ¬ WinsGoingFirst .right (g + x) := by
+private theorem isBlockedEnd_strongTest_not_winsGoingFirst {p : Player}  {x g : GameForm}
+    (hx : IsBlockedEnd p x) (hout : MisereOutcome g = Outcome.ofPlayer p)
+    (ht : IsStrongTest p g)
+    (hr : ∀ gr ∈ moves (-p) g, IsStrongTest p gr) :
+    ¬ WinsGoingFirst (-p) (g + x) := by
   rw [not_winsGoingFirst_iff]
   refine ⟨?_, ?_⟩
   · rw [GameForm.isEndLike_iff_isEnd, IsEnd.add_iff]
     rintro ⟨hgend, _⟩
-    exact (misereOutcome_L_iff_winsGoingFirst.mp hout).right
+    exact ((misereOutcome_eq_player_iff g p).mp hout).right
       (winsGoingFirst_of_isEnd hgend)
   · intro y hy
-    rw [Player.neg_right]
+    rw [neg_neg]
     rw [moves_add] at hy
     rcases hy with ⟨gr, hgr, rfl⟩ | ⟨xr, hxr, rfl⟩
-    · exact isBlockedEnd_left_strongTest_winsGoingFirst hx (hr gr hgr)
+    · exact isBlockedEnd_strongTest_winsGoingFirst hx (hr gr hgr)
     · rcases IsBlockedEnd.hereditary_def hx xr hxr with hxrbe | ⟨xrl, hxrl, hxrlbe⟩
-      · exact isBlockedEnd_left_strongTest_winsGoingFirst hxrbe ht
+      · exact isBlockedEnd_strongTest_winsGoingFirst hxrbe ht
       · apply winsGoingFirst_of_moves
         exact ⟨g + xrl, add_left_mem_moves_add hxrl g,
-          isBlockedEnd_left_strongTest_not_winsGoingFirst hxrlbe hout ht hr⟩
+          isBlockedEnd_strongTest_not_winsGoingFirst hxrlbe hout ht hr⟩
 termination_by (x, g)
 decreasing_by form_wf
 
 end
 
-private theorem IsBlocking.left_strong_of_isStrongTest {g : GameForm}
-    (h_test : IsStrongTest .left g) :
-    Strong IsBlocking g .left := by
-  intro x hx h_isEnd
-  rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
-  exact isBlockedEnd_left_strongTest_winsGoingFirst (isBlockedEnd_of_isBlocking hx h_isEnd) h_test
-
 /--
 This is one direction of [Davies, Milley (Theorem 3.1 on p. 7)][davies:OrderInversesMonoid:2026]
 -/
-theorem IsBlocking.strong_of_isStrongTest {p : Player} {g : GameForm}
-    (h_test : IsStrongTest p g) :
-    Strong IsBlocking g p := by
-  cases p
-  · exact left_strong_of_isStrongTest h_test
-  · rw [<-neg_neg g, IsStrongTest.neg_iff, Player.neg_right] at h_test
-    rw [<-neg_neg g, Strong.neg_iff, Player.neg_right]
-    exact left_strong_of_isStrongTest h_test
+theorem IsBlocking.strong_of_isStrongTest
+    {A : GameForm → Prop} [Blocking A]
+    {p : Player} {g : GameForm} (h_test : IsStrongTest p g) :
+    Strong A g p := by
+  intro x hx h_isEnd
+  rw [GameForm.isEndLike_iff_isEnd] at h_isEnd
+  have h_blockedEnd := (isBlockedEnd_of_isBlocking (Blocking.isBlocking hx) h_isEnd)
+  exact isBlockedEnd_strongTest_winsGoingFirst h_blockedEnd h_test
 
 end GameForm
