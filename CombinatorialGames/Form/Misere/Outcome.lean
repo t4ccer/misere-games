@@ -257,6 +257,12 @@ theorem misereOutcome_N_iff_winsGoingFirst {g : G} :
   <;> cases h_right : MiserePlayerOutcome g .right
   <;> simp [MisereOutcome, Outcome.ofPlayers, h_left, h_right]
 
+theorem misereOutcome_N_iff_winsGoingFirst' {g : G} {p : Player} :
+    (MisereOutcome g = .N) ↔ (WinsGoingFirst p g ∧ WinsGoingFirst (-p) g) := by
+  cases p
+  · exact misereOutcome_N_iff_winsGoingFirst
+  · rw [misereOutcome_N_iff_winsGoingFirst, Player.neg_right, and_comm]
+
 theorem misereOutcome_ne_P_iff_winsGoingFirst {g : G} :
     (MisereOutcome g ≠ .P) ↔ (WinsGoingFirst .right g ∨ WinsGoingFirst .left g) := by
   have := (misereOutcome_P_iff_winsGoingFirst (g := g)).not

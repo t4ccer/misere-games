@@ -157,7 +157,7 @@ theorem pf_misereOutcome_add_L_of_LTippingPoint_lt_NTippingPoint {g h : GameForm
   have hAgl := ClosedUnderAddNat.has_add hAg l
   have hAhl := ClosedUnderAddNat.has_add_neg hAh l
   rw [hshift]
-  exact OutcomeStable.misereOutcome_of_add_LL hAgl hAhl hGL hHL
+  exact OutcomeStable.misereOutcome_of_add_ofPlayer (p := .left) hAgl hAhl hGL hHL
 
 /--
 If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
@@ -182,7 +182,7 @@ theorem pf_misereOutcome_add_N_of_RTippingPoint_lt_LTippingPoint {g h : GameForm
   simp only [Form.intCast_nat] at hshift
   have h_lower := misereOutcome_add_ge_N_of_misereOutcome_L_left hAg hAh hLg (Or.inl hNh)
   rw [hshift]
-  rcases OutcomeStable.misereOutcome_of_add_RN hAgr hAhr hR hN with hc | hc
+  rcases OutcomeStable.misereOutcome_of_add_ofPlayer_N (p := .right) hAgr hAhr hR hN with hc | hc
   · exact hc
   · rw [hshift, hc] at h_lower
     exact absurd h_lower (by decide)

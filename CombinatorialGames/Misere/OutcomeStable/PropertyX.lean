@@ -375,7 +375,7 @@ private theorem lemma317_add_left_option_R_eq_L {g h hl : GameForm}
   · have hbd : birthday g + birthday hl < birthday g + birthday h :=
       birthday_add_lt_right (birthday_lt_of_mem_moves hl_mem)
     rcases hcase : MisereOutcome hl with _ | _ | _ | _
-    · exact OutcomeStable.misereOutcome_of_add_LL hAg hAhl hLg hcase
+    · exact OutcomeStable.misereOutcome_of_add_ofPlayer (p := .left) hAg hAhl hLg hcase
     · exact (IH g hl hsg (IsShort.of_mem_moves hsh hl_mem) hAg hAhl hbd).p1a hLg hcase
         he.symm
     · exact absurd hcase (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAhl.isPFree)
@@ -551,7 +551,7 @@ theorem misereOutcome_ne_P_of_propertyX {g h : GameForm}
   have hmain : MisereOutcome (g + h) ≥ .N ∨ MisereOutcome (g + h) ≤ .N := by
     rcases hg : MisereOutcome g with _ | _ | _ | _
     · rcases hh : MisereOutcome h with _ | _ | _ | _
-      · exact Or.inl (by rw [OutcomeStable.misereOutcome_of_add_LL hAg hAh hg hh]; decide)
+      · exact Or.inl (by rw [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .left) hAg hAh hg hh]; decide)
       · exact Or.inl (misereOutcome_add_ge_N_of_misereOutcome_L_left hAg hAh hg (Or.inl hh))
       · exact absurd hh (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAh.isPFree)
       · exact lr g h hAg hAh hsg hsh hg hh
@@ -567,17 +567,17 @@ theorem misereOutcome_ne_P_of_propertyX {g h : GameForm}
       · exact absurd hh (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAh.isPFree)
       · refine Or.inr ?_
         rw [add_comm]
-        rcases OutcomeStable.misereOutcome_of_add_RN hAh hAg hh hg with h' | h'
+        rcases OutcomeStable.misereOutcome_of_add_ofPlayer_N (p := .right) hAh hAg hh hg with h' | h'
         <;> simp +decide only [h']
     · exact absurd hg (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAg.isPFree)
     · rcases hh : MisereOutcome h with _ | _ | _ | _
       · have := lr h g hAh hAg hsh hsg hh hg
         rwa [add_comm] at this
       · refine Or.inr ?_
-        rcases OutcomeStable.misereOutcome_of_add_RN hAg hAh hg hh with h' | h'
+        rcases OutcomeStable.misereOutcome_of_add_ofPlayer_N (p := .right) hAg hAh hg hh with h' | h'
         <;> simp +decide only [h']
       · exact absurd hh (PFree.misereOutcome_ne_P_of_pfree (A := IsPFree) hAh.isPFree)
-      · exact Or.inr (by rw [OutcomeStable.misereOutcome_of_add_RR hAg hAh hg hh]; decide)
+      · exact Or.inr (by rw [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .right) hAg hAh hg hh]; decide)
   intro hP
   rcases hmain with h | h <;> rw [hP] at h <;> exact absurd h (by decide)
 

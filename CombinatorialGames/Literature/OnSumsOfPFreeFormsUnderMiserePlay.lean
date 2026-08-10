@@ -116,8 +116,8 @@ doc_alias corollary_3_21 := isPFree_of_subset_propertyX
 ## 4. Blocking games: an application
 -/
 
-doc_alias lemma_4_1 := misereOutcome_L_add_isEnd_left
-doc_alias lemma_4_1_mirror := misereOutcome_R_add_isEnd_right
+doc_alias lemma_4_1 := misereOutcome_ofPlayer_add_isEnd
+doc_alias lemma_4_1_mirror := misereOutcome_ofPlayer_add_isEnd
 
 doc_alias lemma_4_2 := instOutcomeStableShortBlocking
 

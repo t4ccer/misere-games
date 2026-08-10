@@ -22,52 +22,35 @@ This is [Davies, Miller, Milley (Definition 3.4 on p.
 9)][davies:SumsPFreeForms:2025].
 -/
 class OutcomeStable {G : Type (u + 1)} [Form G] (A : G → Prop) where
-  misereOutcome_of_add_LL {g h : G}
+  misereOutcome_of_add_ofPlayer {p : Player} {g h : G}
       (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-      (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .L) :
-    MisereOutcome (g + h) = .L
-  misereOutcome_of_add_RR {g h : G}
+      (h3 : MisereOutcome g = Outcome.ofPlayer p) (h4 : MisereOutcome h = Outcome.ofPlayer p) :
+    MisereOutcome (g + h) = Outcome.ofPlayer p
+  miserePlayerOutcome_of_add_ofPlayer {p : Player} {g h : G}
       (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-      (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .R) :
-    MisereOutcome (g + h) = .R
-  miserePlayerOutcome_of_add_LN {g h : G}
-      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-      (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
-    MiserePlayerOutcome (g + h) .left = .left
-  miserePlayerOutcome_of_add_RN {g h : G}
-      (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-      (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
-    MiserePlayerOutcome (g + h) .right = .right
+      (h3 : MisereOutcome g = Outcome.ofPlayer p) (h4 : MisereOutcome h = .N) :
+    MiserePlayerOutcome (g + h) p = p
 
 instance {G : Type (u + 1)} [Form G] (A : G → Prop) [OutcomeStable A] : OutcomeStable (PFreeSubset A) where
-  misereOutcome_of_add_LL h1 h2 h3 h4 :=
-    OutcomeStable.misereOutcome_of_add_LL h1.mem h2.mem h3 h4
-  misereOutcome_of_add_RR h1 h2 h3 h4 :=
-    OutcomeStable.misereOutcome_of_add_RR h1.mem h2.mem h3 h4
-  miserePlayerOutcome_of_add_LN h1 h2 h3 h4 :=
-    OutcomeStable.miserePlayerOutcome_of_add_LN h1.mem h2.mem h3 h4
-  miserePlayerOutcome_of_add_RN h1 h2 h3 h4 :=
-    OutcomeStable.miserePlayerOutcome_of_add_RN h1.mem h2.mem h3 h4
+  misereOutcome_of_add_ofPlayer h1 h2 h3 h4 :=
+    OutcomeStable.misereOutcome_of_add_ofPlayer h1.mem h2.mem h3 h4
+  miserePlayerOutcome_of_add_ofPlayer h1 h2 h3 h4 :=
+    OutcomeStable.miserePlayerOutcome_of_add_ofPlayer h1.mem h2.mem h3 h4
 
 namespace OutcomeStable
 
-theorem misereOutcome_of_add_LN {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
-    {g h : G} (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-    (h3 : MisereOutcome g = .L) (h4 : MisereOutcome h = .N) :
-    MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .L := by
-  have h5 := miserePlayerOutcome_of_add_LN h1 h2 h3 h4
-  simp only [MisereOutcome, Outcome.ofPlayers, h5]
-  cases MiserePlayerOutcome (g + h) Player.right
-  <;> simp only [reduceCtorEq, or_true, or_false]
-
-theorem misereOutcome_of_add_RN {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
-    {g h : G} (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
-    (h3 : MisereOutcome g = .R) (h4 : MisereOutcome h = .N) :
-    MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = .R := by
-  have h5 := miserePlayerOutcome_of_add_RN h1 h2 h3 h4
-  simp only [MisereOutcome, Outcome.ofPlayers, h5]
-  cases MiserePlayerOutcome (g + h) Player.left
-  <;> simp only [reduceCtorEq, or_true, or_false]
+theorem misereOutcome_of_add_ofPlayer_N {G : Type (u + 1)} [Form G] {A : G → Prop} [OutcomeStable A]
+    {p : Player} {g h : G} (h1 : (PFreeSubset A) g) (h2 : (PFreeSubset A) h)
+    (h3 : MisereOutcome g = Outcome.ofPlayer p) (h4 : MisereOutcome h = .N) :
+    MisereOutcome (g + h) = .N ∨ MisereOutcome (g + h) = Outcome.ofPlayer p := by
+  have h5 := miserePlayerOutcome_of_add_ofPlayer h1 h2 h3 h4
+  cases p
+  · simp only [MisereOutcome, Outcome.ofPlayers, Outcome.ofPlayer, h5]
+    cases MiserePlayerOutcome (g + h) Player.right
+    <;> simp only [reduceCtorEq, or_true, or_false]
+  · simp only [MisereOutcome, Outcome.ofPlayers, Outcome.ofPlayer, h5]
+    cases MiserePlayerOutcome (g + h) Player.left
+    <;> simp only [reduceCtorEq, or_true, or_false]
 
 /--
 If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{N}$ then $0
@@ -82,11 +65,12 @@ theorem zero_misereGE_one {A : GameForm → Prop}
   rw [zero_add]
   cases h2 : MisereOutcome x
   · exact Outcome.L_ge (MisereOutcome (1 + x))
-  · have h3 := misereOutcome_of_add_RN HasNat.one h1 one_misereOutcome_R h2
-    apply Or.elim h3 <;> intro h3 <;> simp only [h3, ge_iff_le, le_refl, Outcome.ge_R]
+  · have h3 := misereOutcome_of_add_ofPlayer_N (p := .right) HasNat.one h1 one_misereOutcome_R h2
+    apply Or.elim h3 <;> intro h3 <;>
+      simp only [h3, ge_iff_le, le_refl, Outcome.ge_R, Outcome.ofPlayer]
   · exact False.elim (misereOutcome_ne_P_of_pfree h1 h2)
-  · have h3 := misereOutcome_of_add_RR HasNat.one h1 one_misereOutcome_R h2
-    rw [h3]
+  · have h3 := misereOutcome_of_add_ofPlayer (p := .right) HasNat.one h1 one_misereOutcome_R h2
+    simp [h3]
 
 /--
 If $\mathcal{A}$ is outcome-stable, $n \in \mathbb{N}$ then $n
@@ -110,15 +94,16 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
           exact this.mem
         have h_pfree_nx := isPFree_add_natCast h2.isPFree n
         rw [add_comm] at h_pfree_nx
-        have h5 := misereOutcome_of_add_RN (A := A)
+        have h5 := misereOutcome_of_add_ofPlayer_N (p := .right) (A := A)
           HasNat.one (PFreeSubset.mk h_A_nx h_pfree_nx)
           one_misereOutcome_R h4
         rw [add_comm]
-        apply Or.elim h5 <;> intro h5 <;> simp only [ge_iff_le, Outcome.ge_R, le_refl, h5]
+        apply Or.elim h5 <;> intro h5 <;>
+          simp only [ge_iff_le, Outcome.ge_R, le_refl, h5, Outcome.ofPlayer]
       · exact False.elim (misereOutcome_ne_P_of_pfree ((isPFree_natCast_add (PFree.pfree h2)) n) h4)
       · simp only [ge_iff_le, Outcome.le_R_iff]
         exact misereOutcome_add_one_R_of_misereOutcome_R (isPFree_natCast_add (PFree.pfree h2) n) h4
-    · have h4 := misereOutcome_of_add_RN
+    · have h4 := misereOutcome_of_add_ofPlayer_N (p := .right)
         (HasNat.has_nat n) h2
         ((misereOutcome_R_natCast_iff _).mpr h1) h3
       apply Or.elim h4 <;> intro h4
@@ -128,18 +113,18 @@ theorem nat_misereGE_one_add (A : GameForm → Prop)
           exact this.mem
         have h_pfree_nx := isPFree_add_natCast h2.isPFree n
         rw [add_comm] at h_pfree_nx
-        have h5 := misereOutcome_of_add_RN
+        have h5 := misereOutcome_of_add_ofPlayer_N (p := .right)
           HasNat.one (PFreeSubset.mk h_A_nx h_pfree_nx)
           (one_misereOutcome_R) h4
         nth_rw 2 [add_comm]
         aesop
-      · simp_all only [gt_iff_lt, reduceCtorEq, or_true, ge_iff_le, Outcome.le_R_iff]
+      · simp_all only [gt_iff_lt, reduceCtorEq, or_true, ge_iff_le, Outcome.le_R_iff, Outcome.ofPlayer]
         exact misereOutcome_add_one_R_of_misereOutcome_R (isPFree_natCast_add (PFree.pfree h2) n) h4
     · refine False.elim (misereOutcome_ne_P_of_pfree h2 h3)
-    · have h4 := misereOutcome_of_add_RR
+    · have h4 := misereOutcome_of_add_ofPlayer (p := .right)
          (HasNat.has_nat n) h2
          ((misereOutcome_R_natCast_iff _).mpr h1) h3
-      simp only [ge_iff_le, Outcome.le_R_iff, h4]
+      simp only [ge_iff_le, Outcome.le_R_iff, h4, Outcome.ofPlayer]
       exact misereOutcome_add_one_R_of_misereOutcome_R (isPFree_natCast_add (PFree.pfree h2) n) h4
   · simp only [gt_iff_lt, not_lt, nonpos_iff_eq_zero] at h1
     simp only [h1, Nat.cast_zero, add_zero, Nat.cast_one, zero_misereGE_one]
@@ -228,7 +213,7 @@ theorem misereOutcome_add_one_le {g : GameForm} [OutcomeStable A] [HasNat A]
   obtain h | h | h := h_cases <;> simp_all +decide only [ Outcome.L_ge, Outcome.le_R_iff ]
   · convert PFree.misereOutcome_add_one_R_of_misereOutcome_R hpf h using 1
   · have h_add_one : MisereOutcome (1 + g) = .N ∨ MisereOutcome (1 + g) = .R := by
-      convert misereOutcome_of_add_RN HasNat.one (PFreeSubset.mk hA hpf) one_misereOutcome_R h using 1
+      convert misereOutcome_of_add_ofPlayer_N (p := .right) HasNat.one (PFreeSubset.mk hA hpf) one_misereOutcome_R h using 1
     rw [add_comm]
     aesop
 
@@ -1113,10 +1098,10 @@ theorem misereOutcome_add_ge_N_of_misereOutcome_L_left {g h : GameForm} [Outcome
     (hh : MisereOutcome h = .N ∨ MisereOutcome h = .L) :
     MisereOutcome (g + h) ≥ .N := by
   rcases hh with hN | hL'
-  · rcases OutcomeStable.misereOutcome_of_add_LN hAg hAh hL hN with h1 | h1
+  · rcases OutcomeStable.misereOutcome_of_add_ofPlayer_N (p := .left) hAg hAh hL hN with h1 | h1
     · rw [h1]
     · rw [h1]; exact Outcome.L_ge _
-  · rw [OutcomeStable.misereOutcome_of_add_LL hAg hAh hL hL']; exact Outcome.L_ge _
+  · rw [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .left) hAg hAh hL hL']; exact Outcome.L_ge _
 
 theorem misereGE_zero_of_misereOutcome_L
     {A : GameForm → Prop} [OutcomeStable A]
@@ -1129,7 +1114,7 @@ theorem misereGE_zero_of_misereOutcome_L
   | N =>
     exact misereOutcome_add_ge_N_of_misereOutcome_L_left h_g hx h_L (Or.inl hxo)
   | L =>
-    rw [OutcomeStable.misereOutcome_of_add_LL h_g hx h_L hxo]
+    simp [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .left) h_g hx h_L hxo]
   | P => exact absurd hxo (misereOutcome_ne_P_of_pfree hx)
 
 theorem misereGE_intCast_of_misereOutcome_L
@@ -1309,9 +1294,9 @@ theorem intSlashOne_eq_succ
       have h6 : MisereOutcome x ≤ .N := misereOutcome_le_N_of_winsGoingFirst_right h4
       apply Or.elim (Outcome.le_N_eq_N_or_R h6) <;> intro h7
       · rw [<-miserePlayerOutcome_eq_iff_winsGoingFirst]
-        exact OutcomeStable.miserePlayerOutcome_of_add_RN (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
+        exact OutcomeStable.miserePlayerOutcome_of_add_ofPlayer (p := .right) (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
       · apply winsGoingFirst_right_of_misereOutcome_R
-        exact OutcomeStable.misereOutcome_of_add_RR (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
+        exact OutcomeStable.misereOutcome_of_add_ofPlayer (p := .right) (intSlashOne_mem (by omega)) h2 (intSlashOne_misereOutcome_R h0) h7
     · simp [Proviso, isEnd_def]
 
 theorem misereGE_zero_of_misereOutcome_R
@@ -1322,11 +1307,11 @@ theorem misereGE_zero_of_misereOutcome_R
   rw [zero_add]
   cases h_x_out : MisereOutcome x
   · exact Outcome.L_ge (MisereOutcome (h + x))
-  · have := OutcomeStable.miserePlayerOutcome_of_add_RN h_h h_x h_out h_x_out
+  · have := OutcomeStable.miserePlayerOutcome_of_add_ofPlayer (p := .right) h_h h_x h_out h_x_out
     unfold MisereOutcome Outcome.ofPlayers
     cases MiserePlayerOutcome (h + x) Player.left <;> simp [this]
   · exact absurd h_x_out (misereOutcome_ne_P_of_pfree h_x)
-  · rw [OutcomeStable.misereOutcome_of_add_RR h_h h_x h_out h_x_out]
+  · simp [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .right) h_h h_x h_out h_x_out]
 
 theorem misereGE_of_isEnd_left_isEnd_right_int
     {U : GameForm → Prop} [OutcomeStable U] [ClosedUnderAddNat U] [HasInt U] [ClosedUnderNeg U]
