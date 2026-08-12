@@ -249,10 +249,7 @@ private theorem auxR (A : G → Prop) [Hereditary A]
     have h11 := h4 h8 x hx h9
     rwa [miserePlayerOutcome_eq_iff_winsGoingFirst]
 termination_by (x, (0 : Nat))
-decreasing_by
-  all_goals
-    first
-    | form_wf
+decreasing_by form_wf
 
 private theorem auxL (A : G → Prop) [Hereditary A]
     {g h x : G}
@@ -313,10 +310,7 @@ private theorem auxL (A : G → Prop) [Hereditary A]
     have h11 := h5 h8 x hx h9
     rwa [miserePlayerOutcome_eq_iff_winsGoingFirst]
 termination_by (x, (0 : Nat))
-decreasing_by
-  all_goals
-    first
-    | form_wf
+decreasing_by form_wf
 
 private theorem aux (A : G → Prop) [Hereditary A]
     {g h x : G}
@@ -333,10 +327,7 @@ private theorem aux (A : G → Prop) [Hereditary A]
     · simp
     · simp [auxR A hx h2 h3 h4 h5 h6]
 termination_by (x, (1 : Nat))
-decreasing_by
-  all_goals
-    first
-    | form_wf
+decreasing_by form_wf
 
 end
 

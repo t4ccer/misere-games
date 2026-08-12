@@ -18,9 +18,10 @@ universe u
 
 variable {G : Type (u + 1)} [Form G]
 
-def WinsGoingFirst (p : Player) (g : G) : Prop := IsEndLike p g ∨ (∃ g', ∃ (_ : g' ∈ moves p g), ¬WinsGoingFirst (-p) g')
-  termination_by g
-  decreasing_by exact Moves.Subposition.of_mem_moves (by assumption)
+def WinsGoingFirst (p : Player) (g : G) : Prop :=
+  IsEndLike p g ∨ (∃ g', ∃ (_ : g' ∈ moves p g), ¬WinsGoingFirst (-p) g')
+termination_by g
+decreasing_by exact Moves.Subposition.of_mem_moves (by assumption)
 
 theorem winsGoingFirst_iff (g : G) (p : Player)
     : WinsGoingFirst p g ↔ IsEndLike p g ∨ (∃ g' ∈ moves p g, ¬WinsGoingFirst (-p) g') := by

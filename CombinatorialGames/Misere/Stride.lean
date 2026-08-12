@@ -99,7 +99,7 @@ private theorem isSolved_neg {p : Player} {g : GameForm} (h_isSolved : IsSolved 
     have h_isSolved_neg_gp := isSolved_neg h_isSolved_gp
     rwa [neg_neg, neg_neg] at h_isSolved_neg_gp
 termination_by birthday g
-decreasing_by
+decreasing_by  -- FIXME: Derive birthday bounds from IsOption
   rw [isOption_neg] at h_isOption
   exact birthday_lt_of_isOption h_isOption
 

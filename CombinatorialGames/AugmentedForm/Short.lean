@@ -33,13 +33,13 @@ noncomputable def toForm : ShortTree → AugmentedForm.{u}
         (fun p => Set.range (fun i : Fin (p.cases L R).length =>
             ShortTree.toForm ((p.cases L R).get i)))
         (fun p => p.cases tL tR)
-  decreasing_by
-    cases p
-    all_goals
-      simp only [Player.cases, ShortTree.mk.sizeOf_spec]
-      have h := List.sizeOf_get _ i
-      simp only [Player.cases] at h
-      omega
+decreasing_by
+  cases p
+  all_goals
+    simp only [Player.cases, ShortTree.mk.sizeOf_spec]
+    have h := List.sizeOf_get _ i
+    simp only [Player.cases] at h
+    omega
 
 @[simp]
 theorem moves_toForm (p : Player) (L R : List ShortTree) (tL tR : Bool) :

@@ -601,10 +601,7 @@ theorem isPFree_of_propertyX {g h : GameForm}
   · exact isPFree_of_propertyX hAg (Hereditary.has_option hAh (IsOption.of_mem_moves hh'))
        hsg (IsShort.of_mem_moves hsh hh')
 termination_by birthday g + birthday h
-decreasing_by
-  · have := birthday_lt_of_mem_moves hg'
-    exact birthday_add_lt_left (birthday_lt_of_mem_moves hg')
-  · exact birthday_add_lt_right (birthday_lt_of_mem_moves hh')
+decreasing_by all_goals gameform_birthday
 
 end Helpers
 

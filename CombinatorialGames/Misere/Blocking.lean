@@ -325,7 +325,7 @@ private theorem winsGoingFirst_left_natSub_add_blocking :
           · rw [Player.neg_left]
             exact (winsGoingFirst_left_natSub_add_blocking a b yrl hyrlB hyrlbe).2 hab
 termination_by a b y => (b, y, a)
-decreasing_by
+decreasing_by -- FIXME: Generate birthday lemmas from Subposition assumptions
   all_goals
     first
       | exact Prod.Lex.left _ _ (by omega)

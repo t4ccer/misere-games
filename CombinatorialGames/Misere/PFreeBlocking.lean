@@ -6,6 +6,7 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.Misere.Blocking
+import Mathlib.Tactic.Order
 
 public section
 
@@ -87,15 +88,7 @@ theorem misereOutcome_ofPlayer_add_isEnd
             have hsum := misereOutcome_ofPlayer_add_isEnd hg hrl_pfb hgL (isEnd_of_isBlockedEnd hrl_be)
             exact ((misereOutcome_eq_player_iff _ _).mp hsum).right
 termination_by Form.birthday g + Form.birthday h
-decreasing_by
-  all_goals
-    first
-      | exact birthday_add_lt_left (birthday_lt_of_mem_moves (by assumption))
-      | exact birthday_add_lt_right (birthday_lt_of_mem_moves (by assumption))
-      | exact birthday_add_lt_left
-          (lt_trans (birthday_lt_of_mem_moves (by assumption)) (birthday_lt_of_mem_moves (by assumption)))
-      | exact birthday_add_lt_right
-          (lt_trans (birthday_lt_of_mem_moves (by assumption)) (birthday_lt_of_mem_moves (by assumption)))
+decreasing_by all_goals gameform_birthday
 
 mutual
 
@@ -264,13 +257,7 @@ theorem miserePlayerOutcome_right_isEnd_left_NN
             have := miserePlayerOutcome_eq_iff_winsGoingFirst.mp hwin
             rwa [add_comm] at this
 termination_by Form.birthday g + Form.birthday h
-decreasing_by
-  all_goals
-    first
-      | exact birthday_add_lt_left (birthday_lt_of_mem_moves (by assumption))
-      | exact birthday_add_lt_right (birthday_lt_of_mem_moves (by assumption))
-      | exact birthday_add_lt_right
-          (lt_trans (birthday_lt_of_mem_moves (by assumption)) (birthday_lt_of_mem_moves (by assumption)))
+decreasing_by gameform_birthday
 
 /--
 This is the mirror of [Davies, Miller, Milley (Lemma 4.7 on p.

@@ -8,6 +8,8 @@ module
 public import CombinatorialGames.Form
 public import CombinatorialGames.Mathlib.NatOrdinal
 
+import Mathlib.Tactic.Order
+
 /-!
 # Birthdays of games
 
@@ -186,6 +188,7 @@ elab "gameform_birthday" : tactic => do
   Lean.Elab.Tactic.withMainContext do
     evalTactic (← `(tactic| try simp only [Form.birthday_neg, Form.birthday_add] at *))
     evalTactic (← `(tactic| try simp))
-    evalTactic (← `(tactic| try omega))
+    evalTactic (← `(tactic| try gcongr))
+    evalTactic (← `(tactic| try order))
 
 end Form

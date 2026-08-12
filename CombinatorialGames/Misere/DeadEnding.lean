@@ -359,7 +359,7 @@ private theorem winsGoingFirst_left_natSub_add :
           isEnd_of_isDeadEnd (isDeadEnd_of_mem_moves (isDeadEnd_of_isDeadEnding hy hye) hyr)
         exact (winsGoingFirst_left_natSub_add a b yr hyr_de hyr_e).1 (le_of_lt hab)
 termination_by a b y => (b, y, a)
-decreasing_by
+decreasing_by -- FIXME: Generate birthday lemmas from Subposition assumptions
   all_goals
     first
       | exact Prod.Lex.left _ _ (by omega)

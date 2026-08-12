@@ -105,8 +105,8 @@ private def IsSpecial (g : G) : Prop :=
   ¬IsEnd Player.right g
   ∧ ∀ gr ∈ moves .right g,
       (MisereOutcome gr = Outcome.L) ∨ (∃ grl, ∃ (_ : grl ∈ moves .left gr), IsSpecial grl)
-  termination_by g
-  decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 private lemma not_winsGoingFirst_right_of_isSpecial {g : GameForm} (h1: IsSpecial g)
     : ¬WinsGoingFirst .right g := by
@@ -128,8 +128,8 @@ private lemma not_winsGoingFirst_right_of_isSpecial {g : GameForm} (h1: IsSpecia
       have h4 := not_winsGoingFirst_right_of_isSpecial hgrl_special
       have h_left_wins_gr : WinsGoingFirst .left gr := winsGoingFirst_of_moves ⟨grl, hgrl_mem, h4⟩
       exact hgr_win h_left_wins_gr
-      termination_by g
-      decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 private lemma isSpecial_of_isPFree_not_winsGoingFirst_right_succ {g : GameForm} (h1 : IsPFree g)
     (h2 : ¬WinsGoingFirst .right (g + 1)) : IsSpecial g := by
@@ -272,8 +272,8 @@ private lemma isSpecial_of_isPFree_not_winsGoingFirst_right_succ {g : GameForm} 
               · by_cases h_left : WinsGoingFirst .left gr
                 <;> simp only [h_left, h_right, reduceIte, reduceCtorEq] at h_N
             exact h_right_not_wins_gr h_right_wins_gr
-            termination_by g
-            decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 private theorem add_one_misereOutcome_ne_P_of_isPFree {g : GameForm} (h1 : IsPFree g)
     : MisereOutcome (g + 1) ≠ .P := by

@@ -170,8 +170,8 @@ This is Conway induction.
 def moveRecOn {motive : AugmentedForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) : motive x :=
   mk x (fun p y _ ↦ moveRecOn y mk)
-  termination_by x
-  decreasing_by form_wf
+termination_by x
+decreasing_by form_wf
 
 theorem moveRecOn_eq {motive : AugmentedForm → Sort*} (x)
     (mk : Π x, (Π p, Π y ∈ moves p x, motive y) → motive x) :
@@ -186,8 +186,8 @@ private noncomputable def add' (x y : AugmentedForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => (Set.range fun z : moves p x => add' z y) ∪ (Set.range fun z : moves p y => add' x z))
     (fun p => (x.hasTombstone p ∧ EndLike p y) ∨ (y.hasTombstone p ∧ EndLike p x))
-  termination_by (x, y)
-  decreasing_by form_wf
+termination_by (x, y)
+decreasing_by form_wf
 
 @[no_expose] noncomputable instance : Add AugmentedForm where
   add := add'
@@ -199,8 +199,8 @@ def ofGameForm (g : GameForm) : AugmentedForm :=
   ofSetsWithTombs
     (fun p => Set.range (fun gp : moves p g => ofGameForm gp))
     (fun _ => False)
-    termination_by g
-    decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 instance : Coe GameForm AugmentedForm where
   coe := ofGameForm
@@ -211,8 +211,8 @@ options are `TombstoneFree`.
 -/
 def TombstoneFree (g : AugmentedForm) : Prop :=
   (∀ p, ¬g.hasTombstone p) ∧ ∀ p, ∀ h ∈ moves p g, TombstoneFree h
-  termination_by g
-  decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 theorem TombstoneFree.not_hasTombstone {g : AugmentedForm} (h1 : TombstoneFree g) :
   ∀ p, ¬g.hasTombstone p := by

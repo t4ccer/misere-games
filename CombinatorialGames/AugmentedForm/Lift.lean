@@ -22,8 +22,8 @@ noncomputable def liftSucc (g : AugmentedForm.{u}) : AugmentedForm.{u + 1} :=
   ofSetsWithTombs
     (fun p => Set.range (fun y : moves p g => liftSucc y.val))
     (fun p => g.hasTombstone p)
-  termination_by g
-  decreasing_by form_wf
+termination_by g
+decreasing_by form_wf
 
 @[simp]
 theorem moves_liftSucc (p : Player) (g : AugmentedForm.{u}) :
