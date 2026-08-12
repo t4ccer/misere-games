@@ -15,6 +15,8 @@ public import CombinatorialGames.GameForm.Birthday
 public import CombinatorialGames.GameForm.OrdinalSum
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.GameGraph
+public import CombinatorialGames.Literature.DeadEndsInMiserePlay
+public import CombinatorialGames.Literature.OnFactorisationsOfLeftDeadEnds
 public import CombinatorialGames.Literature.OnSumsOfPFreeFormsUnderMiserePlay
 public import CombinatorialGames.Mathlib.NatOrdinal
 public import CombinatorialGames.Mathlib.SimpleGraph
@@ -26,6 +28,7 @@ public import CombinatorialGames.Misere.Comparison
 public import CombinatorialGames.Misere.DeadEnding
 public import CombinatorialGames.Misere.Hereditary.MaintenanceProviso
 public import CombinatorialGames.Misere.IntegerInvertible
+public import CombinatorialGames.Misere.LeftDeadEnd
 public import CombinatorialGames.Misere.LiftIncomparable
 public import CombinatorialGames.Misere.NonInvertible
 public import CombinatorialGames.Misere.Normal

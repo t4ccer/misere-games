@@ -291,7 +291,11 @@ end LongUniverse
 namespace ShortUniverse
 
 /--
-The smallest short universe containing `A`.
+Given a set of games $\mathcal{A}$, define the *universal closure* of $\mathcal{A}$, denoted
+$\mathcal{D}(\mathcal{A})$, as the minimal universe containing $\mathcal{A}$ (with respect to set
+inclusion).
+
+This is [Davies (Definition 2.2 on p. 6)][davies:FactorisationsLeftDead:2024].
 -/
 noncomputable abbrev closure (A : G → Prop) (hA : A ≤ IsShort) : G → Prop :=
   Universe.closure (IsShort (G := G)) A hA

@@ -219,4 +219,7 @@ theorem short_iff_birthday_nat {x : GameForm} :
     IsShort x ↔ (∃ (n : ℕ), birthday x = n) := by
   rw [short_iff_birthday_finite, NatOrdinal.lt_omega0]
 
+theorem finite_setOf_birthday_le (n : ℕ) : {x : GameForm | birthday x ≤ n}.Finite :=
+  (birthdayFinset n).finite_toSet.subset fun _x hx => mem_birthdayFinset.mpr hx
+
 end GameForm
