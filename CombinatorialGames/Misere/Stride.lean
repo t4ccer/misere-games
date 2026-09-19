@@ -6,6 +6,7 @@ Authors: Tomasz Maciosowski
 module
 
 public import CombinatorialGames.GameForm
+public import CombinatorialGames.GameForm.OrdinalSum
 public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Misere.PFree
 public import CombinatorialGames.Misere.DeadEnding
@@ -211,6 +212,54 @@ theorem isSolved_add_iff {p : Player} {g h : GameForm} :
     · exact not_isSolved_add_left h_isSolved_g h_isSolved_gh
     · exact not_isSolved_add_right h_isSolved_h h_isSolved_gh
 
+/-! ### Ordinal sums -/
+
+/--
+Solvedness of an ordinal sum only sees the base: the branch can only be
+reached through the base, and every subposition of the base is a subposition
+of the ordinal sum.
+-/
+theorem isSolved_of_isSolved_ordinalSum {p : Player} {x y : GameForm}
+    (h : IsSolved p (ordinalSum x y)) : IsSolved p x := by
+  by_cases h_end : IsEnd (-p) y
+  · rw [isSolved_def]
+    refine ⟨?_, ?_, ?_⟩
+    · intro h_zero
+      exact isSolved_zero_not_mem h (mem_moves_ordinalSum_base y h_zero)
+    · intro h_ne_zero h_x_end
+      exact isSolved_not_isEnd h (ordinalSum_ne_zero y h_ne_zero)
+        (isEnd_ordinalSum_iff.mpr ⟨h_x_end, h_end⟩)
+    · intro x' h_x'
+      exact isSolved_of_isOption h (IsOption.ordinalSum_base y h_x')
+  · obtain ⟨y', h_y'⟩ := not_isEnd_exists_move h_end
+    exact isSolved_of_isSolved_ordinalSum
+      (isSolved_of_mem_moves h (mem_moves_ordinalSum_branch x h_y'))
+termination_by y
+decreasing_by form_wf
+
+theorem isSolved_ordinalSum {p : Player} {x : GameForm} (y : GameForm) (h_ne_zero : x ≠ 0)
+    (h : IsSolved p x) : IsSolved p (ordinalSum x y) := by
+  rw [isSolved_def]
+  refine ⟨?_, ?_, ?_⟩
+  · intro h_zero
+    rw [mem_moves_ordinalSum_iff] at h_zero
+    obtain h_zero | ⟨y', _, h_zero⟩ := h_zero
+    · exact isSolved_zero_not_mem h h_zero
+    · exact ordinalSum_ne_zero y' h_ne_zero h_zero.symm
+  · intro _ h_end
+    exact isSolved_not_isEnd h h_ne_zero (isEnd_ordinalSum_iff.mp h_end).1
+  · intro z h_z
+    rw [isOption_ordinalSum_iff] at h_z
+    obtain h_z | ⟨y', h_y', rfl⟩ := h_z
+    · exact isSolved_of_isOption h h_z
+    · exact isSolved_ordinalSum y' h_ne_zero h
+termination_by y
+decreasing_by form_wf
+
+theorem isSolved_ordinalSum_iff {p : Player} {x y : GameForm} (h_ne_zero : x ≠ 0) :
+    IsSolved p (ordinalSum x y) ↔ IsSolved p x :=
+  ⟨isSolved_of_isSolved_ordinalSum, isSolved_ordinalSum y h_ne_zero⟩
+
 /-! ### Integers -/
 
 @[simp]
@@ -296,9 +345,18 @@ decreasing_by form_wf
 
 /--
 Stride measures exactly how many moves away each player is from a solved
-position.
+position: the `p`-stride of `g` is `0` iff `g` is solved for `p`, every
+`p`-move lowers it by at most one, some `p`-move lowers it by exactly one
+without changing the opponent's stride, and no opponent move raises it.
 
-Stride is not well-defined for all game forms.
+The last requirement on the best move refers to the opponent's stride of `g`
+itself, which would make the definition loopy. Instead we compare against the
+opponent's *candidate* stride, the value the opponent's stride would have to
+take judged from the opponent's options alone (see `StrideCandidate`); when
+the opponent's stride exists the two agree (`hasStride_strideCandidate`).
+
+Stride is not well-defined for all game forms: `*` has none, and neither does
+`{0 | -1}`.
 -/
 def HasStride (p : Player) (g : GameForm) (n : ℕ) : Prop :=
   match n with
@@ -306,15 +364,30 @@ def HasStride (p : Player) (g : GameForm) (n : ℕ) : Prop :=
   | n + 1 =>
     ¬IsSolved p g
     ∧ (∀ g' ∈ moves p g, ∃ k, n ≤ k ∧ HasStride p g' k)
-    -- NOTE: We say that the opponent's stride in our "best" move has a maximum
-    -- stride rather than saying that stride did not change to prevent a loopy
-    -- definition, these are equivalent
     ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n
-        ∧ ∀ g'' ∈ moves p g, ∀ m, HasStride (-p) g'' m → ∃ k, m ≤ k ∧ HasStride (-p) g' k)
+        ∧ ∃ m, HasStride (-p) g' m
+          ∧ match m with
+            | 0 => IsSolved (-p) g
+            | m + 1 =>
+              ¬IsSolved (-p) g
+              ∧ (∀ g'' ∈ moves (-p) g, ∃ k, m ≤ k ∧ HasStride (-p) g'' k)
+              ∧ (∃ g'', ∃ (_ : g'' ∈ moves (-p) g), HasStride (-p) g'' m))
     ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k)
-    ∧ (moves (-p) g ≠ ∅ → ∃ g', ∃ (_ : g' ∈ moves (-p) g), HasStride p g' (n + 1))
 termination_by g
 decreasing_by form_wf
+
+/--
+The value that the `p`-stride of `g` must take if it exists, determined by the
+strides of the `p`-options alone: `0` when `g` is solved, otherwise one more
+than the smallest stride of a `p`-option.
+-/
+def StrideCandidate (p : Player) (g : GameForm) (m : ℕ) : Prop :=
+  match m with
+  | 0 => IsSolved p g
+  | m + 1 =>
+    ¬IsSolved p g
+    ∧ (∀ g' ∈ moves p g, ∃ k, m ≤ k ∧ HasStride p g' k)
+    ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' m)
 
 /--
 The stride equals zero if the game is solved.
@@ -349,12 +422,32 @@ theorem hasStride_succ_iff {p : Player} {g : GameForm} {n : ℕ} :
     ¬IsSolved p g
     ∧ (∀ g' ∈ moves p g, ∃ k, n ≤ k ∧ HasStride p g' k)
     ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n
-        ∧ ∀ g'' ∈ moves p g, ∀ m, HasStride (-p) g'' m → ∃ k, m ≤ k ∧ HasStride (-p) g' k)
-    ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k)
-    ∧ (moves (-p) g ≠ ∅ → ∃ g', ∃ (_ : g' ∈ moves (-p) g), HasStride p g' (n + 1)) := by
+        ∧ ∃ m, HasStride (-p) g' m ∧ StrideCandidate (-p) g m)
+    ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k) := by
   constructor
   · intro h; unfold HasStride at h; exact h
   · intro h; unfold HasStride; exact h
+
+@[simp]
+theorem strideCandidate_zero_iff {p : Player} {g : GameForm} :
+    StrideCandidate p g 0 ↔ IsSolved p g := Iff.rfl
+
+theorem strideCandidate_succ_iff {p : Player} {g : GameForm} {m : ℕ} :
+    StrideCandidate p g (m + 1) ↔
+    ¬IsSolved p g
+    ∧ (∀ g' ∈ moves p g, ∃ k, m ≤ k ∧ HasStride p g' k)
+    ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' m) := Iff.rfl
+
+/--
+A stride is in particular a stride candidate.
+-/
+theorem hasStride_strideCandidate {p : Player} {g : GameForm} {n : ℕ}
+    (h : HasStride p g n) : StrideCandidate p g n := by
+  match n with
+  | 0 => exact hasStride_eq_zero_iff.mp h
+  | n + 1 =>
+    obtain ⟨h₁, h₂, ⟨g', hg', hg'_stride, _⟩, _⟩ := hasStride_succ_iff.mp h
+    exact ⟨h₁, h₂, g', hg', hg'_stride⟩
 
 /--
 If the stride of $G$ is not zero, then every response lowers the stride by at
@@ -366,35 +459,26 @@ theorem hasStride_succ_support {p : Player} {g : GameForm} {n : ℕ}
   (hasStride_succ_iff.mp h).2.1 g' hg'
 
 /--
-If the stride of $G$ is not zero, then there exist some response to stride
-lower by one.
+If the stride of $G$ is not zero, then there exist some response lowering the
+stride by exactly one which keeps the opponent's stride candidate.
 -/
 theorem hasStride_succ_exists_best {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) :
     ∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n
-        ∧ ∀ g'' ∈ moves p g, ∀ m, HasStride (-p) g'' m → ∃ k, m ≤ k ∧ HasStride (-p) g' k :=
+        ∧ ∃ m, HasStride (-p) g' m ∧ StrideCandidate (-p) g m :=
   (hasStride_succ_iff.mp h).2.2.1
 
 /--
-If the stride of $G$ is not zero, then every opponent move preserves the
-stride.
+If the stride of $G$ is not zero, then no opponent move raises the stride.
 -/
 theorem hasStride_succ_support_neg {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) (g' : GameForm) (hg' : g' ∈ moves (-p) g) :
     ∃ k, k ≤ n + 1 ∧ HasStride p g' k :=
-  (hasStride_succ_iff.mp h).2.2.2.1 g' hg'
-
-/--
-Some opponent move preserves stride.
--/
-theorem hasStride_succ_exists_preserve_neg {p : Player} {g : GameForm} {n : ℕ}
-    (h : HasStride p g (n + 1)) (h_ne : moves (-p) g ≠ ∅) :
-    ∃ g', ∃ (_ : g' ∈ moves (-p) g), HasStride p g' (n + 1) :=
-  (hasStride_succ_iff.mp h).2.2.2.2 h_ne
+  (hasStride_succ_iff.mp h).2.2.2 g' hg'
 
 theorem hasStride_succ_not_isEnd {p : Player} {g : GameForm} {n : ℕ}
     (h : HasStride p g (n + 1)) : ¬IsEnd p g := by
-  have ⟨_, h_mem, _, _⟩ := hasStride_succ_exists_best h
+  have ⟨_, h_mem, _⟩ := hasStride_succ_exists_best h
   exact not_isEnd_of_mem_moves h_mem
 
 /--
@@ -423,6 +507,26 @@ termination_by g
 decreasing_by form_wf
 
 /--
+A stride candidate is unique, since it is determined by the strides of the
+options.
+-/
+theorem strideCandidate_unique {p : Player} {g : GameForm} {n k : ℕ}
+    (h_n : StrideCandidate p g n) (h_k : StrideCandidate p g k) : n = k := by
+  match n, k with
+  | 0, 0 => rfl
+  | 0, .succ _ => exact absurd h_n h_k.1
+  | .succ _, 0 => exact absurd h_k h_n.1
+  | .succ n, .succ k =>
+    congr 1
+    obtain ⟨_, h_n_support, g1, hg1_mem, hg1_stride⟩ := h_n
+    obtain ⟨_, h_k_support, g2, hg2_mem, hg2_stride⟩ := h_k
+    have ⟨j, hkj, hj_stride⟩ := h_k_support g1 hg1_mem
+    have ⟨j', hnj', hj'_stride⟩ := h_n_support g2 hg2_mem
+    have h_nj := hasStride_unique hg1_stride hj_stride
+    have h_kj' := hasStride_unique hg2_stride hj'_stride
+    omega
+
+/--
 Helper for building iff lemmas
 -/
 theorem hasStride_mk_iff {p : Player} (n : ℕ) {k : ℕ} {g : GameForm} (h_stride : HasStride p g n) :
@@ -442,24 +546,9 @@ theorem hasStride_good_move_neg_stride {p : Player} {g : GameForm} {n r : ℕ}
     (h : HasStride p g (n + 1))
     (h_r : HasStride (-p) g r) :
     ∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n ∧ HasStride (-p) g' r := by
-  have ⟨g1, hg1_mem, hg1_stride_p, hg1_max⟩ := hasStride_succ_exists_best h
-  refine ⟨g1, hg1_mem, hg1_stride_p, ?_⟩
-  match r with
-  | 0 =>
-    exact hasStride_eq_zero_iff.mpr (isSolved_of_mem_moves (hasStride_eq_zero_iff.mp h_r) hg1_mem)
-  | .succ r' =>
-    have hg1_bound := hasStride_succ_support_neg h_r g1 (by rw [neg_neg]; exact hg1_mem)
-    obtain ⟨k1, hk1_le, hk1_stride⟩ := hg1_bound
-    have h_ne : moves p g ≠ ∅ := Set.nonempty_iff_ne_empty.mp ⟨g1, hg1_mem⟩
-    have hD := hasStride_succ_exists_preserve_neg h_r (by rw [neg_neg]; exact h_ne)
-    obtain ⟨g2, hg2_mem, hg2_stride⟩ := hD
-    rw [neg_neg] at hg2_mem
-    have ⟨k2, hk2_ge, hk2_stride⟩ := hg1_max g2 hg2_mem (r' + 1) hg2_stride
-    have h_eq : k1 = k2 := hasStride_unique hk1_stride hk2_stride
-    rw [h_eq] at hk1_le
-    have : k2 = r' + 1 := Nat.le_antisymm hk1_le hk2_ge
-    rw [this] at hk2_stride
-    exact hk2_stride
+  have ⟨g1, hg1_mem, hg1_stride_p, m, hg1_stride_neg, h_cand⟩ := hasStride_succ_exists_best h
+  rw [strideCandidate_unique h_cand (hasStride_strideCandidate h_r)] at hg1_stride_neg
+  exact ⟨g1, hg1_mem, hg1_stride_p, hg1_stride_neg⟩
 
 /--
 Opponent moves have stride ≤ n.
@@ -471,10 +560,8 @@ theorem hasStride_of_mem_moves_neg {p : Player} {g g' : GameForm} {n : ℕ}
   | .succ n' => exact hasStride_succ_support_neg hg g' hm
 
 /--
-A variant of `hasStride_succ_iff` that simplifies condition B' when we know the
-(-p)-stride. Instead of requiring the good move to have the max (-p)-stride
-among all p-moves, we simply require the good move to preserve the (-p)-stride
-exactly.
+A variant of `hasStride_succ_iff` for when the (-p)-stride is known: the good
+move then simply has to preserve it.
 -/
 theorem hasStride_succ_iff' {p : Player} {g : GameForm} {n m : ℕ}
     (h_hasStride_m : HasStride (-p) g m) :
@@ -482,17 +569,12 @@ theorem hasStride_succ_iff' {p : Player} {g : GameForm} {n m : ℕ}
     ¬IsSolved p g
     ∧ (∀ g' ∈ moves p g, ∃ k, n ≤ k ∧ HasStride p g' k)
     ∧ (∃ g', ∃ (_ : g' ∈ moves p g), HasStride p g' n ∧ HasStride (-p) g' m)
-    ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k)
-    ∧ (moves (-p) g ≠ ∅ → ∃ g', ∃ (_ : g' ∈ moves (-p) g), HasStride p g' (n + 1)) := by
+    ∧ (∀ g' ∈ moves (-p) g, ∃ k, k ≤ n + 1 ∧ HasStride p g' k) := by
   rw [hasStride_succ_iff]
-  constructor <;> intro h <;> rcases h with ⟨h₁, h₂, h₃, h₄, h₅⟩
-  · exact ⟨h₁, h₂, hasStride_good_move_neg_stride (hasStride_succ_iff.mpr ⟨h₁, h₂, h₃, h₄, h₅⟩) h_hasStride_m, h₄, h₅⟩
+  constructor <;> intro h <;> rcases h with ⟨h₁, h₂, h₃, h₄⟩
+  · exact ⟨h₁, h₂, hasStride_good_move_neg_stride (hasStride_succ_iff.mpr ⟨h₁, h₂, h₃, h₄⟩) h_hasStride_m, h₄⟩
   · obtain ⟨g', hg', hg₁, hg₂⟩ := h₃
-    have h_bound : ∀ g'' ∈ moves p g, ∀ m', HasStride (-p) g'' m' → m' ≤ m := by
-      intro g'' hg'' m' hm'
-      obtain ⟨k, hk, hk_s⟩ := hasStride_of_mem_moves_neg h_hasStride_m (show g'' ∈ moves (-(-p)) g by rwa [neg_neg])
-      exact hasStride_unique hm' hk_s ▸ hk
-    exact ⟨h₁, h₂, ⟨g', hg', hg₁, fun g'' hg'' m' hm' => ⟨m, h_bound g'' hg'' m' hm', hg₂⟩⟩, h₄, h₅⟩
+    exact ⟨h₁, h₂, ⟨g', hg', hg₁, m, hg₂, hasStride_strideCandidate h_hasStride_m⟩, h₄⟩
 
 /--
 Variant of `hasStride_succ_exists_best` with known opponent stride
@@ -511,6 +593,49 @@ theorem hasStride_of_mem_moves {p : Player} {g g' : GameForm} {n : ℕ}
     have ⟨j, hj, hjs⟩ := hasStride_succ_support hg g' hm
     exact ⟨j, by simpa only [Nat.succ_eq_add_one, add_tsub_cancel_right] using hj, hjs⟩
 
+/--
+Build the strides of both players of `g` from their values `n` at `g` and the
+strides of the options. This is the interface for rulesets: the hypotheses
+are the "race" conditions on the ruleset's stride function at `g`.
+-/
+theorem hasStride_of_options (g : GameForm) (n : Player → ℕ)
+    (h_solved : ∀ q, n q = 0 → IsSolved q g)
+    (h_not_solved : ∀ q, n q ≠ 0 → ¬IsSolved q g)
+    (h_support : ∀ q, ∀ g' ∈ moves q g, ∃ k, n q ≤ k + 1 ∧ HasStride q g' k)
+    (h_best : ∀ q, n q ≠ 0 →
+      ∃ g', ∃ (_ : g' ∈ moves q g), HasStride q g' (n q - 1) ∧ HasStride (-q) g' (n (-q)))
+    (h_support_neg : ∀ q, ∀ g' ∈ moves (-q) g, ∃ k, k ≤ n q ∧ HasStride q g' k)
+    (q : Player) : HasStride q g (n q) := by
+  have h_candidate : ∀ q, StrideCandidate q g (n q) := by
+    intro q
+    by_cases h_zero : n q = 0
+    · rw [h_zero]
+      exact h_solved q h_zero
+    · obtain ⟨m, hm⟩ := Nat.exists_eq_succ_of_ne_zero h_zero
+      rw [hm]
+      refine ⟨h_not_solved q h_zero, ?_, ?_⟩
+      · intro g' hg'
+        obtain ⟨k, hk, hk_stride⟩ := h_support q g' hg'
+        exact ⟨k, by omega, hk_stride⟩
+      · obtain ⟨g', hg', hg'_stride, _⟩ := h_best q h_zero
+        rw [hm, Nat.succ_sub_one] at hg'_stride
+        exact ⟨g', hg', hg'_stride⟩
+  by_cases h_zero : n q = 0
+  · rw [h_zero]
+    exact hasStride_eq_zero_iff.mpr (h_solved q h_zero)
+  · obtain ⟨m, hm⟩ := Nat.exists_eq_succ_of_ne_zero h_zero
+    rw [hm, hasStride_succ_iff]
+    refine ⟨h_not_solved q h_zero, ?_, ?_, ?_⟩
+    · intro g' hg'
+      obtain ⟨k, hk, hk_stride⟩ := h_support q g' hg'
+      exact ⟨k, by omega, hk_stride⟩
+    · obtain ⟨g', hg', hg'_stride, hg'_neg⟩ := h_best q h_zero
+      rw [hm, Nat.succ_sub_one] at hg'_stride
+      exact ⟨g', hg', hg'_stride, n (-q), hg'_neg, h_candidate (-q)⟩
+    · intro g' hg'
+      obtain ⟨k, hk, hk_stride⟩ := h_support_neg q g' hg'
+      exact ⟨k, by omega, hk_stride⟩
+
 /-! ### Addition -/
 
 /--
@@ -520,6 +645,56 @@ theorem hasStride_add {p : Player} {g h : GameForm} {sL_g sL_h sR_g sR_h : ℕ}
     (h_sL_g : HasStride p g sL_g) (h_sL_h : HasStride p h sL_h)
     (h_sR_g : HasStride (-p) g sR_g) (h_sR_h : HasStride (-p) h sR_h) :
     HasStride p (g + h) (sL_g + sL_h) := by
+  -- The stride candidate of the sum, for either player. Only strides of
+  -- options are needed, so this is available for both players even though
+  -- the stride of the sum itself is what we are proving.
+  have h_candidate : ∀ (q : Player) {a b a' b' : ℕ},
+      HasStride q g a → HasStride q h b → HasStride (-q) g a' → HasStride (-q) h b' →
+      StrideCandidate q (g + h) (a + b) := by
+    intro q a b a' b' h_a h_b h_a' h_b'
+    by_cases h_ab_zero : a + b = 0
+    · have ha0 : a = 0 := by omega
+      have hb0 : b = 0 := by omega
+      subst ha0; subst hb0
+      exact isSolved_add (hasStride_eq_zero_iff.mp h_a) (hasStride_eq_zero_iff.mp h_b)
+    · obtain ⟨s, hs⟩ : ∃ s, a + b = s + 1 := ⟨a + b - 1, by omega⟩
+      rw [hs, strideCandidate_succ_iff]
+      refine ⟨?_, ?_, ?_⟩
+      · rcases a.eq_zero_or_pos with h_eq | h_pos_a
+        · have ⟨b', hb'⟩ : ∃ n, b = n + 1 := ⟨b - 1, by omega⟩
+          subst hb'
+          exact not_isSolved_add_right (hasStride_succ_iff.mp h_b).1
+        · have ⟨a'', ha''⟩ : ∃ n, a = n + 1 := ⟨a - 1, by omega⟩
+          subst ha''
+          exact not_isSolved_add_left (hasStride_succ_iff.mp h_a).1
+      · intro g' hg'
+        rw [moves_add] at hg'
+        simp only [Set.mem_union, Set.mem_image] at hg'
+        obtain ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ := hg'
+        · have ⟨j, hj, hj_s⟩ := hasStride_of_mem_moves h_a hx
+          have ⟨mx, _, hmx_s⟩ := hasStride_of_mem_moves_neg h_a'
+              (show x ∈ moves (-(-q)) g by rwa [neg_neg])
+          exact ⟨j + b, by omega, hasStride_add hj_s h_b hmx_s h_b'⟩
+        · have ⟨j, hj, hj_s⟩ := hasStride_of_mem_moves h_b hx
+          have ⟨lx, _, hlx_s⟩ := hasStride_of_mem_moves_neg h_b'
+              (show x ∈ moves (-(-q)) h by rwa [neg_neg])
+          exact ⟨a + j, by omega, hasStride_add h_a hj_s h_a' hlx_s⟩
+      · rcases a.eq_zero_or_pos with h_eq | h_pos_a
+        · subst h_eq
+          have ⟨b', hb'⟩ : ∃ n, b = n + 1 := ⟨b - 1, by omega⟩
+          subst hb'
+          have ⟨h₁, hh1_mem, hh1_p, hh1_neg⟩ := hasStride_good_move_neg_stride h_b h_b'
+          refine ⟨g + h₁, add_left_mem_moves_add hh1_mem g, ?_⟩
+          have := hasStride_add h_a hh1_p h_a' hh1_neg
+          rw [show s = 0 + b' by omega]
+          exact this
+        · have ⟨a'', ha''⟩ : ∃ n, a = n + 1 := ⟨a - 1, by omega⟩
+          subst ha''
+          have ⟨g₁, hg1_mem, hg1_p, hg1_neg⟩ := hasStride_good_move_neg_stride h_a h_a'
+          refine ⟨g₁ + h, add_right_mem_moves_add hg1_mem h, ?_⟩
+          have := hasStride_add hg1_p h_b hg1_neg h_b'
+          rw [show s = a'' + b by omega]
+          exact this
   by_cases h_sL_g_sL_h_eq_zero : sL_g + sL_h = 0
   · -- Both strides are zero
     have hg0 : sL_g = 0 := by omega
@@ -527,77 +702,35 @@ theorem hasStride_add {p : Player} {g h : GameForm} {sL_g sL_h sR_g sR_h : ℕ}
     subst hg0; subst hh0
     exact hasStride_eq_zero_iff.mpr (isSolved_add (hasStride_eq_zero_iff.mp h_sL_g) (hasStride_eq_zero_iff.mp h_sL_h))
   · -- At least one stride is positive
-    have h_pos : 0 < sL_g + sL_h := by omega
     obtain ⟨s, hs⟩ : ∃ s, sL_g + sL_h = s + 1 := ⟨sL_g + sL_h - 1, by omega⟩
+    have h_cand_p := h_candidate p h_sL_g h_sL_h h_sR_g h_sR_h
+    rw [hs, strideCandidate_succ_iff] at h_cand_p
+    obtain ⟨h_not_solved, h_support, _⟩ := h_cand_p
+    have h_cand_neg : StrideCandidate (-p) (g + h) (sR_g + sR_h) :=
+      h_candidate (-p) h_sR_g h_sR_h (by rwa [neg_neg]) (by rwa [neg_neg])
     rw [hs, hasStride_succ_iff]
-    -- Helper: decompose moves of a sum into components
-    -- Response bounding: for any good move gm with neg-stride sR_g + sR_h,
-    -- all p-moves of g+h have neg-stride ≤ sR_g + sR_h
-    have h_response_bound : ∀ (gm : GameForm), HasStride (-p) gm (sR_g + sR_h) →
-        ∀ g'' ∈ moves p (g + h), ∀ m', HasStride (-p) g'' m' →
-        ∃ k, m' ≤ k ∧ HasStride (-p) gm k := by
-      intro gm h_neg_gm g'' hg'' m' hm'
-      rw [moves_add] at hg''
-      simp only [Set.mem_union, Set.mem_image] at hg''
-      obtain ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ := hg''
-      · have ⟨mx, _, hmx_s⟩ := hasStride_of_mem_moves_neg h_sR_g
-            (show x ∈ moves (-(-p)) g by rwa [neg_neg])
-        have ⟨_, _, hjx_s⟩ := hasStride_of_mem_moves h_sL_g hx
-        have h_neg_xh : HasStride (-p) (x + h) (mx + sR_h) :=
-          hasStride_add hmx_s h_sR_h (by rwa [neg_neg]) (by rwa [neg_neg])
-        rw [hasStride_unique hm' h_neg_xh]
-        exact ⟨sR_g + sR_h, by omega, h_neg_gm⟩
-      · have ⟨lx, _, hlx_s⟩ := hasStride_of_mem_moves_neg h_sR_h
-            (show x ∈ moves (-(-p)) h by rwa [neg_neg])
-        have ⟨_, _, hjx_s⟩ := hasStride_of_mem_moves h_sL_h hx
-        have h_neg_gx : HasStride (-p) (g + x) (sR_g + lx) :=
-          hasStride_add h_sR_g hlx_s (by rwa [neg_neg]) (by rwa [neg_neg])
-        rw [hasStride_unique hm' h_neg_gx]
-        exact ⟨sR_g + sR_h, by omega, h_neg_gm⟩
-    refine ⟨?_, ?_, ?_, ?_, ?_⟩
-    -- (i): g + h is not solved for p
+    refine ⟨h_not_solved, h_support, ?_, ?_⟩
+    -- (iii): the good move comes from the component with positive stride and
+    -- preserves the opponent's stride
     · rcases sL_g.eq_zero_or_pos with h_eq | h_pos_g
-      · have ⟨sL_h', hsL_h'⟩ : ∃ n, sL_h = n + 1 := ⟨sL_h - 1, by omega⟩
-        subst hsL_h'
-        exact not_isSolved_add_right (hasStride_succ_iff.mp h_sL_h).1
-      · have ⟨sL_g', hsL_g'⟩ : ∃ n, sL_g = n + 1 := ⟨sL_g - 1, by omega⟩
-        subst hsL_g'
-        exact not_isSolved_add_left (hasStride_succ_iff.mp h_sL_g).1
-    -- (ii)
-    · intro g' hg'
-      rw [moves_add] at hg'
-      simp only [Set.mem_union, Set.mem_image] at hg'
-      obtain ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ := hg'
-      · have ⟨j, hj, hj_s⟩ := hasStride_of_mem_moves h_sL_g hx
-        have ⟨mx, _, hmx_s⟩ := hasStride_of_mem_moves_neg h_sR_g
-            (show x ∈ moves (-(-p)) g by rwa [neg_neg])
-        exact ⟨j + sL_h, by omega, hasStride_add hj_s h_sL_h hmx_s h_sR_h⟩
-      · have ⟨j, hj, hj_s⟩ := hasStride_of_mem_moves h_sL_h hx
-        have ⟨lx, _, hlx_s⟩ := hasStride_of_mem_moves_neg h_sR_h
-            (show x ∈ moves (-(-p)) h by rwa [neg_neg])
-        exact ⟨sL_g + j, by omega, hasStride_add h_sL_g hj_s h_sR_g hlx_s⟩
-    · rcases sL_g.eq_zero_or_pos with h_eq | h_pos_g
-      · -- sL_g = 0, good move comes from h
-        subst h_eq; simp only [Nat.zero_add] at h_pos ⊢
+      · subst h_eq
         have ⟨sL_h', hsL_h'⟩ : ∃ n, sL_h = n + 1 := ⟨sL_h - 1, by omega⟩
         subst hsL_h'
         have ⟨h₁, hh1_mem, hh1_p, hh1_neg⟩ := hasStride_good_move_neg_stride h_sL_h h_sR_h
-        have h_neg_gh1 : HasStride (-p) (g + h₁) (sR_g + sR_h) :=
-          hasStride_add h_sR_g hh1_neg (by rwa [neg_neg]) (by rwa [neg_neg])
-        refine ⟨g + h₁, add_left_mem_moves_add hh1_mem g, ?_, h_response_bound _ h_neg_gh1⟩
-        have := hasStride_add h_sL_g hh1_p h_sR_g hh1_neg
-        rw [Nat.zero_add] at this
-        convert this using 1; omega
-      · -- sL_g > 0, good move comes from g
-        have ⟨sL_g', hsL_g'⟩ : ∃ n, sL_g = n + 1 := ⟨sL_g - 1, by omega⟩
+        refine ⟨g + h₁, add_left_mem_moves_add hh1_mem g, ?_, sR_g + sR_h, ?_, h_cand_neg⟩
+        · have := hasStride_add h_sL_g hh1_p h_sR_g hh1_neg
+          rw [show s = 0 + sL_h' by omega]
+          exact this
+        · exact hasStride_add h_sR_g hh1_neg (by rwa [neg_neg]) (by rwa [neg_neg])
+      · have ⟨sL_g', hsL_g'⟩ : ∃ n, sL_g = n + 1 := ⟨sL_g - 1, by omega⟩
         subst hsL_g'
         have ⟨g₁, hg1_mem, hg1_p, hg1_neg⟩ := hasStride_good_move_neg_stride h_sL_g h_sR_g
-        have h_neg_g1h : HasStride (-p) (g₁ + h) (sR_g + sR_h) :=
-          hasStride_add hg1_neg h_sR_h (by rwa [neg_neg]) (by rwa [neg_neg])
-        refine ⟨g₁ + h, add_right_mem_moves_add hg1_mem h, ?_, h_response_bound _ h_neg_g1h⟩
-        have := hasStride_add hg1_p h_sL_h hg1_neg h_sR_h
-        convert this using 1; omega
-    -- (iii)
+        refine ⟨g₁ + h, add_right_mem_moves_add hg1_mem h, ?_, sR_g + sR_h, ?_, h_cand_neg⟩
+        · have := hasStride_add hg1_p h_sL_h hg1_neg h_sR_h
+          rw [show s = sL_g' + sL_h by omega]
+          exact this
+        · exact hasStride_add hg1_neg h_sR_h (by rwa [neg_neg]) (by rwa [neg_neg])
+    -- (iv)
     · intro g' hg'
       rw [moves_add] at hg'
       simp only [Set.mem_union, Set.mem_image] at hg'
@@ -608,49 +741,6 @@ theorem hasStride_add {p : Player} {g h : GameForm} {sL_g sL_h sR_g sR_h : ℕ}
       · have ⟨j, hj, hj_s⟩ := hasStride_of_mem_moves_neg h_sL_h hx
         have ⟨lx, _, hlx_s⟩ := hasStride_of_mem_moves h_sR_h hx
         exact ⟨sL_g + j, by omega, hasStride_add h_sL_g hj_s h_sR_g hlx_s⟩
-    -- (iv)
-    · intro h_ne
-      rw [moves_add] at h_ne
-      rw [Set.nonempty_iff_ne_empty.symm] at h_ne
-      simp only [Set.Nonempty, Set.mem_union, Set.mem_image] at h_ne
-      obtain ⟨_, ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩⟩ := h_ne
-      · -- Opponent move from g
-        rcases sL_g.eq_zero_or_pos with h_eq | h_pos_g
-        · -- sL_g = 0: x is solved, form x + h
-          subst h_eq
-          have hx_solved := isSolved_of_mem_moves (hasStride_eq_zero_iff.mp h_sL_g) hx
-          have ⟨mx, _, hmx_s⟩ := hasStride_of_mem_moves h_sR_g hx
-          have := hasStride_add (hasStride_eq_zero_iff.mpr hx_solved) h_sL_h hmx_s h_sR_h
-          rw [Nat.zero_add] at this
-          rw [show s + 1 = sL_h from by omega]
-          exact ⟨x + h, add_right_mem_moves_add hx h, this⟩
-        · -- sL_g > 0: use preserve_neg on g
-          have ⟨sL_g', hsL_g'⟩ : ∃ n, sL_g = n + 1 := ⟨sL_g - 1, by omega⟩
-          subst hsL_g'
-          have h_ne_g : moves (-p) g ≠ ∅ := Set.nonempty_iff_ne_empty.mp ⟨x, hx⟩
-          have ⟨g', hg'_mem, hg'_s⟩ := hasStride_succ_exists_preserve_neg h_sL_g h_ne_g
-          have ⟨mg', _, hmg'_s⟩ := hasStride_of_mem_moves h_sR_g hg'_mem
-          have := hasStride_add hg'_s h_sL_h hmg'_s h_sR_h
-          rw [show (sL_g' + 1) + sL_h = s + 1 from by omega] at this
-          exact ⟨g' + h, add_right_mem_moves_add hg'_mem h, this⟩
-      · -- (v)
-        rcases sL_h.eq_zero_or_pos with h_eq | h_pos_h
-        · -- sL_h = 0: x is solved, form g + x
-          subst h_eq
-          have hx_solved := isSolved_of_mem_moves (hasStride_eq_zero_iff.mp h_sL_h) hx
-          have ⟨lx, _, hlx_s⟩ := hasStride_of_mem_moves h_sR_h hx
-          have := hasStride_add h_sL_g (hasStride_eq_zero_iff.mpr hx_solved) h_sR_g hlx_s
-          rw [show s + 1 = sL_g from by omega]
-          exact ⟨g + x, add_left_mem_moves_add hx g, this⟩
-        · -- sL_h > 0: use preserve_neg on h
-          have ⟨sL_h', hsL_h'⟩ : ∃ n, sL_h = n + 1 := ⟨sL_h - 1, by omega⟩
-          subst hsL_h'
-          have h_ne_h : moves (-p) h ≠ ∅ := Set.nonempty_iff_ne_empty.mp ⟨x, hx⟩
-          have ⟨h', hh'_mem, hh'_s⟩ := hasStride_succ_exists_preserve_neg h_sL_h h_ne_h
-          have ⟨lh', _, hlh'_s⟩ := hasStride_of_mem_moves h_sR_h hh'_mem
-          have := hasStride_add h_sL_g hh'_s h_sR_g hlh'_s
-          rw [show sL_g + (sL_h' + 1) = s + 1 from by omega] at this
-          exact ⟨g + h', add_left_mem_moves_add hh'_mem g, this⟩
 termination_by (g, h)
 decreasing_by form_wf
 
@@ -663,32 +753,41 @@ private theorem hasStride_neg {p : Player} {g : GameForm} {n : ℕ}
     exact h_hasStride
   | n + 1 =>
     rw [hasStride_succ_iff]
-    refine ⟨?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_⟩
     · simp [hasStride_isSolved_iff_zero h_hasStride]
     · simp only [moves_neg, neg_neg, Set.mem_neg, Set.forall_neg_mem]
       intro g' h_g'_mem
       have ⟨k, h1, h2⟩ := hasStride_succ_support h_hasStride g' h_g'_mem
       use k, h1, hasStride_neg h2
-    · have ⟨g', h_g'_mem, h1, h2⟩ := hasStride_succ_exists_best h_hasStride
-      use (-g')
-      simp only [moves_neg, neg_neg, Set.mem_neg, Set.forall_neg_mem, exists_and_left, exists_prop]
-      refine ⟨hasStride_neg h1, h_g'_mem, ?_⟩
-      intro x h_x_mem m h_m
-      have := hasStride_neg h_m
-      rw [neg_neg] at this
-      have ⟨k, h1, h2⟩ := h2 x h_x_mem m this
-      use k, h1
-      have := hasStride_neg h2
-      rwa [neg_neg] at this
+    · have ⟨g', h_g'_mem, h1, m, h_m, h_cand⟩ := hasStride_succ_exists_best h_hasStride
+      refine ⟨-g', ?_, hasStride_neg h1, m, ?_, ?_⟩
+      · simp only [moves_neg, neg_neg, Set.mem_neg]
+        exact h_g'_mem
+      · exact hasStride_neg h_m
+      · match m, h_cand with
+        | 0, h_cand =>
+          rw [strideCandidate_zero_iff] at h_cand ⊢
+          rw [neg_neg, isSolved_neg_iff']
+          exact h_cand
+        | m + 1, h_cand =>
+          rw [strideCandidate_succ_iff] at h_cand ⊢
+          obtain ⟨h_cand_not_solved, h_cand_support, g'', h_g''_mem, h_g''⟩ := h_cand
+          refine ⟨?_, ?_, -g'', ?_, ?_⟩
+          · rw [neg_neg, isSolved_neg_iff']
+            exact h_cand_not_solved
+          · simp only [neg_neg, moves_neg, Set.mem_neg, Set.forall_neg_mem]
+            intro x h_x_mem
+            have ⟨k, h_k, h_k_stride⟩ := h_cand_support x h_x_mem
+            have := hasStride_neg h_k_stride
+            rw [neg_neg] at this
+            exact ⟨k, h_k, this⟩
+          · simp only [neg_neg, moves_neg, Set.mem_neg]
+            exact h_g''_mem
+          · exact hasStride_neg h_g''
     · simp only [neg_neg, moves_neg, Set.mem_neg, Set.forall_neg_mem]
       intro g' h_g'_mem
       have ⟨k, h1, h2⟩ := hasStride_succ_support_neg h_hasStride g' h_g'_mem
       use k, h1, hasStride_neg h2
-    · simp only [neg_neg, moves_neg, ne_eq, Set.neg_eq_empty, Set.mem_neg, exists_prop,
-                 Set.exists_neg_mem]
-      intro h1
-      have ⟨g', h1, h2⟩ := hasStride_succ_exists_preserve_neg h_hasStride h1
-      use g', h1, hasStride_neg h2
 termination_by birthday g
 decreasing_by all_goals gameform_birthday
 
@@ -705,6 +804,71 @@ theorem hasStride_neg_iff {p : Player} {g : GameForm} {n : ℕ} :
 theorem hasStride_neg_iff' {p : Player} {g : GameForm} {n : ℕ} :
     HasStride p (-g) n ↔ HasStride (-p) g n := by
   rw [<-neg_neg p, hasStride_neg_iff, neg_neg]
+
+/-! ### Ordinal sums -/
+
+/--
+The stride candidate of an ordinal sum, given the strides of the ordinal sums
+with the options of the branch.
+-/
+private theorem strideCandidate_ordinalSum {p : Player} {x y : GameForm} {l r : ℕ}
+    (h_ne_zero : x ≠ 0) (h_l : HasStride p x l) (h_r : HasStride (-p) x r)
+    (ih : ∀ y' ∈ moves p y, HasStride p (ordinalSum x y') l) :
+    StrideCandidate p (ordinalSum x y) l := by
+  match l with
+  | 0 => exact isSolved_ordinalSum y h_ne_zero (hasStride_eq_zero_iff.mp h_l)
+  | n + 1 =>
+    rw [strideCandidate_succ_iff]
+    refine ⟨(isSolved_ordinalSum_iff h_ne_zero).not.mpr (hasStride_succ_iff.mp h_l).1, ?_, ?_⟩
+    · intro z h_z
+      rw [mem_moves_ordinalSum_iff] at h_z
+      obtain h_z | ⟨y', h_y', rfl⟩ := h_z
+      · exact hasStride_succ_support h_l z h_z
+      · exact ⟨n + 1, Nat.le_succ n, ih y' h_y'⟩
+    · obtain ⟨x', h_x', h_x'_stride, _⟩ := hasStride_succ_exists_best' h_l h_r
+      exact ⟨x', mem_moves_ordinalSum_base y h_x', h_x'_stride⟩
+
+/--
+Ordinal sums forget their branch: the strides of `x : y` are the strides of
+the base `x`, for every branch `y` whatsoever. The base must be nonzero since
+`0 : y = y`.
+
+Together with `hasStride_add` this recovers the strides of Hackenbush trees,
+`Σ (ground edge : subtree)`, without any graph argument; see
+`Hackenbush.hasStride_groundCount` for the general graph case.
+-/
+theorem hasStride_ordinalSum {p : Player} {x : GameForm} (y : GameForm) {l r : ℕ}
+    (h_ne_zero : x ≠ 0) (h_l : HasStride p x l) (h_r : HasStride (-p) x r) :
+    HasStride p (ordinalSum x y) l := by
+  match l with
+  | 0 =>
+    exact hasStride_eq_zero_iff.mpr (isSolved_ordinalSum y h_ne_zero (hasStride_eq_zero_iff.mp h_l))
+  | n + 1 =>
+    have h_l' : HasStride (-(-p)) x (n + 1) := by rwa [neg_neg]
+    have h_candidate : StrideCandidate (-p) (ordinalSum x y) r :=
+      strideCandidate_ordinalSum h_ne_zero h_r h_l'
+        fun y' h_y' => hasStride_ordinalSum y' h_ne_zero h_r h_l'
+    rw [hasStride_succ_iff]
+    refine ⟨(isSolved_ordinalSum_iff h_ne_zero).not.mpr (hasStride_succ_iff.mp h_l).1, ?_, ?_, ?_⟩
+    · intro z h_z
+      rw [mem_moves_ordinalSum_iff] at h_z
+      obtain h_z | ⟨y', h_y', rfl⟩ := h_z
+      · exact hasStride_succ_support h_l z h_z
+      · exact ⟨n + 1, Nat.le_succ n, hasStride_ordinalSum y' h_ne_zero h_l h_r⟩
+    · obtain ⟨x', h_x', h_x'_stride, h_x'_stride_neg⟩ := hasStride_succ_exists_best' h_l h_r
+      exact ⟨x', mem_moves_ordinalSum_base y h_x', h_x'_stride, r, h_x'_stride_neg, h_candidate⟩
+    · intro z h_z
+      rw [mem_moves_ordinalSum_iff] at h_z
+      obtain h_z | ⟨y', h_y', rfl⟩ := h_z
+      · exact hasStride_succ_support_neg h_l z h_z
+      · exact ⟨n + 1, le_refl _, hasStride_ordinalSum y' h_ne_zero h_l h_r⟩
+termination_by y
+decreasing_by form_wf
+
+theorem hasStride_ordinalSum_iff {p : Player} {x : GameForm} (y : GameForm) {l r k : ℕ}
+    (h_ne_zero : x ≠ 0) (h_l : HasStride p x l) (h_r : HasStride (-p) x r) :
+    HasStride p (ordinalSum x y) k ↔ k = l :=
+  hasStride_mk_iff l (hasStride_ordinalSum y h_ne_zero h_l h_r)
 
 /-! ### Integers -/
 
@@ -731,13 +895,14 @@ theorem hasStride_right_one_iff {n : ℕ} : HasStride .right 1 n ↔ n = 0 :=
 
 theorem hasStride_left_one : HasStride .left 1 1 := by
   rw [hasStride_succ_iff]
-  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro h
     have := isSolved_zero_not_mem h
     simp only [leftMoves_one, Set.mem_singleton_iff, not_true_eq_false] at this
   · simp
-  · simp
-  · simp
+  · refine ⟨0, by simp, hasStride_zero .left, 0, hasStride_zero _, ?_⟩
+    rw [strideCandidate_zero_iff, Player.neg_left]
+    exact isSolved_right_one
   · simp
 
 theorem hasStride_left_natCast (n : ℕ) : HasStride .left (n : GameForm.{u}) n := by
@@ -768,6 +933,70 @@ theorem hasStride_right_intCast_iff (n : ℤ) {k : ℕ} :
     HasStride .right ((n : GameForm.{u})) k ↔ k = (-n).toNat := by
   rw [<-neg_neg n, Form.intCast_neg, hasStride_neg_iff', Player.neg_right,
       hasStride_left_intCast_iff, neg_neg]
+
+/-! ### Dyadic rationals
+
+Strides of the canonical forms of `1/2 = {0 | 1}` and `3/4 = {1/2 | 1}`.
+The latter is the smallest number whose stride only exists because the good
+move is required to *preserve* the opponent's stride rather than the
+opponent being required to be able to preserve ours: Right's only move from
+`3/4` is to `1`, which lowers Left's stride from `2` to `1`.
+-/
+
+theorem isSolved_right_half : IsSolved .right !{{0} | {1}} := by
+  rw [isSolved_def]
+  refine ⟨?_, ?_, ?_⟩
+  · simp
+  · intro _
+    simp [isEnd_def]
+  · intro gp h_isOption
+    simp only [isOption_iff_mem_union, leftMoves_ofSets, rightMoves_ofSets, Set.union_singleton,
+      Set.mem_insert_iff, Set.mem_singleton_iff] at h_isOption
+    obtain rfl | rfl := h_isOption
+    · exact isSolved_right_one
+    · exact isSolved_zero _
+
+theorem hasStride_left_half : HasStride .left !{{0} | {1}} 1 := by
+  rw [hasStride_succ_iff]
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro h
+    have := isSolved_zero_not_mem h
+    simp at this
+  · simp
+  · refine ⟨0, by simp, hasStride_zero .left, 0, hasStride_zero _, ?_⟩
+    rw [strideCandidate_zero_iff, Player.neg_left]
+    exact isSolved_right_half
+  · simp only [Player.neg_left, rightMoves_ofSets, Set.mem_singleton_iff, forall_eq]
+    exact ⟨1, le_refl _, hasStride_left_one⟩
+
+theorem isSolved_right_threeQuarters : IsSolved .right !{{!{{0} | {1}}} | {1}} := by
+  rw [isSolved_def]
+  refine ⟨?_, ?_, ?_⟩
+  · simp
+  · intro _
+    simp [isEnd_def]
+  · intro gp h_isOption
+    simp only [isOption_iff_mem_union, leftMoves_ofSets, rightMoves_ofSets, Set.union_singleton,
+      Set.mem_insert_iff, Set.mem_singleton_iff] at h_isOption
+    obtain rfl | rfl := h_isOption
+    · exact isSolved_right_one
+    · exact isSolved_right_half
+
+theorem hasStride_left_threeQuarters : HasStride .left !{{!{{0} | {1}}} | {1}} 2 := by
+  rw [hasStride_succ_iff]
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro h
+    have := isSolved_zero_not_mem (isSolved_of_mem_moves h (show !{{0} | {1}} ∈ moves .left _ by simp))
+    simp at this
+  · simp only [leftMoves_ofSets, Set.mem_singleton_iff, forall_eq]
+    exact ⟨1, le_refl _, hasStride_left_half⟩
+  · refine ⟨!{{0} | {1}}, by simp, hasStride_left_half, 0, ?_, ?_⟩
+    · rw [Player.neg_left]
+      exact hasStride_eq_zero_iff.mpr isSolved_right_half
+    · rw [strideCandidate_zero_iff, Player.neg_left]
+      exact isSolved_right_threeQuarters
+  · simp only [Player.neg_left, rightMoves_ofSets, Set.mem_singleton_iff, forall_eq]
+    exact ⟨1, by omega, hasStride_left_one⟩
 
 /-! ### Outcomes -/
 
@@ -874,6 +1103,25 @@ theorem hasStride_misereOutcome_iff_eq {p : Player} {g : GameForm} {l r : ℕ}
     rw [<-neg_neg Player.right] at h_l
     rw [<-Player.neg_right, hasStride_winsGoingFirst_iff h_r h_l]
     exact Iff.symm ge_antisymm_iff
+
+/--
+Games with the same strides have the same outcome.
+-/
+theorem misereOutcome_eq_of_hasStride {g h : GameForm} {l r : ℕ}
+    (h_lg : HasStride .left g l) (h_rg : HasStride .right g r)
+    (h_lh : HasStride .left h l) (h_rh : HasStride .right h r) :
+    MisereOutcome g = MisereOutcome h := by
+  have h_rg' : HasStride (-Player.left) g r := h_rg
+  have h_rh' : HasStride (-Player.left) h r := h_rh
+  have h_lg' : HasStride (-Player.right) g l := h_lg
+  have h_lh' : HasStride (-Player.right) h l := h_lh
+  obtain h_lt | h_eq | h_gt := Nat.lt_trichotomy l r
+  · rw [(hasStride_misereOutcome_iff_lt h_lg h_rg').mpr h_lt,
+      (hasStride_misereOutcome_iff_lt h_lh h_rh').mpr h_lt]
+  · rw [(hasStride_misereOutcome_iff_eq h_lg h_rg').mpr h_eq,
+      (hasStride_misereOutcome_iff_eq h_lh h_rh').mpr h_eq]
+  · rw [(hasStride_misereOutcome_iff_lt h_rg h_lg').mpr h_gt,
+      (hasStride_misereOutcome_iff_lt h_rh h_lh').mpr h_gt]
 
 /--
 If a game has both strides, then it is $\mathscr{P}$-free.
@@ -1025,6 +1273,16 @@ theorem misereEQ_iff_stride_diff_eq
     (g =m A h) ↔ ((ng : ℤ) - (rg : ℤ) = (nh : ℤ) - (rh : ℤ)) :=
   ⟨fun heq => stride_diff_eq_of_misereEQ (A := A) heq h_ng h_rg h_nh h_rh,
    fun hdiff => misereEQ_of_stride_diff_eq h_ng h_rg h_nh h_rh hdiff⟩
+
+/--
+Modulo a strided class, an ordinal sum with a nonzero strided base is equal
+to its base, whatever the branch. This is the misère counterpart of the colon
+principle.
+-/
+theorem ordinalSum_misereEQ {x : GameForm} (y : GameForm) {l r : ℕ} (h_ne_zero : x ≠ 0)
+    (h_l : HasStride .left x l) (h_r : HasStride .right x r) : ordinalSum x y =m A x :=
+  misereEQ_of_stride_diff_eq (hasStride_ordinalSum y h_ne_zero h_l h_r)
+    (hasStride_ordinalSum y h_ne_zero h_r h_l) h_l h_r rfl
 
 /-
 If the stride difference of g is ≤ that of h (as integers), then g ≥m A h.

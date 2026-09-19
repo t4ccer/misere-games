@@ -737,91 +737,58 @@ theorem toGameForm_hasStride (s : R) (p : Player) :
       GameForm.HasStride q (Strip.toGameForm (push s m)) (stride (push s m) q) := by
     intro m q hm
     exact ih _ (by rw [← w]; exact weight_push_lt s hm) _ _ rfl
-  by_cases hs : stride s p = 0
-  · rw [hs]; exact hasStride_eq_zero_iff.mpr (isSolved_of_stride_zero hs)
-  · obtain ⟨hrm, hrm_eq⟩ := rightmost_of_stride_pos hs
+  refine GameForm.hasStride_of_options (Strip.toGameForm s) (stride s) ?_ ?_ ?_ ?_ ?_ p
+  · intro q hs
+    exact isSolved_of_stride_zero hs
+  · intro q hs H
+    obtain ⟨hrm, hrm_eq⟩ := rightmost_of_stride_pos hs
     set k := rightmostPos s with hk_def
-    have hstride_eq : stride s p = k + 1 := by omega
-    rw [hstride_eq]
-    have hk_ne : board s k ≠ .none := by rw [hrm]; exact Piece.ofPlayer_ne_none p
-    rw [GameForm.hasStride_succ_iff]
-    refine ⟨?_, ?_, ?_, ?_, ?_⟩
-    · intro H
-      have h_push_k_mem : Strip.toGameForm (push s k) ∈ Form.moves p (Strip.toGameForm s) :=
-        toGameForm_push_mem_moves p hrm
-      have h_push_k_opt : Form.IsOption (Strip.toGameForm (push s k)) (Strip.toGameForm s) :=
-        Form.IsOption.of_mem_moves h_push_k_mem
-      have h_push_k_solved := GameForm.isSolved_of_isOption H h_push_k_opt
-      by_cases hk_pos : 0 < k
-      · have h_stride_k : stride (push s k) p = k := stride_push_at_rightmost p rfl hk_pos hrm
-        have h_hs_k := ih_push k p hk_ne
-        rw [h_stride_k] at h_hs_k
-        have := (GameForm.hasStride_isSolved_iff_zero h_hs_k).mp h_push_k_solved
-        omega
-      · have hk_zero : (k : ℕ) = 0 := by omega
-        have h_empty : ∀ n, board (push s 0) n = .none :=
-          push_rightmost_zero_empty (by rw [← hk_def]; exact hk_zero)
-        have h_zero : Strip.toGameForm (push s k) = 0 := by
-          rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
-        rw [h_zero] at h_push_k_mem
-        exact GameForm.isSolved_zero_not_mem H h_push_k_mem
-    · intro g' hg'
-      obtain ⟨m, hm_p, rfl⟩ := (mem_moves_toGameForm_iff s p g').mp hg'
-      have hm_ne : board s m ≠ .none := by rw [hm_p]; exact Piece.ofPlayer_ne_none p
-      have h_stride_ge : k ≤ stride (push s m) p := by
-        by_cases hm_lt : m < rightmostPos s
-        · rw [stride_push_below p hm_lt, hstride_eq]
-          omega
-        · have hm_eq : m = rightmostPos s := by
-            refine le_antisymm ?_ (Nat.not_lt.mp hm_lt)
-            apply rightmostPos_greatest
-            rw [hm_p]
-            exact Piece.ofPlayer_ne_none p
-          have := stride_push_eq_rightmostPos p hm_ne hm_eq
-          omega
-      exact ⟨stride (push s m) p, h_stride_ge, ih_push m p hm_ne⟩
-    · refine ⟨Strip.toGameForm (push s k), toGameForm_push_mem_moves p hrm, ?_, ?_⟩
-      · by_cases hk_pos : 0 < k
-        · have h_str := stride_push_at_rightmost p rfl hk_pos hrm
-          have h_hs := ih_push k p hk_ne
-          rwa [h_str] at h_hs
-        · have hk_zero : (k : ℕ) = 0 := by omega
-          have h_empty : ∀ n, board (push s 0) n = .none :=
-            push_rightmost_zero_empty (by rw [← hk_def]; exact hk_zero)
-          have h_zero : Strip.toGameForm (push s k) = 0 := by
-            rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
-          rw [h_zero, hk_zero]
-          exact hasStride_eq_zero_iff.mpr (GameForm.isSolved_zero p)
-      · intro g'' hg'' m_val hm_val
-        obtain ⟨m', hm'_p, rfl⟩ := (mem_moves_toGameForm_iff s p g'').mp hg''
-        have h_m_zero : m_val = 0 := by
-          apply GameForm.hasStride_unique hm_val
-          rw [← stride_neg_zero_of_p_move p hrm hm'_p]
-          exact ih_push m' (-p) (Piece.ne_none_of_ofPlayer hm'_p)
-        subst h_m_zero
-        have h_neg_good : stride (push s k) (-p) = 0 := stride_neg_zero_of_p_move p hrm hrm
-        exact ⟨0, le_refl _, by rw [← h_neg_good]; exact ih_push k (-p) hk_ne⟩
-    · intro g' hg'
-      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff s (-p) g').mp hg'
-      have hm_lt : m < k := neg_push_below_rightmost hrm hm_neg
-      have hm_ne : board s m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
-      have h_stride_eq : stride (push s m) p = k + 1 := by
-        rw [stride_push_below p (by rw [← hk_def]; exact hm_lt), hstride_eq]
-      use k + 1
-      refine ⟨le_refl _, ?_⟩
-      rw [← h_stride_eq]
-      exact ih_push m p hm_ne
-    · intro hne
-      have ⟨g', hg'⟩ := Set.nonempty_iff_ne_empty.mpr hne
-      obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff s (-p) g').mp hg'
-      have hm_lt : m < k := neg_push_below_rightmost hrm hm_neg
-      have hm_ne : board s m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-p)
-      have h_stride_eq : stride (push s m) p = k + 1 := by
-        rw [stride_push_below p (by rw [← hk_def]; exact hm_lt), hstride_eq]
-      use Strip.toGameForm (push s m)
-      use (mem_moves_toGameForm_iff s (-p) _).mpr ⟨m, hm_neg, rfl⟩
-      rw [← h_stride_eq]
-      exact ih_push m p hm_ne
+    have hk_ne : board s k ≠ .none := by rw [hrm]; exact Piece.ofPlayer_ne_none q
+    have h_push_k_mem : Strip.toGameForm (push s k) ∈ Form.moves q (Strip.toGameForm s) :=
+      toGameForm_push_mem_moves q hrm
+    have h_push_k_solved :=
+      GameForm.isSolved_of_isOption H (Form.IsOption.of_mem_moves h_push_k_mem)
+    by_cases hk_pos : 0 < k
+    · have h_stride_k : stride (push s k) q = k := stride_push_at_rightmost q rfl hk_pos hrm
+      have h_hs_k := ih_push k q hk_ne
+      rw [h_stride_k] at h_hs_k
+      have := (GameForm.hasStride_isSolved_iff_zero h_hs_k).mp h_push_k_solved
+      omega
+    · have hk_zero : (k : ℕ) = 0 := by omega
+      have h_empty : ∀ n, board (push s 0) n = .none :=
+        push_rightmost_zero_empty (by rw [← hk_def]; exact hk_zero)
+      have h_zero : Strip.toGameForm (push s k) = 0 := by
+        rw [hk_zero]; exact (toGameForm_zero_iff _).mpr (fun n => h_empty n)
+      rw [h_zero] at h_push_k_mem
+      exact GameForm.isSolved_zero_not_mem H h_push_k_mem
+  · intro q g' hg'
+    obtain ⟨m, hm_q, rfl⟩ := (mem_moves_toGameForm_iff s q g').mp hg'
+    have hm_ne : board s m ≠ .none := by rw [hm_q]; exact Piece.ofPlayer_ne_none q
+    refine ⟨stride (push s m) q, ?_, ih_push m q hm_ne⟩
+    by_cases hm_lt : m < rightmostPos s
+    · rw [stride_push_below q hm_lt]
+      omega
+    · have hm_eq : m = rightmostPos s := by
+        refine le_antisymm ?_ (Nat.not_lt.mp hm_lt)
+        apply rightmostPos_greatest
+        rw [hm_q]
+        exact Piece.ofPlayer_ne_none q
+      have := stride_push_eq_rightmostPos q hm_ne hm_eq
+      omega
+  · intro q hs
+    obtain ⟨hrm, hrm_eq⟩ := rightmost_of_stride_pos hs
+    have hk_ne : board s (rightmostPos s) ≠ .none := by
+      rw [hrm]; exact Piece.ofPlayer_ne_none q
+    refine ⟨Strip.toGameForm (push s (rightmostPos s)), toGameForm_push_mem_moves q hrm, ?_, ?_⟩
+    · rw [← stride_push_eq_rightmostPos q hk_ne rfl]
+      exact ih_push (rightmostPos s) q hk_ne
+    · have h_neg_zero : stride s (-q) = 0 := Strip.Board.stride_neg_eq_zero q hrm
+      rw [h_neg_zero, ← stride_neg_zero_of_p_move q hrm hrm]
+      exact ih_push (rightmostPos s) (-q) hk_ne
+  · intro q g' hg'
+    obtain ⟨m, hm_neg, rfl⟩ := (mem_moves_toGameForm_iff s (-q) g').mp hg'
+    have hm_ne : board s m ≠ .none := by rw [hm_neg]; exact Piece.ofPlayer_ne_none (-q)
+    exact ⟨stride (push s m) q, stride_push_le q hm_ne, ih_push m q hm_ne⟩
 
 /-!
 ### Building the `Strided` structure and the equivalence with `ℤ`

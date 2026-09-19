@@ -12,6 +12,7 @@ public import CombinatorialGames.Form.Misere.Outcome
 public import CombinatorialGames.Form.Short
 public import CombinatorialGames.GameForm
 public import CombinatorialGames.GameForm.Birthday
+public import CombinatorialGames.GameForm.OrdinalSum
 public import CombinatorialGames.GameForm.Special
 public import CombinatorialGames.GameGraph
 public import CombinatorialGames.Literature.OnSumsOfPFreeFormsUnderMiserePlay
@@ -45,6 +46,8 @@ public import CombinatorialGames.Outcome
 public import CombinatorialGames.Player
 public import CombinatorialGames.Ruleset
 public import CombinatorialGames.Ruleset.Hackenbush
+public import CombinatorialGames.Ruleset.Hackenbush.Color
+public import CombinatorialGames.Ruleset.Hackenbush.Uproot
 public import CombinatorialGames.Ruleset.Push
 public import CombinatorialGames.Ruleset.Shove
 public import CombinatorialGames.Ruleset.Strip
