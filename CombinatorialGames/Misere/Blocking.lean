@@ -250,6 +250,9 @@ instance : ShortUniverse (ShortBlocking (G := G)) where
   isAmbient_of_mem h := h.short
   has_add := ClosedUnderAdd.has_add
 
+instance : Short (ShortBlocking (G := G)) where
+  isShort h := h.short
+
 instance : HasNat (ShortBlocking (G := G)) where
   has_nat n :=
     { short := IsShort.natCast n

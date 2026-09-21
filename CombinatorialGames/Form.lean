@@ -505,6 +505,13 @@ theorem rightMoves_intCast {a : ℤ} (h1 : 0 ≤ a) : moves .right (a : G) = ∅
   rw [<-h_x', Form.intCast_nat]
   simp only [rightMoves_natCast]
 
+theorem rightMoves_intCast_of_neg {a : ℤ} (h1 : a < 0) :
+    moves .right (a : G) = {((a + 1 : ℤ) : G)} := by
+  have h2 : (a : G) = -((-a : ℤ) : G) := by
+    rw [Form.intCast_neg, neg_neg]
+  rw [h2, moves_neg, Player.neg_right, leftMoves_intCast (a := -a) (by omega), Set.neg_singleton,
+    ← Form.intCast_neg, show (-(-a - 1) : ℤ) = a + 1 by omega]
+
 private protected theorem natCast_eq_zero_iff {n : ℕ} : (n : G) = 0 ↔ n = 0 := by
   constructor
   · cases n with

@@ -133,6 +133,30 @@ theorem misereOutcome_add_int_neg_LTippingPoint_L {g : GameForm} (hsg : IsShort 
 variable [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
          [ClosedUnderAdd A] [IntegerInvertible A]
 
+omit [HasInt A] in
+/--
+Every $G \in \operatorname{pf}(\mathcal{A})$ is bounded above by an integer:
+$G \le -\operatorname{r}(G)$.
+-/
+theorem exists_neg_natCast_misereGE {g : GameForm} (h_g : PFreeSubset A g) (h_short : IsShort g) :
+    ∃ n : ℕ, ((-(n : ℤ) : ℤ) : GameForm) ≥m (PFreeSubset A) g := by
+  refine ⟨RTippingPoint h_short, ?_⟩
+  have h_mem : PFreeSubset A (g + ((RTippingPoint h_short : ℕ) : GameForm)) :=
+    ClosedUnderAddNat.has_add h_g _
+  have h_zero := OutcomeStable.misereGE_zero_of_misereOutcome_R h_mem
+    (misereOutcome_add_RTippingPoint_R h_short)
+  intro x h_x
+  have h_le := h_zero _ (ClosedUnderAddNat.has_add_neg h_x (RTippingPoint h_short))
+  rw [zero_add] at h_le
+  have h_shift := misereOutcome_add_shift h_g.mem h_x.mem
+    (RTippingPoint h_short : ℤ)
+  rw [Form.intCast_nat] at h_shift
+  have h_cast : ((-(RTippingPoint h_short : ℤ) : ℤ) : GameForm) + x
+      = x + -((RTippingPoint h_short : ℕ) : GameForm) := by
+    rw [Form.intCast_neg, Form.intCast_nat, add_comm]
+  rw [h_cast, h_shift]
+  exact h_le
+
 /--
 If $\mathcal{A}$ is an outcome-stable and integer-invertible monoid, and $G, H
 \in \operatorname{pf}(\mathcal{A})$ with $\operatorname{o}(G) = \mathscr{L}$

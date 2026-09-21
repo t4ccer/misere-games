@@ -1313,6 +1313,15 @@ theorem misereGE_zero_of_misereOutcome_R
   · exact absurd h_x_out (misereOutcome_ne_P_of_pfree h_x)
   · simp [OutcomeStable.misereOutcome_of_add_ofPlayer (p := .right) h_h h_x h_out h_x_out]
 
+theorem intCast_misereGE_of_misereOutcome_R
+    {A : GameForm → Prop} [OutcomeStable A] [ClosedUnderAddNat A] [HasInt A] [ClosedUnderNeg A]
+    {g : GameForm} {n : ℤ}
+    (h_g : (PFreeSubset A) g) (h_n : n ≤ 0) (h_R : MisereOutcome g = .R) :
+    ((n : ℤ) : GameForm) ≥m (PFreeSubset A) g := by
+  refine MisereGE.trans (OutcomeStable.misereGE_of_int_le _ n 0 h_n) ?_
+  rw [Form.intCast_zero]
+  exact misereGE_zero_of_misereOutcome_R h_g h_R
+
 theorem misereGE_of_isEnd_left_isEnd_right_int
     {U : GameForm → Prop} [OutcomeStable U] [ClosedUnderAddNat U] [HasInt U] [ClosedUnderNeg U]
     {g : GameForm} {n : ℤ}

@@ -380,6 +380,8 @@ meta def delab_misereEQ : Delab := do
   let u ← withAppFn do withAppFn do withAppArg delab
   `($x =m $u $y)
 
+theorem MisereEQ.refl {A : G → Prop} (g : G) : g =m A g := fun _ _ => rfl
+
 theorem MisereEQ.symm {A : G → Prop} {g h : G} (h1 : g =m A h) : h =m A g := by
   intro x h2
   have h3 := h1 x h2
@@ -463,6 +465,11 @@ theorem misereGE_of_subset (U : G → Prop) {V : G → Prop}
   unfold MisereGE at h2 ⊢
   intro x hv
   exact h2 x (h_v_subset_u x hv)
+
+theorem misereOutcome_ge_of_misereGE {A : G → Prop} [HasZero A] {g h : G}
+    (h_ge : g ≥m A h) : MisereOutcome g ≥ MisereOutcome h := by
+  have := h_ge 0 HasZero.has_zero
+  rwa [add_zero, add_zero] at this
 
 /--
 Adding a fixed element `c ∈ A` on the right preserves the restricted misère
@@ -636,6 +643,12 @@ theorem winsGoingFirst_right_one : WinsGoingFirst .right (1 : G) := by
 @[simp]
 theorem one_misereOutcome_R : MisereOutcome (1 : G) = .R := by
   simp [misereOutcome_R_iff_winsGoingFirst]
+
+theorem misereOutcome_R_of_one_misereGE {A : G → Prop} [HasZero A] {g : G}
+    (h_ge : (1 : G) ≥m A g) : MisereOutcome g = .R := by
+  have := misereOutcome_ge_of_misereGE h_ge
+  rw [one_misereOutcome_R] at this
+  exact (Outcome.le_R_iff _).mp this
 
 @[simp]
 theorem misereOutcome_R_intCast_iff (n : ℤ) : MisereOutcome (n : G) = .R ↔ 0 < n := by

@@ -556,6 +556,16 @@ theorem isEnd_left_misereGE_zero
   exact Blocking.isEnd_right_zero_misereGE (ClosedUnderNeg.neg_of h_g)
     (IsEnd.neg_iff_neg.mpr h_g_isEnd)
 
+theorem intCast_misereGE_of_isEnd_right
+    {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    {g : GameForm} {n : ℤ} (h_g : (PFreeSubset U) g) (h_n : n ≤ 0)
+    (h_isEnd : IsEnd .right g) :
+    ((n : ℤ) : GameForm) ≥m (PFreeSubset U) g := by
+  refine MisereGE.trans (OutcomeStable.misereGE_of_int_le U n 0 h_n) ?_
+  rw [Form.intCast_zero]
+  exact isEnd_right_zero_misereGE h_g h_isEnd
+
 theorem reduction_plug_end_not_isEnd_left
     {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
     [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
@@ -1369,5 +1379,305 @@ theorem misereGE_iff_promain
             (fun hl => hh_both ⟨hl, hh_right⟩) hh_right
         · simp only [hh_right, if_false]
           exact misereGE_iff_promain_not_isEnd_left_right h_g h_h hg_left hh_right
+
+
+/-! ## Comparison across universes -/
+
+private theorem promain_test_of_subset
+    {U V : GameForm → Prop} [HasInt U] [Blocking U] [ShortUniverse V] [HasInt V] [Blocking V]
+    {g h g' h' : GameForm}
+    (h_g' : PFreeSubset V g') (h_h' : PFreeSubset V h')
+    (h_g_eq_V : g =m (PFreeSubset V) g') (h_g_eq_U : g =m (PFreeSubset U) g')
+    (h_h_eq_V : h =m (PFreeSubset V) h') (h_h_eq_U : h =m (PFreeSubset U) h')
+    (h_rr : ∀ gr ∈ moves .right g', ∀ hr ∈ moves .right h',
+      gr ≥m (PFreeSubset V) hr → gr ≥m (PFreeSubset U) hr)
+    (h_rl : ∀ gr ∈ moves .right g', ∀ grl ∈ moves .left gr,
+      grl ≥m (PFreeSubset V) h → grl ≥m (PFreeSubset U) h)
+    (h_ll : ∀ hl ∈ moves .left h', ∀ gl ∈ moves .left g',
+      gl ≥m (PFreeSubset V) hl → gl ≥m (PFreeSubset U) hl)
+    (h_lr : ∀ hl ∈ moves .left h', ∀ hlr ∈ moves .right hl,
+      g ≥m (PFreeSubset V) hlr → g ≥m (PFreeSubset U) hlr)
+    (h_test : Promain.Test (PFreeSubset V) g' h') : Promain.Test (PFreeSubset U) g' h' := by
+  obtain ⟨h_mr, h_ml, h_pr, h_pl⟩ := h_test
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro gr h_gr
+    rcases h_mr gr h_gr with ⟨hr, h_hr, h_ge⟩ | ⟨grl, h_grl, h_ge⟩
+    · exact Or.inl ⟨hr, h_hr, h_rr gr h_gr hr h_hr h_ge⟩
+    · refine Or.inr ⟨grl, h_grl, ?_⟩
+      rw [← misereGE_rw_right_iff h_h_eq_V] at h_ge
+      rw [← misereGE_rw_right_iff h_h_eq_U]
+      exact h_rl gr h_gr grl h_grl h_ge
+  · intro hl h_hl
+    rcases h_ml hl h_hl with ⟨gl, h_gl, h_ge⟩ | ⟨hlr, h_hlr, h_ge⟩
+    · exact Or.inl ⟨gl, h_gl, h_ll hl h_hl gl h_gl h_ge⟩
+    · refine Or.inr ⟨hlr, h_hlr, ?_⟩
+      rw [← misereGE_rw_left_iff h_g_eq_V] at h_ge
+      rw [← misereGE_rw_left_iff h_g_eq_U]
+      exact h_lr hl h_hl hlr h_hlr h_ge
+  · intro h_end
+    have := h_pr h_end
+    rwa [PFreeBlocking.strong_iff_misereOutcome_ne h_h'.isPFree] at this ⊢
+  · intro h_end
+    have := h_pl h_end
+    rwa [PFreeBlocking.strong_iff_misereOutcome_ne h_g'.isPFree] at this ⊢
+
+/-- The dominated form of `misereEQ_dominated_not_isEnd_right` is P-free. -/
+theorem isPFree_dominated_not_isEnd_right
+    {U : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    {g : GameForm} (h_g : PFreeSubset U g)
+    (h_win : WinsGoingFirst .left g) :
+    IsPFree (!{{gl ∈ moves .left g | ¬ IsEnd .right gl} | moves .right g} : GameForm) := by
+  have h_eq := misereEQ_dominated_not_isEnd_right h_g h_win
+  unfold IsPFree
+  refine ⟨?_, ?_⟩
+  · rw [← IntegerInvertible.misereOutcome_eq_of_misereEQ h_eq]
+    exact misereOutcome_ne_P_of_pfree h_g
+  · intro p gp h_gp
+    cases p
+    · rw [leftMoves_ofSets, Set.mem_setOf_eq] at h_gp
+      exact (Hereditary.of_mem_moves h_g h_gp.left).isPFree
+    · rw [rightMoves_ofSets] at h_gp
+      exact (Hereditary.of_mem_moves h_g h_gp).isPFree
+
+/-- The `g = 0` case of `misereGE_of_subset_pfree`, through `zero_misereGE_iff`. -/
+private theorem zero_misereGE_of_subset
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {h : GameForm}
+    (h_h : PFreeSubset V h)
+    (h_ge : (0 : GameForm) ≥m (PFreeSubset V) h) : (0 : GameForm) ≥m (PFreeSubset U) h := by
+  rw [zero_misereGE_iff h_h] at h_ge
+  rw [zero_misereGE_iff (pfreeSubset_of_subset h_le h_h)]
+  rcases h_ge with h_R | ⟨h_N, h_mr, h_ml, h_pr, h_pl⟩
+  · exact Or.inl h_R
+  refine Or.inr ⟨h_N, ?_, ?_, ?_, ?_⟩
+  · intro gr h_gr
+    simp only [moves_zero, Set.mem_empty_iff_false] at h_gr
+  · intro hl h_hl
+    rcases h_ml hl h_hl with ⟨gl, h_gl, _⟩ | ⟨hlr, h_hlr, h_ge⟩
+    · simp only [moves_zero, Set.mem_empty_iff_false] at h_gl
+    · rw [leftMoves_ofSets, Set.mem_setOf_eq] at h_hl
+      obtain ⟨h_hl_mem, -⟩ := h_hl
+      exact Or.inr ⟨hlr, h_hlr, zero_misereGE_of_subset h_le
+        (Hereditary.of_mem_moves (Hereditary.of_mem_moves h_h h_hl_mem) h_hlr) h_ge⟩
+  · intro h_end
+    have h_win := (misereOutcome_N_iff_winsGoingFirst.mp h_N).left
+    have := h_pr h_end
+    rwa [PFreeBlocking.strong_iff_misereOutcome_ne (isPFree_dominated_not_isEnd_right h_h h_win)]
+      at this ⊢
+  · intro _
+    exact strong_of_isEnd isEnd_zero
+termination_by h
+decreasing_by form_wf
+
+/-- Comparison with `-1` transfers from `pf(V)` to `pf(U)`. -/
+private theorem neg_one_misereGE_of_subset
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {h : GameForm}
+    (h_h : PFreeSubset V h)
+    (h_ge : (-1 : GameForm) ≥m (PFreeSubset V) h) : (-1 : GameForm) ≥m (PFreeSubset U) h := by
+  have h_h_U := pfreeSubset_of_subset h_le h_h
+  have h_neg_one_V : PFreeSubset V (-1 : GameForm) := by
+    simpa [Form.intCast_neg, Form.intCast_one] using HasInt.has_int (A := PFreeSubset V) (-1)
+  have h_neg_one_U := pfreeSubset_of_subset h_le h_neg_one_V
+  have h_left : IsEnd .left (-1 : GameForm) := by
+    rw [← Form.intCast_one, ← Form.intCast_neg, isEnd_left_intCast_iff]
+    omega
+  have h_not_right : ¬ IsEnd .right (-1 : GameForm) := by
+    rw [← Form.intCast_one, ← Form.intCast_neg, isEnd_right_intCast_iff]
+    omega
+  have h_moves_right : moves .right (-1 : GameForm) = {0} := by
+    rw [moves_neg, Player.neg_right, leftMoves_one, Set.neg_singleton, neg_zero]
+  have h_rl :
+      ∀ gr ∈ moves .right (!{{(-1 : GameForm)} | (moves .right (-1 : GameForm))} : GameForm),
+        ∀ grl ∈ moves .left gr, grl ≥m (PFreeSubset V) h → grl ≥m (PFreeSubset U) h := by
+    intro gr h_gr grl h_grl _
+    rw [rightMoves_ofSets, h_moves_right, Set.mem_singleton_iff] at h_gr
+    subst h_gr
+    simp only [moves_zero, Set.mem_empty_iff_false] at h_grl
+  have h_ll : ∀ hl ∈ moves .left h,
+      ∀ gl ∈ moves .left (!{{(-1 : GameForm)} | (moves .right (-1 : GameForm))} : GameForm),
+        gl ≥m (PFreeSubset V) hl → gl ≥m (PFreeSubset U) hl := by
+    intro hl h_hl gl h_gl h_ge
+    rw [leftMoves_ofSets, Set.mem_singleton_iff] at h_gl
+    subst h_gl
+    exact neg_one_misereGE_of_subset h_le (Hereditary.of_mem_moves h_h h_hl) h_ge
+  have h_lr : ∀ hl ∈ moves .left h, ∀ hlr ∈ moves .right hl,
+      (-1 : GameForm) ≥m (PFreeSubset V) hlr → (-1 : GameForm) ≥m (PFreeSubset U) hlr :=
+    fun hl h_hl hlr h_hlr h_ge => neg_one_misereGE_of_subset h_le
+      (Hereditary.of_mem_moves (Hereditary.of_mem_moves h_h h_hl) h_hlr) h_ge
+  by_cases hh_both : IsEnd .left h ∧ IsEnd .right h
+  · obtain rfl := both_ends_eq_zero hh_both.1 hh_both.2
+    have := OutcomeStable.misereGE_of_int_le U (-1) 0 (by omega)
+    simpa [Form.intCast_neg, Form.intCast_one, Form.intCast_zero] using this
+  have h_eq_V := Blocking.reduction_plug_end_not_isEnd_right h_neg_one_V h_left h_not_right
+  have h_eq_U := Blocking.reduction_plug_end_not_isEnd_right h_neg_one_U h_left h_not_right
+  have h_plug_mem := Blocking.pluggedLeft_mem h_neg_one_V h_not_right
+  by_cases hh_right : IsEnd .right h
+  · have hh_nl : ¬ IsEnd .left h := fun hl => hh_both ⟨hl, hh_right⟩
+    rw [misereGE_iff_promain_not_isEnd_right_left h_neg_one_V h_h h_left h_not_right hh_nl
+      hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_right_left h_neg_one_U h_h_U h_left h_not_right hh_nl
+      hh_right]
+    refine promain_test_of_subset h_plug_mem (Blocking.plugged_mem h_h hh_nl) h_eq_V h_eq_U
+      (Blocking.reduction_plug_end_not_isEnd_left h_h hh_right hh_nl)
+      (Blocking.reduction_plug_end_not_isEnd_left h_h_U hh_right hh_nl) ?_ h_rl
+      (fun hl h_hl => h_ll hl (by rwa [leftMoves_ofSets] at h_hl))
+      (fun hl h_hl => h_lr hl (by rwa [leftMoves_ofSets] at h_hl)) h_ge
+    intro gr h_gr hr h_hr _
+    rw [rightMoves_ofSets, h_moves_right, Set.mem_singleton_iff] at h_gr
+    rw [rightMoves_ofSets, Set.mem_singleton_iff] at h_hr
+    subst h_gr
+    subst h_hr
+    have := OutcomeStable.misereGE_of_int_le U 0 1 (by omega)
+    rw [Form.intCast_one, Form.intCast_zero] at this
+    exact this
+  · rw [misereGE_iff_promain_not_isEnd_right_right h_neg_one_V h_h h_left h_not_right
+      hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_right_right h_neg_one_U h_h_U h_left h_not_right hh_right]
+    refine promain_test_of_subset h_plug_mem h_h h_eq_V h_eq_U (MisereEQ.refl h) (MisereEQ.refl h)
+      ?_ h_rl h_ll h_lr h_ge
+    intro gr h_gr hr h_hr h_ge
+    rw [rightMoves_ofSets, h_moves_right, Set.mem_singleton_iff] at h_gr
+    subst h_gr
+    exact zero_misereGE_of_subset h_le (Hereditary.of_mem_moves h_h h_hr) h_ge
+termination_by h
+decreasing_by form_wf
+
+/-- Comparison with `1` transfers from `pf(V)` to `pf(U)`. -/
+private theorem misereGE_one_of_subset
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {g : GameForm}
+    (h_g : PFreeSubset V g)
+    (h_ge : g ≥m (PFreeSubset V) (1 : GameForm)) : g ≥m (PFreeSubset U) (1 : GameForm) := by
+  rw [← ClosedUnderNeg.neg_ge_neg_iff g 1] at h_ge ⊢
+  exact neg_one_misereGE_of_subset h_le (ClosedUnderNeg.neg_of h_g) h_ge
+
+/-- Comparison modulo `pf(V)` implies comparison modulo the larger `pf(U)` on forms of `pf(V)`. -/
+theorem misereGE_of_subset_pfree
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {g h : GameForm}
+    (h_g : PFreeSubset V g) (h_h : PFreeSubset V h) (h_ge : g ≥m (PFreeSubset V) h) :
+    g ≥m (PFreeSubset U) h := by
+  have h_g_U := pfreeSubset_of_subset h_le h_g
+  have h_h_U := pfreeSubset_of_subset h_le h_h
+  by_cases hg_both : IsEnd .left g ∧ IsEnd .right g
+  · obtain rfl := both_ends_eq_zero hg_both.1 hg_both.2
+    exact zero_misereGE_of_subset h_le h_h h_ge
+  by_cases hh_both : IsEnd .left h ∧ IsEnd .right h
+  · obtain rfl := both_ends_eq_zero hh_both.1 hh_both.2
+    rw [← ClosedUnderNeg.neg_ge_neg_iff g 0, neg_zero] at h_ge ⊢
+    exact zero_misereGE_of_subset h_le (ClosedUnderNeg.neg_of h_g) h_ge
+  have hg_nr : IsEnd .left g → ¬ IsEnd .right g := fun hl hr => hg_both ⟨hl, hr⟩
+  have hh_nl : IsEnd .right h → ¬ IsEnd .left h := fun hr hl => hh_both ⟨hl, hr⟩
+  have h_rr : ∀ gr ∈ moves .right g, ∀ hr ∈ moves .right h,
+      gr ≥m (PFreeSubset V) hr → gr ≥m (PFreeSubset U) hr :=
+    fun gr h_gr hr h_hr h_ge => misereGE_of_subset_pfree h_le (Hereditary.of_mem_moves h_g h_gr)
+      (Hereditary.of_mem_moves h_h h_hr) h_ge
+  have h_rl : ∀ gr ∈ moves .right g, ∀ grl ∈ moves .left gr,
+      grl ≥m (PFreeSubset V) h → grl ≥m (PFreeSubset U) h :=
+    fun gr h_gr grl h_grl h_ge => misereGE_of_subset_pfree h_le
+      (Hereditary.of_mem_moves (Hereditary.of_mem_moves h_g h_gr) h_grl) h_h h_ge
+  have h_ll : ∀ hl ∈ moves .left h, ∀ gl ∈ moves .left g,
+      gl ≥m (PFreeSubset V) hl → gl ≥m (PFreeSubset U) hl :=
+    fun hl h_hl gl h_gl h_ge => misereGE_of_subset_pfree h_le (Hereditary.of_mem_moves h_g h_gl)
+      (Hereditary.of_mem_moves h_h h_hl) h_ge
+  have h_lr : ∀ hl ∈ moves .left h, ∀ hlr ∈ moves .right hl,
+      g ≥m (PFreeSubset V) hlr → g ≥m (PFreeSubset U) hlr :=
+    fun hl h_hl hlr h_hlr h_ge => misereGE_of_subset_pfree h_le h_g
+      (Hereditary.of_mem_moves (Hereditary.of_mem_moves h_h h_hl) h_hlr) h_ge
+  have h_rr_plug : ∀ gr ∈ moves .right g,
+      ∀ hr ∈ moves .right (!{(moves .left h) | {(1 : GameForm)}} : GameForm),
+        gr ≥m (PFreeSubset V) hr → gr ≥m (PFreeSubset U) hr := by
+    intro gr h_gr hr h_hr h_ge
+    rw [rightMoves_ofSets, Set.mem_singleton_iff] at h_hr
+    subst h_hr
+    exact misereGE_one_of_subset h_le (Hereditary.of_mem_moves h_g h_gr) h_ge
+  have h_ll_plug : ∀ hl ∈ moves .left h,
+      ∀ gl ∈ moves .left (!{{(-1 : GameForm)} | (moves .right g)} : GameForm),
+        gl ≥m (PFreeSubset V) hl → gl ≥m (PFreeSubset U) hl := by
+    intro hl h_hl gl h_gl h_ge
+    rw [leftMoves_ofSets, Set.mem_singleton_iff] at h_gl
+    subst h_gl
+    exact neg_one_misereGE_of_subset h_le (Hereditary.of_mem_moves h_h h_hl) h_ge
+  by_cases hg_left : IsEnd .left g <;> by_cases hh_right : IsEnd .right h
+  · rw [misereGE_iff_promain_not_isEnd_right_left h_g h_h hg_left (hg_nr hg_left) (hh_nl hh_right)
+      hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_right_left h_g_U h_h_U hg_left (hg_nr hg_left)
+      (hh_nl hh_right) hh_right]
+    exact promain_test_of_subset (Blocking.pluggedLeft_mem h_g (hg_nr hg_left))
+      (Blocking.plugged_mem h_h (hh_nl hh_right))
+      (Blocking.reduction_plug_end_not_isEnd_right h_g hg_left (hg_nr hg_left))
+      (Blocking.reduction_plug_end_not_isEnd_right h_g_U hg_left (hg_nr hg_left))
+      (Blocking.reduction_plug_end_not_isEnd_left h_h hh_right (hh_nl hh_right))
+      (Blocking.reduction_plug_end_not_isEnd_left h_h_U hh_right (hh_nl hh_right))
+      (fun gr h_gr => h_rr_plug gr (by rwa [rightMoves_ofSets] at h_gr))
+      (fun gr h_gr => h_rl gr (by rwa [rightMoves_ofSets] at h_gr))
+      (fun hl h_hl => h_ll_plug hl (by rwa [leftMoves_ofSets] at h_hl))
+      (fun hl h_hl => h_lr hl (by rwa [leftMoves_ofSets] at h_hl)) h_ge
+  · rw [misereGE_iff_promain_not_isEnd_right_right h_g h_h hg_left (hg_nr hg_left) hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_right_right h_g_U h_h_U hg_left (hg_nr hg_left) hh_right]
+    exact promain_test_of_subset (Blocking.pluggedLeft_mem h_g (hg_nr hg_left)) h_h
+      (Blocking.reduction_plug_end_not_isEnd_right h_g hg_left (hg_nr hg_left))
+      (Blocking.reduction_plug_end_not_isEnd_right h_g_U hg_left (hg_nr hg_left))
+      (MisereEQ.refl h) (MisereEQ.refl h)
+      (fun gr h_gr => h_rr gr (by rwa [rightMoves_ofSets] at h_gr))
+      (fun gr h_gr => h_rl gr (by rwa [rightMoves_ofSets] at h_gr)) h_ll_plug h_lr h_ge
+  · rw [misereGE_iff_promain_not_isEnd_left_left h_g h_h hg_left (hh_nl hh_right) hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_left_left h_g_U h_h_U hg_left (hh_nl hh_right) hh_right]
+    exact promain_test_of_subset h_g (Blocking.plugged_mem h_h (hh_nl hh_right))
+      (MisereEQ.refl g) (MisereEQ.refl g)
+      (Blocking.reduction_plug_end_not_isEnd_left h_h hh_right (hh_nl hh_right))
+      (Blocking.reduction_plug_end_not_isEnd_left h_h_U hh_right (hh_nl hh_right))
+      h_rr_plug h_rl
+      (fun hl h_hl => h_ll hl (by rwa [leftMoves_ofSets] at h_hl))
+      (fun hl h_hl => h_lr hl (by rwa [leftMoves_ofSets] at h_hl)) h_ge
+  · rw [misereGE_iff_promain_not_isEnd_left_right h_g h_h hg_left hh_right] at h_ge
+    rw [misereGE_iff_promain_not_isEnd_left_right h_g_U h_h_U hg_left hh_right]
+    exact promain_test_of_subset h_g h_h (MisereEQ.refl g) (MisereEQ.refl g)
+      (MisereEQ.refl h) (MisereEQ.refl h) h_rr h_rl h_ll h_lr h_ge
+termination_by (g, h)
+decreasing_by form_wf
+
+/-- On forms of `pf(V)`, comparison modulo `pf(V)` and modulo the larger `pf(U)` coincide, so
+`pf(V)` embeds in `pf(U)` as a preorder. -/
+theorem misereGE_pfree_iff_of_subset
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {g h : GameForm}
+    (h_g : PFreeSubset V g) (h_h : PFreeSubset V h) :
+    g ≥m (PFreeSubset V) h ↔ g ≥m (PFreeSubset U) h :=
+  ⟨misereGE_of_subset_pfree h_le h_g h_h,
+    misereGE_of_subset _ (fun _ => pfreeSubset_of_subset h_le) g h⟩
+
+theorem misereEQ_pfree_iff_of_subset
+    {U V : GameForm → Prop} [OutcomeStable U] [Short U] [ShortUniverse U] [HasInt U]
+    [ClosedUnderAddNat U] [IntegerInvertible U] [Blocking U]
+    [OutcomeStable V] [Short V] [ShortUniverse V] [HasInt V]
+    [ClosedUnderAddNat V] [IntegerInvertible V] [Blocking V]
+    (h_le : ∀ g, V g → U g) {g h : GameForm}
+    (h_g : PFreeSubset V g) (h_h : PFreeSubset V h) :
+    g =m (PFreeSubset V) h ↔ g =m (PFreeSubset U) h := by
+  constructor <;> intro h_eq
+  · exact MisereEq.of_antisymm
+      ((misereGE_pfree_iff_of_subset h_le h_g h_h).mp (misereGE_of_misereEQ h_eq))
+      ((misereGE_pfree_iff_of_subset h_le h_h h_g).mp (misereGE_of_misereEQ h_eq.symm))
+  · exact MisereEq.of_antisymm
+      ((misereGE_pfree_iff_of_subset h_le h_g h_h).mpr (misereGE_of_misereEQ h_eq))
+      ((misereGE_pfree_iff_of_subset h_le h_h h_g).mpr (misereGE_of_misereEQ h_eq.symm))
 
 end PFree

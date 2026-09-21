@@ -398,6 +398,10 @@ namespace PFree
 
 variable {A : GameForm → Prop} [PFree A]
 
+theorem pfreeSubset_of_subset {U V : GameForm → Prop} (h_le : ∀ g, V g → U g) {g : GameForm}
+    (h_g : PFreeSubset V g) : PFreeSubset U g :=
+  PFreeSubset.mk (h_le g h_g.mem) h_g.isPFree
+
 theorem misereOutcome_ne_P_of_pfree {g : GameForm} (h1 : A g) : MisereOutcome g ≠ .P := by
   have h2 := PFree.pfree h1
   unfold IsPFree at h2
